@@ -47,6 +47,10 @@ void ACharacterBaseDeusEx::LookCamera(FVector2D LookValue)
 	AddControllerPitchInput(LookValue.Y);
 }
 
+
+// ======================================================
+//          Helper for interaction raycast
+// ======================================================
 void ACharacterBaseDeusEx::GetCapsuleSize(float& radius, float& halfHeight) const
 {
 	const UCapsuleComponent& CapsuleComp = *GetCapsuleComponent();

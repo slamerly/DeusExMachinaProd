@@ -19,21 +19,21 @@ class DEUSEXMACHINA_API IInteractable
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	UFUNCTION()
-	virtual FVector GetInteractableTooltipPosition() = 0;
+	UFUNCTION(BlueprintNativeEvent)
+	FVector GetInteractableTooltipPosition();
 
-	UFUNCTION()
-	virtual void Interaction() = 0;
+	UFUNCTION(BlueprintNativeEvent)
+	void Interaction();
 
-	UFUNCTION()
-	virtual bool CanInteract() = 0;
+	UFUNCTION(BlueprintNativeEvent)
+	bool CanInteract();
 
-	UFUNCTION()
-	virtual bool IsInteractionHeavy() = 0;
+	UFUNCTION(BlueprintNativeEvent)
+	bool IsInteractionHeavy();
 
-	UFUNCTION()
-	virtual void InteractionHeavyUpdate(FVector2D ControlValue) = 0;
+	UFUNCTION(BlueprintNativeEvent)
+	void InteractionHeavyUpdate(FVector2D ControlValue);
 
-	UFUNCTION()
-	virtual void InteractionHeavyFinished() = 0;
+	UFUNCTION(BlueprintNativeEvent)
+	void InteractionHeavyFinished();
 };

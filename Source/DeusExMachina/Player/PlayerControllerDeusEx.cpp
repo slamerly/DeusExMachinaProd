@@ -44,7 +44,6 @@ void APlayerControllerDeusEx::Tick(float DeltaTime)
 void APlayerControllerDeusEx::InteractionRaycast()
 {
 	CurrentInteractable = nullptr;
-	bCurrentInteractableValid = false;
 
 	if (!IsValid(Character)) return;
 
@@ -62,71 +61,128 @@ void APlayerControllerDeusEx::InteractionRaycast()
 
 	if (!InteractionHit)
 	{
-		return;
+		return; //  return if the raycast didn't found any object
 	}
 
 	if (!OutInteraction.GetActor()->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 	{
-		return;
+		return; //  return if the found object doesn't implement the Interactable interface
 	}
 
-	CurrentInteractable = Cast<IInteractable>(OutInteraction.GetActor());
-	bCurrentInteractableValid = true;
-
-
-	//  check if the found object can be interacted this frame
-	if (!CurrentInteractable->CanInteract())
+	if (!IInteractable::Execute_CanInteract(OutInteraction.GetActor()))
 	{
-		CurrentInteractable = nullptr;
-		bCurrentInteractableValid = false;
+		return; //  return if the found interactable object can't interact this frame
 	}
+
+	CurrentInteractable = OutInteraction.GetActor();
 }
 
 
 // ======================================================
-//          Move & Look (look temporary)
+//           Move & Look (look temporary)
 // ======================================================
 void APlayerControllerDeusEx::Move(const FInputActionValue& value)
 {
+	//  checks
+	if (bPlayerBlocked) return;
+
+	if (PlayerInputMode != EPlayerInputMode::PlayerMovement) return;
+
 	if (!IsValid(Character)) return;
 
+	//  actual function
 	const FVector2D MoveValue = value.Get<FVector2D>();
-
 	Character->Move(MoveValue);
 }
 
 void APlayerControllerDeusEx::Look(const FInputActionValue& value)
 {
+	//  checks
+	if (bPlayerBlocked) return;
+
 	if (!IsValid(Character)) return;
 
+	//  actual function
 	const FVector2D LookValue = value.Get<FVector2D>();
-
 	Character->LookCamera(LookValue);
 }
 
 
 // ======================================================
-//             Interaction (inputs)
+//                 Interaction (input)
 // ======================================================
 void APlayerControllerDeusEx::Interact(const FInputActionValue& value)
 {
-	if (!bCurrentInteractableValid) return;
+	//  checks
+	if (bPlayerBlocked) return;
 
-	CurrentInteractable->Interaction();
+	if (PlayerInputMode != EPlayerInputMode::PlayerMovement) return;
+
+	if (!IsValid(CurrentInteractable)) return;
+
+	//  actual function
+	IInteractable::Execute_Interaction(CurrentInteractable);
+
+	if (IInteractable::Execute_IsInteractionHeavy(CurrentInteractable))
+	{
+		SetPlayerInputMode(EPlayerInputMode::InteractionHeavy);
+	}
 }
 
 void APlayerControllerDeusEx::InteractRelease(const FInputActionValue& value)
 {
-	if (!bCurrentInteractableValid) return;
+	//  checks
+	if (bPlayerBlocked) return;
 
-	if (!CurrentInteractable->IsInteractionHeavy()) return;
+	if (PlayerInputMode != EPlayerInputMode::InteractionHeavy) return;
 
-	CurrentInteractable->InteractionHeavyFinished();
+	if (!IsValid(CurrentInteractable)) return;
+
+	if (!IInteractable::Execute_IsInteractionHeavy(CurrentInteractable)) return;
+
+	//  actual function
+	IInteractable::Execute_InteractionHeavyFinished(CurrentInteractable);
+	SetPlayerInputMode(EPlayerInputMode::PlayerMovement);
 }
 
 
 // ======================================================
-//                 Setup Inputs
+//             Interaction control (input)
+// ======================================================
+void APlayerControllerDeusEx::InteractControl(const FInputActionValue& value)
+{
+	//  checks
+	if (bPlayerBlocked) return;
+
+	if (PlayerInputMode != EPlayerInputMode::InteractionHeavy) return;
+
+	if (!IsValid(CurrentInteractable)) return;
+
+	if (!IInteractable::Execute_IsInteractionHeavy(CurrentInteractable)) return;
+
+	//  actual function
+	const FVector2D ControlValue = value.Get<FVector2D>();
+	IInteractable::Execute_InteractionHeavyUpdate(CurrentInteractable, ControlValue);
+}
+
+void APlayerControllerDeusEx::InteractControlRelease(const FInputActionValue& value)
+{
+	//  checks
+	if (bPlayerBlocked) return;
+
+	if (PlayerInputMode != EPlayerInputMode::InteractionHeavy) return;
+
+	if (!IsValid(CurrentInteractable)) return;
+
+	if (!IInteractable::Execute_IsInteractionHeavy(CurrentInteractable)) return;
+
+	//  actual function
+	IInteractable::Execute_InteractionHeavyUpdate(CurrentInteractable, FVector2D::ZeroVector);
+}
+
+
+// ======================================================
+//                  Setup Inputs
 // ======================================================
 void APlayerControllerDeusEx::SetupInputComponent()
 {
@@ -144,6 +200,10 @@ void APlayerControllerDeusEx::SetupInputComponent()
 	enhanced_input->BindAction(InteractInputAction, ETriggerEvent::Started, this, &APlayerControllerDeusEx::Interact);
 	enhanced_input->BindAction(InteractInputAction, ETriggerEvent::Completed, this, &APlayerControllerDeusEx::InteractRelease);
 	enhanced_input->BindAction(InteractInputAction, ETriggerEvent::Canceled, this, &APlayerControllerDeusEx::InteractRelease);
+
+	enhanced_input->BindAction(InteractControlInputAction, ETriggerEvent::Triggered, this, &APlayerControllerDeusEx::InteractControl);
+	enhanced_input->BindAction(InteractControlInputAction, ETriggerEvent::Completed, this, &APlayerControllerDeusEx::InteractControlRelease);
+	enhanced_input->BindAction(InteractControlInputAction, ETriggerEvent::Canceled, this, &APlayerControllerDeusEx::InteractControlRelease);
 }
 
 
@@ -160,4 +220,63 @@ void APlayerControllerDeusEx::SetPawn(APawn* pawn)
 	{
 		return;
 	}
+}
+
+
+
+
+// ======================================================
+//        Input Mode (Player Controller Interface)
+// ======================================================
+void APlayerControllerDeusEx::SetPlayerInputMode(EPlayerInputMode InputMode)
+{
+	PlayerInputMode = InputMode;
+}
+
+EPlayerInputMode APlayerControllerDeusEx::GetPlayerInputMode()
+{
+	return PlayerInputMode;
+}
+
+
+// ======================================================
+//       Block Inputs (Player Controller Interface)
+// ======================================================
+void APlayerControllerDeusEx::BlockPlayerInputs(EBlockPlayerCause Cause)
+{
+	PlayerBlockedCauses.Add(Cause);
+
+	if (!PlayerBlockedCauses.IsEmpty())
+	{
+		bPlayerBlocked = true;
+	}
+}
+
+void APlayerControllerDeusEx::UnblockPlayerInputs(EBlockPlayerCause Cause)
+{
+	PlayerBlockedCauses.Remove(Cause);
+
+	if (PlayerBlockedCauses.IsEmpty())
+	{
+		bPlayerBlocked = false;
+	}
+}
+
+bool APlayerControllerDeusEx::IsPlayerBlocked()
+{
+	return bPlayerBlocked;
+}
+
+
+// ======================================================
+//         Pause (Player Controller Interface)
+// ======================================================
+void APlayerControllerDeusEx::SetInPause(bool bInPauseValue)
+{
+	bInPause = bInPauseValue;
+}
+
+bool APlayerControllerDeusEx::GetInPause()
+{
+	return bInPause;
 }
