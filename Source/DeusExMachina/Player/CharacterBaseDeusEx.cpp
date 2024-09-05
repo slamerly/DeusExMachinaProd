@@ -1,4 +1,5 @@
 #include "CharacterBaseDeusEx.h"
+#include "Components/CapsuleComponent.h"
 
 ACharacterBaseDeusEx::ACharacterBaseDeusEx()
 {
@@ -44,4 +45,11 @@ void ACharacterBaseDeusEx::LookCamera(FVector2D LookValue)
 	// add yaw and pitch input to controller
 	AddControllerYawInput(LookValue.X);
 	AddControllerPitchInput(LookValue.Y);
+}
+
+void ACharacterBaseDeusEx::GetCapsuleSize(float& radius, float& halfHeight) const
+{
+	const UCapsuleComponent& CapsuleComp = *GetCapsuleComponent();
+	radius = CapsuleComp.GetScaledCapsuleRadius();
+	halfHeight = CapsuleComp.GetScaledCapsuleHalfHeight();
 }
