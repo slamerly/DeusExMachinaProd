@@ -18,5 +18,8 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	//  Move & Look from Third Person template for basic player movement
+	virtual void Move(FVector2D MoveValue);
+	virtual void LookCamera(FVector2D LookValue);
 };

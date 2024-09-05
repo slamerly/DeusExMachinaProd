@@ -42,7 +42,7 @@ void APlayerControllerDeusEx::Move(const FInputActionValue& value)
 
 	const FVector2D MoveValue = value.Get<FVector2D>();
 
-	//  character->Move()
+	Character->Move(MoveValue);
 }
 
 void APlayerControllerDeusEx::Look(const FInputActionValue& value)
@@ -51,7 +51,7 @@ void APlayerControllerDeusEx::Look(const FInputActionValue& value)
 
 	const FVector2D LookValue = value.Get<FVector2D>();
 
-	//  character->CameraLook()
+	Character->LookCamera(LookValue);
 }
 
 
