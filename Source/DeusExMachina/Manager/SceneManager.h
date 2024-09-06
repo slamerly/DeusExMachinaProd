@@ -63,6 +63,8 @@ private:
 	void BeforeLevelChange(int pCurrentLevelIndex);
 	void AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad);
 
+	void LoadingScene();
+
 	// ==================
 	//		Save System
 	// ==================

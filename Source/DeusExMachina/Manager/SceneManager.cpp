@@ -3,6 +3,7 @@
 
 #include "SceneManager.h"
 #include <Kismet/GameplayStatics.h>
+#include "SceneTransition.h"
 
 // Sets default values
 ASceneManager::ASceneManager()
@@ -10,7 +11,7 @@ ASceneManager::ASceneManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	PlayerCtrl = Cast<APlayerControllerDeusEx>(GetWorld()->GetFirstPlayerController());
+	//PlayerCtrl = Cast<APlayerControllerDeusEx>(GetWorld()->GetFirstPlayerController());
 
 }
 
@@ -63,6 +64,16 @@ void ASceneManager::BeforeLevelChange(int pCurrentLevelIndex)
 
 void ASceneManager::AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad)
 {
+	if (WithLoad)
+	{
+		LoadingScene();
+	}
+	TArray<SceneTransition> SceneTransitions;
+	//UGameplayStatics::GetAllActorsOfClass(this, SceneTransitions);
+}
+
+void ASceneManager::LoadingScene()
+{
 }
 
 void ASceneManager::SavingScene()
@@ -89,6 +100,8 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& NextLevel, int pTa
 	if (Scenes.Contains(NextLevel))
 	{
 		BeforeLevelChange(CurrentLevelIndex);
+		//Delay
+
 		ComeFromSceneIndex = CurrentLevelIndex;
 
 		//Unload Scene
@@ -101,10 +114,15 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& NextLevel, int pTa
 
 		AfterLevelChange(ComeFromSceneIndex, WithLoad);
 
-		if (WithLoad)
+		if (FromNarrationScene)
 		{
-
+			PlayerCtrl->UnblockPlayerInputs(EBlockPlayerCause::Narration);
+			PlayerCtrl->SetPlayerInputMode(EPlayerInputMode::PlayerMovement);
+			UGameplayStatics::GetPlayerPawn(this, 0)->SetActorHiddenInGame(false);	
 		}
+
+		//Delay
+		PlayerCtrl->UnblockPlayerInputs(EBlockPlayerCause::SceneTransition);
 	}
 	else
 	{
