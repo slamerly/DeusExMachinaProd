@@ -61,7 +61,7 @@ private:
 	int TargetID = 0;
 	int ComeFromSceneIndex = 0;
 	void BeforeLevelChange(int pCurrentLevelIndex);
-	void AfterLevelChange(int SaveCurrentLevelIndex);
+	void AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad);
 
 	// ==================
 	//		Save System

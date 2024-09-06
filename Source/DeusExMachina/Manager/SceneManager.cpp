@@ -61,7 +61,7 @@ void ASceneManager::BeforeLevelChange(int pCurrentLevelIndex)
 
 }
 
-void ASceneManager::AfterLevelChange(int SaveCurrentLevelIndex)
+void ASceneManager::AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad)
 {
 }
 
@@ -94,6 +94,17 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& NextLevel, int pTa
 		//Unload Scene
 		FLatentActionInfo LatentInfo;
 		UGameplayStatics::UnloadStreamLevel(this, Scenes[CurrentLevelIndex]->GetFName(), LatentInfo, true);
+
+		CurrentLevelIndex = Scenes.Find(NextLevel);
+
+		UGameplayStatics::LoadStreamLevel(this, NextLevel->GetFName(), true, true, LatentInfo);
+
+		AfterLevelChange(ComeFromSceneIndex, WithLoad);
+
+		if (WithLoad)
+		{
+
+		}
 	}
 	else
 	{
