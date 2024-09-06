@@ -9,6 +9,7 @@
 #include "PlayerControllerDeusEx.generated.h"
 
 class ACharacterBaseDeusEx;
+class AHUDDeusEx;
 class UInputMappingContext;
 class UInputAction;
 
@@ -93,6 +94,8 @@ protected:
 	ACharacterBaseDeusEx* Character{ nullptr };
 
 	AActor* CurrentInteractable{ nullptr };
+
+	AHUDDeusEx* HudRef{ nullptr };
 
 
 	// ====================

@@ -2,6 +2,7 @@
 #include "CharacterBaseDeusEx.h"
 
 #include "DeusExMachina/Interaction/Interactable.h"
+#include "DeusExMachina/HUDDeusEx.h"
 
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
@@ -9,6 +10,7 @@
 #include "InputAction.h"
 #include "InputActionValue.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 #include <Defines.h>
@@ -26,6 +28,11 @@ void APlayerControllerDeusEx::BeginPlay()
 
 void APlayerControllerDeusEx::LateBeginPlay()
 {
+	HudRef = Cast<AHUDDeusEx>(GetHUD());
+	if (!IsValid(HudRef))
+	{
+		kPRINT_ERROR("Player controller could not retrieve Deus Ex Hud class!");
+	}
 }
 
 
@@ -34,7 +41,12 @@ void APlayerControllerDeusEx::LateBeginPlay()
 // ======================================================
 void APlayerControllerDeusEx::Tick(float DeltaTime)
 {
+	bool LastInteractableValid = IsValid(CurrentInteractable);
 	InteractionRaycast();
+	if (LastInteractableValid && !IsValid(CurrentInteractable))
+	{
+		HudRef->HideInteractionTooltip();
+	}
 }
 
 
@@ -56,7 +68,7 @@ void APlayerControllerDeusEx::InteractionRaycast()
 	bool InteractionHit = UKismetSystemLibrary::CapsuleTraceSingle(
 		Character, RaycastStart, RaycastEnd, CapsuleRadius, CapsuleHalfHeight,
 		ETraceTypeQuery::TraceTypeQuery1, false, { Character },
-		EDrawDebugTrace::ForOneFrame, OutInteraction, true
+		EDrawDebugTrace::None, OutInteraction, true
 	);
 
 	if (!InteractionHit)
@@ -75,6 +87,15 @@ void APlayerControllerDeusEx::InteractionRaycast()
 	}
 
 	CurrentInteractable = OutInteraction.GetActor();
+
+	const FVector TooltipWorldPos = IInteractable::Execute_GetInteractableTooltipPosition(CurrentInteractable);
+	FVector2D TooltipScreenPos;
+	const bool TooltipInScreen = UGameplayStatics::ProjectWorldToScreen(this, TooltipWorldPos, TooltipScreenPos, true);
+	if (TooltipInScreen)
+	{
+		const FVector2D ViewportSize = GEngine->GameViewport->Viewport->GetSizeXY();
+		HudRef->ShowInteractionTooltip(TooltipScreenPos / ViewportSize);
+	}
 }
 
 

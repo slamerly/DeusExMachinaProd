@@ -14,4 +14,10 @@ class DEUSEXMACHINA_API AHUDDeusEx : public AHUD
 {
 	GENERATED_BODY()
 	
+public:
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowInteractionTooltip(FVector2D TooltipScreenFractionPos);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void HideInteractionTooltip();
 };
