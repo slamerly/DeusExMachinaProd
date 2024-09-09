@@ -78,6 +78,8 @@ private:
 public:
 	int GetCurrentIndexScene() override;
 
+	TSoftObjectPtr<UWorld> GetCurrentScene() override;
+
 	void CheckpointPlayerTransform(FTransform PlayerTransform) override;
 
 	FTransform GetCheckpointPlayerTransform() override;

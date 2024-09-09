@@ -26,6 +26,9 @@ public:
 	virtual int GetCurrentIndexScene() = 0;
 
 	UFUNCTION(BlueprintCallable)
+	virtual TSoftObjectPtr<UWorld> GetCurrentScene() = 0;
+
+	UFUNCTION(BlueprintCallable)
 	virtual void CheckpointPlayerTransform(FTransform PlayerTransform) = 0;
 
 	UFUNCTION(BlueprintCallable)

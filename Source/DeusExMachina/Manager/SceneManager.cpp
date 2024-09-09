@@ -3,7 +3,7 @@
 
 #include "SceneManager.h"
 #include <Kismet/GameplayStatics.h>
-#include "SceneTransition.h"
+//#include "SceneTransition.h"
 
 // Sets default values
 ASceneManager::ASceneManager()
@@ -68,7 +68,7 @@ void ASceneManager::AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad)
 	{
 		LoadingScene();
 	}
-	TArray<SceneTransition> SceneTransitions;
+	//TArray<SceneTransition> SceneTransitions;
 	//UGameplayStatics::GetAllActorsOfClass(this, SceneTransitions);
 }
 
@@ -83,6 +83,11 @@ void ASceneManager::SavingScene()
 int ASceneManager::GetCurrentIndexScene()
 {
 	return 0;
+}
+
+TSoftObjectPtr<UWorld> ASceneManager::GetCurrentScene()
+{
+	return Scenes[CurrentLevelIndex];
 }
 
 void ASceneManager::CheckpointPlayerTransform(FTransform PlayerTransform)
@@ -114,6 +119,8 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& NextLevel, int pTa
 
 		AfterLevelChange(ComeFromSceneIndex, WithLoad);
 
+
+		//Narration
 		if (FromNarrationScene)
 		{
 			PlayerCtrl->UnblockPlayerInputs(EBlockPlayerCause::Narration);

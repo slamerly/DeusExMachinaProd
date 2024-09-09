@@ -13,6 +13,7 @@ UCLASS()
 class DEUSEXMACHINA_API ULevelUtilitiesFunctions : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
+public:
 
 	/**
 	 *	Find the first Actor in a specified Sublevel of the specified class.
