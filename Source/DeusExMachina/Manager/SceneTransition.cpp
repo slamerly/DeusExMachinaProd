@@ -19,6 +19,7 @@ ASceneTransition::ASceneTransition(const FObjectInitializer& ObjectInitializer)
 	}
 
 	// find scene manager
+	//TSubclassOf<ASceneManager> SceneManagerClass;
 	SceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
 
 	if (!SceneManager)
@@ -32,6 +33,8 @@ ASceneTransition::ASceneTransition(const FObjectInitializer& ObjectInitializer)
 	UGameplayStatics::GetAllActorsOfClass(this, GetClass(), OtherSceneTransition);
 
 	IdSceneTransition = OtherSceneTransition.Num() - 1;
+
+	UE_LOG(LogTemp, Log, TEXT("Number of Transition: %d"), IdSceneTransition);
 
 	/*
 	if (OtherSceneTransition.IsEmpty())
