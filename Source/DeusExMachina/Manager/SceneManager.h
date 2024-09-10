@@ -7,6 +7,8 @@
 #include <Engine/TargetPoint.h>
 #include "SceneManagerInterface.h"
 #include <DeusExMachina/Player/PlayerControllerDeusEx.h>
+#include "Components/TimelineComponent.h"
+#include <Engine/Light.h>
 #include "SceneManager.generated.h"
 
 
@@ -27,9 +29,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
 	TArray<const TObjectPtr<AActor>> Curtains;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Curtains")
-	TArray<FVector> CurtainsInitialPositions;
 
 
 protected:
@@ -55,12 +54,21 @@ private:
 	void InitializeCurtains();
 
 	// ==================
+	//		Lights
+	// ==================
+	void GetSceneLights();
+	TArray<ALight*> Lights;
+	UFUNCTION(BlueprintCallable)
+	void LightsAnimation(bool IsOn);
+
+	// ==================
 	//		Change Level
 	// ==================
 	int TargetID = 0;
 	int ComeFromSceneIndex = 0;
 	void BeforeLevelChange(int pCurrentLevelIndex);
 	void AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad);
+	float DelayAnimations = .0f;
 
 	
 	// ==================
@@ -72,17 +80,56 @@ private:
 // ======================================================
 //             Events animations and sounds
 // ======================================================
-public:
+protected:
 	/**
 	 *	Animation to do in the Begin Play.
 	 * For now, we block the player and have a camera fade.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "Animation|BeginPlay")
 	void BeginPlayAnimation();
-	UPROPERTY(EditAnywhere, Category = "Animation|BeginPlay")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|BeginPlay")
 	bool bBlockPlayerBeginPlay = true;
-	UPROPERTY(EditAnywhere, Category = "Animation|BeginPlay")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|BeginPlay")
 	bool bFadeBeginPlay = true;
+
+	// ==================
+	//		Curtains
+	// ==================
+	TArray<FVector> CurtainsInitialPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Curtains")
+	float CurtainsFinalDistancePos = 0;
+	
+	// Timeline
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTimelineComponent* TimelineCurtains;
+	// La courbe flottante
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Curtains")
+	UCurveFloat* FloatCurveCurtains;
+	UFUNCTION()
+	void OnTimelineUpdateCurtains(float Value);
+	// Fonction appelée à la fin de la timeline
+	UFUNCTION()
+	void OnTimelineFinishedCurtains();
+
+	// ==================
+	//		Lights
+	// ==================
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Lights")
+	float DelayToPutOnLights = 0.2f;
+
+	// Timeline
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTimelineComponent* TimelineLights;
+	// La courbe flottante
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Curtains")
+	UCurveFloat* FloatCurveLights;
+	UFUNCTION()
+	void OnTimelineUpdateLights(float Value);
+	// Fonction appelée à la fin de la timeline
+	UFUNCTION()
+	void OnTimelineFinishedLights();
+	
+
 
 // ======================================================
 //             Scene Manager Interface
