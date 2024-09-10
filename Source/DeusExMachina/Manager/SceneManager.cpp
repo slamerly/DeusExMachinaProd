@@ -3,7 +3,7 @@
 
 #include "SceneManager.h"
 #include <Kismet/GameplayStatics.h>
-//#include "SceneTransition.h"
+#include "SceneTransition.h"
 
 // Sets default values
 ASceneManager::ASceneManager()
@@ -11,14 +11,16 @@ ASceneManager::ASceneManager()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//PlayerCtrl = Cast<APlayerControllerDeusEx>(GetWorld()->GetFirstPlayerController());
-
 }
 
 // Called when the game starts or when spawned
 void ASceneManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PlayerCtrl = Cast<APlayerControllerDeusEx>(GetWorld()->GetFirstPlayerController());
+
+	BeginPlayAnimation();
 
 	CurtainsVerifications();
 
@@ -78,6 +80,15 @@ void ASceneManager::LoadingScene()
 
 void ASceneManager::SavingScene()
 {
+}
+
+void ASceneManager::BeginPlayAnimation_Implementation()
+{
+	// When we load the scene for the first time, we block the player inputand do a camera Fade
+	if(bBlockPlayerBeginPlay)
+		PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
+	if(bFadeBeginPlay)
+		UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(1.0f, 1.0f, 1.0f, FLinearColor::Black, false, true);
 }
 
 int ASceneManager::GetCurrentIndexScene()

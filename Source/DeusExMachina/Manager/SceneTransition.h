@@ -24,8 +24,6 @@ public:
 	~ASceneTransition();
 
 protected:
-	virtual void BeginPlay() override;
-
 	// Collision box
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Default")
 	class UBoxComponent* CollisionBox = nullptr;
