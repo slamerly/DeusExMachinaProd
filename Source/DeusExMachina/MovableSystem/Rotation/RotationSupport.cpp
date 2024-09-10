@@ -1,6 +1,6 @@
 #include "RotationSupport.h"
 #include "Components/SceneComponent.h"
-#include "Components/StaticMeshComponent.h"
+#include "DeusExMachina/Utils/StaticMeshComponentPlus.h"
 #include "Components/ArrowComponent.h"
 #include "DeusExMachina/MovableSystem/MovableObjectComponent.h"
 #include "AnglesUtils.h"
@@ -18,8 +18,9 @@ ARotationSupport::ARotationSupport()
 	SceneRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SceneRootComponent->SetupAttachment(GetRootComponent());
 
-	RotationBase = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Rotation Base"));
+	RotationBase = CreateDefaultSubobject<UStaticMeshComponentPlus>(TEXT("Rotation Base"));
 	RotationBase->SetupAttachment(SceneRootComponent);
+	RotationBase->bUsedInRotationSupport = true;
 
 	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
 	Arrow->SetupAttachment(RotationBase);
@@ -89,3 +90,31 @@ void ARotationSupport::ApplyTestingValues()
 	ApplyChildTestingEditor();
 }
 
+
+
+// ======================================================
+//             Prevent Rotation Base Movement
+// ======================================================
+void ARotationSupport::OnRotationBaseMovedEditor()
+{
+	bool ComponentReset = false;
+
+	if (RotationBase->GetRelativeLocation() != FVector::ZeroVector)
+	{
+		RotationBase->SetRelativeLocation(FVector::ZeroVector);
+		ComponentReset = true;
+	}
+
+	const FRotator CompLocalRot = RotationBase->GetRelativeRotation();
+	if (CompLocalRot.Pitch != 0.0f || CompLocalRot.Roll != 0.0f)
+	{
+		RotationBase->SetRelativeRotation(FRotator{ 0.0f, CompLocalRot.Yaw, 0.0f });
+		ComponentReset = true;
+	}
+
+	if (ComponentReset)
+	{
+		const FName PrintKey = "Editor_RotationSupport_RotationBaseMoved_Warning";
+		GEngine->AddOnScreenDebugMessage((int32)GetTypeHash(PrintKey), 5.0f, FColor::Orange, "Do NOT move the RotationBase component! Move the entire RotationSupport object instead.");
+	}
+}

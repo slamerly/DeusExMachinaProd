@@ -5,7 +5,7 @@
 #include "RotationSupport.generated.h"
 
 class USceneComponent;
-class UStaticMeshComponent;
+class UStaticMeshComponentPlus;
 class UArrowComponent;
 
 UCLASS()
@@ -31,13 +31,10 @@ protected:
 	USceneComponent* SceneRootComponent;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
-	UStaticMeshComponent* RotationBase;
+	UStaticMeshComponentPlus* RotationBase;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	UArrowComponent* Arrow;
-
-
-
 
 
 
@@ -78,4 +75,14 @@ protected:
 public:
 	UPROPERTY(EditAnywhere, Category = "Testing Editor", meta = (Tooltip = "The angle you want to test for this Rotation Support and for its childs.\nWarning: this angle will be applied in the world space and will not take in account potential\nrotation this object could have due to previous rotation testing on its parent."))
 	float TestingAngle{ 0.0f };
+
+
+
+
+
+// ======================================================
+//            Prevent Rotation Base Movement
+// ======================================================
+public:
+	void OnRotationBaseMovedEditor();
 };
