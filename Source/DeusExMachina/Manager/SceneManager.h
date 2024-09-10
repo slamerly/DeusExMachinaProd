@@ -36,7 +36,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	
 
 public:	
 	// Called every frame
@@ -63,14 +62,27 @@ private:
 	void BeforeLevelChange(int pCurrentLevelIndex);
 	void AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad);
 
-	void LoadingScene();
-
+	
 	// ==================
 	//		Save System
 	// ==================
+	void LoadingScene();
 	void SavingScene();	
 
-
+// ======================================================
+//             Events animations and sounds
+// ======================================================
+public:
+	/**
+	 *	Animation to do in the Begin Play.
+	 * For now, we block the player and have a camera fade.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "Animation|BeginPlay")
+	void BeginPlayAnimation();
+	UPROPERTY(EditAnywhere, Category = "Animation|BeginPlay")
+	bool bBlockPlayerBeginPlay = true;
+	UPROPERTY(EditAnywhere, Category = "Animation|BeginPlay")
+	bool bFadeBeginPlay = true;
 
 // ======================================================
 //             Scene Manager Interface

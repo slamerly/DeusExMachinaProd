@@ -19,13 +19,12 @@ ASceneTransition::ASceneTransition(const FObjectInitializer& ObjectInitializer)
 	}
 
 	// find scene manager
-	//TSubclassOf<ASceneManager> SceneManagerClass;
 	SceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
 
 	if (!SceneManager)
 	{
-		//UE_LOG(LogTemp, Log, TEXT("Pas SM: %s"), SceneManagerClass->GetName());
-		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("SceneManager not find."));
+		UE_LOG(LogTemp, Warning, TEXT("SceneManager not find."));
+		//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("SceneManager not find."));
 	}
 
 	// initialize the id number
@@ -35,33 +34,19 @@ ASceneTransition::ASceneTransition(const FObjectInitializer& ObjectInitializer)
 	IdSceneTransition = OtherSceneTransition.Num() - 1;
 
 	UE_LOG(LogTemp, Log, TEXT("Number of Transition: %d"), IdSceneTransition);
-
-	/*
-	if (OtherSceneTransition.IsEmpty())
-	{
-		UE_LOG(LogTemp, Log, TEXT("IsEmpty"));
-	}
-	*/
 }
 
 ASceneTransition::~ASceneTransition()
 {
 }
 
-void ASceneTransition::BeginPlay()
-{
-}
-
 void ASceneTransition::GetAllLightsInSubLevel()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("SceneManager not find."));
-	UE_LOG(LogTemp, Log, TEXT("Doesn't work"));
 	if (SceneManager)
 	{
-		UE_LOG(LogTemp, Log, TEXT("work"));
-		TSubclassOf<ALight> LightClass;
 		TArray<AActor*> LightsFund;
-		ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, Cast<ASceneManager>(SceneManager)->GetCurrentScene(), LightClass, LightsFund);
+		ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, Cast<ASceneManager>(SceneManager)->GetCurrentScene(), ALight::StaticClass(), LightsFund);
 
 		UE_LOG(LogTemp, Log, TEXT("Number of light in the scene %d"), LightsFund.Num());
 
@@ -80,12 +65,6 @@ void ASceneTransition::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCo
 {
 	if (UGameplayStatics::GetPlayerPawn(this, 0) == OtherActor)
 	{
-		/*
-		if (SceneManager->GetClass()->ImplementsInterface(USceneManagerInterface::StaticClass()))
-		{
-			//ISceneManagerInterface::ChangeScene(TargetScene, TargetID, false, true);
-		}
-		*/
 		if (SceneManager)
 		{
 			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, TargetID, false, true);
