@@ -41,9 +41,9 @@ public:
 	bool IsSelfSupport(AMovingSupportBase** MovingSupportSelf = 0);
 
 	// ====================
-	//    Testing Editor
+	//     Level Editor
 	// ====================
-	void ApplyTestingMovementEditor();
+	void ApplyMovementEditor();
 
 
 

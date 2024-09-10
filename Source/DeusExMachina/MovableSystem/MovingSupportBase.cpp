@@ -106,9 +106,9 @@ bool AMovingSupportBase::GetPlayerInRange(FVector PlayerPosition)
 
 
 // ======================================================
-//                  Testing Editor
+//                    Level Editor
 // ======================================================
-void AMovingSupportBase::ApplyTestingValues()
+void AMovingSupportBase::ApplyEditorValues()
 {
 	//  made to be overriden
 }
@@ -156,21 +156,21 @@ void AMovingSupportBase::ComputeChildrensOffsetEditor()
 	}
 }
 
-void AMovingSupportBase::ApplyChildTestingEditor()
+void AMovingSupportBase::ApplyChildLevelEditor()
 {
 	TArray<UMovableObjectComponent*> ChildrensMovable = RetrieveChildrensEditor();
 
 	for (auto ChildMovable : ChildrensMovable)
 	{
-		//  apply child testing movement
-		ChildMovable->ApplyTestingMovementEditor();
+		//  apply child editor movement
+		ChildMovable->ApplyMovementEditor();
 
 		//  recursive if the child is also a support
 		AMovingSupportBase* ChildSupport{ nullptr };
 		const bool IsChildASupport = ChildMovable->IsSelfSupport(&ChildSupport);
 		if (IsChildASupport)
 		{
-			ChildSupport->ApplyChildTestingEditor();
+			ChildSupport->ApplyChildLevelEditor();
 		}
 	}
 }

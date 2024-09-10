@@ -8,6 +8,16 @@ class USceneComponent;
 class UStaticMeshComponentPlus;
 class UArrowComponent;
 
+
+UENUM()
+enum class ERotationState : uint8
+{
+	NotRotating = 0,
+	AutomaticRotation = 1
+};
+
+
+
 UCLASS()
 class DEUSEXMACHINA_API ARotationSupport : public AMovingSupportBase
 {
@@ -39,7 +49,28 @@ protected:
 
 
 // ======================================================
-//               Overrided Functions (category name temp)
+//               Inner Rotation Functions
+// ======================================================
+public:
+	float GetInnerRotation();
+	float GetInnerRotationBase360();
+
+	void AddInnerRotation(float InnerRotAdd);
+
+	/**
+	* Set the inner rotation value of this Rotation Support to a specific value.
+	* @param	InnerRot			The value you want to set.
+	* @param	AbsoluteRotation	True = will set inner rotation to this exact value. | False = will search for the nearest angle corresponding to the value (default).
+	*/
+	void ForceInnerRotation(float InnerRot, bool AbsoluteRotation = false);
+
+protected:
+	void ComputeInnerTransform();
+
+
+
+// ======================================================
+//                Overrided Functions
 // ======================================================
 public:
 	// ====================
@@ -53,7 +84,6 @@ public:
 	// ====================
 	bool IsCurrentlyMoving() override;
 
-
 	// ====================
 	//    Debug Movement
 	// ====================
@@ -61,20 +91,30 @@ public:
 
 
 
-
-
 // ======================================================
-//              Testing Editor Functions
+//               Inner Rotation Variables
 // ======================================================
 protected:
-	void ApplyTestingValues() override;
+	float InnerRotation{ 0.0f };
+
+public:
+	ERotationState CurrentRotationState{ ERotationState::NotRotating };
+
+
 
 // ======================================================
-//              Testing Editor Variables
+//               Level Editor Functions
+// ======================================================
+protected:
+	void ApplyEditorValues() override;
+
+
+// ======================================================
+//               Level Editor Variables
 // ======================================================
 public:
-	UPROPERTY(EditAnywhere, Category = "Testing Editor", meta = (Tooltip = "The angle you want to test for this Rotation Support and for its childs.\nWarning: this angle will be applied in the world space and will not take in account potential\nrotation this object could have due to previous rotation testing on its parent."))
-	float TestingAngle{ 0.0f };
+	UPROPERTY(EditAnywhere, Category = "Level Editor", meta = (Tooltip = "The angle you want to apply for this Rotation Support.\nCan be used for testing and for applying a specific angle at begin play."))
+	float EditorAngle{ 0.0f }; //  'EditorAngle' also serve as a begin play angle
 
 
 

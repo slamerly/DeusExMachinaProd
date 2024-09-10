@@ -132,9 +132,9 @@ bool UMovableObjectComponent::IsSelfSupport(AMovingSupportBase** MovingSupportSe
 
 
 // ======================================================
-//                   Testing Editor
+//                    Level Editor
 // ======================================================
-void UMovableObjectComponent::ApplyTestingMovementEditor()
+void UMovableObjectComponent::ApplyMovementEditor()
 {
 	ApplyMovement(); 
 	

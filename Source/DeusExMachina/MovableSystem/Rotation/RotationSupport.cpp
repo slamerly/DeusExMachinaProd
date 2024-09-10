@@ -33,6 +33,14 @@ ARotationSupport::ARotationSupport()
 
 void ARotationSupport::BeginPlay()
 {
+	//  'EditorAngle' serve as a begin play angle, initialize 'InnerRotation' with it
+	InnerRotation = UAnglesUtils::ModuloAngle(EditorAngle);
+
+	//  reset the relative transform of rotation base to prevent unexpected behavior in game
+	const FVector RotationBaseScale3D = RotationBase->GetRelativeScale3D();
+	RotationBase->SetRelativeTransform(FTransform{ FRotator{0.0f, InnerRotation, 0.0f}, FVector::ZeroVector, RotationBaseScale3D});
+
+	//  call parent begin play after reseting the rotation base so that the computation of StartTransform is correct
 	Super::BeginPlay();
 }
 
@@ -43,7 +51,48 @@ void ARotationSupport::BeginPlay()
 void ARotationSupport::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
 
+
+// ======================================================
+//                      Tick
+// ======================================================
+float ARotationSupport::GetInnerRotation()
+{
+	return InnerRotation;
+}
+
+float ARotationSupport::GetInnerRotationBase360()
+{
+	return UAnglesUtils::ModuloAngle(InnerRotation);
+}
+
+void ARotationSupport::AddInnerRotation(float InnerRotAdd)
+{
+	InnerRotation += InnerRotAdd;
+
+	ComputeInnerTransform();
+}
+
+void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
+{
+	if (AbsoluteRotation)
+	{
+		InnerRotation = InnerRot;
+	}
+	else
+	{
+		// TODO: compute the nearest rotation angle of current InnerRotation that is a modulo of inputed InnerRot
+	}
+
+	ComputeInnerTransform();
+}
+
+void ARotationSupport::ComputeInnerTransform()
+{
+	FRotator CurrentInnerTransformRot = InnerTransform.GetRotation().Rotator();
+	CurrentInnerTransformRot.Yaw = GetInnerRotationBase360() - EditorAngle;
+	InnerTransform.SetRotation(CurrentInnerTransformRot.Quaternion());
 }
 
 
@@ -76,18 +125,17 @@ bool ARotationSupport::GetPlayerInRange(FVector PlayerPosition)
 
 
 // ======================================================
-//                    Testing Editor
+//                     Level Editor
 // ======================================================
-void ARotationSupport::ApplyTestingValues()
+void ARotationSupport::ApplyEditorValues()
 {
-	TestingAngle = UAnglesUtils::ModuloAngle(TestingAngle);
+	EditorAngle = UAnglesUtils::ModuloAngle(EditorAngle);
 	
 	ComputeChildrensOffsetEditor();
 
-	const FRotator CurrentRot = RotationBase->GetRelativeRotation();
-	RotationBase->SetRelativeRotation(FRotator{CurrentRot.Pitch, TestingAngle, CurrentRot.Roll});
+	RotationBase->SetRelativeRotation(FRotator{0.0f, EditorAngle, 0.0f});
 
-	ApplyChildTestingEditor();
+	ApplyChildLevelEditor();
 }
 
 
