@@ -65,10 +65,14 @@ private:
 	//		Change Level
 	// ==================
 	int TargetID = 0;
-	int ComeFromSceneIndex = 0;
+	//int ComeFromSceneIndex = 0;
 	void BeforeLevelChange(int pCurrentLevelIndex);
-	void AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad);
+	void AfterLevelChange(int IndexSaveSceneBefore, bool WithLoad);
 	float DelayAnimations = .0f;
+	int SaveIndexSceneBefore = 0;
+
+	void OnStreamLevelLoaded(bool FromNarrationScene, bool WithLoad);
+	void OnStreamLevelUnloaded(const TSoftObjectPtr<UWorld>& NextLevel);
 
 	
 	// ==================
@@ -96,6 +100,8 @@ protected:
 	//		Curtains
 	// ==================
 	TArray<FVector> CurtainsInitialPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel")
+	bool bCurtainsAnimation = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Curtains")
 	float CurtainsFinalDistancePos = 0;
 	
@@ -114,6 +120,8 @@ protected:
 	// ==================
 	//		Lights
 	// ==================
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel")
+	bool bLightsAnimation = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Lights")
 	float DelayToPutOnLights = 0.2f;
 

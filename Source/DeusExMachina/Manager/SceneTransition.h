@@ -20,7 +20,6 @@ class DEUSEXMACHINA_API ASceneTransition : public AActor
 public:
 	ASceneTransition(const FObjectInitializer& ObjectInitializer);
 
-
 	~ASceneTransition();
 
 protected:
@@ -53,6 +52,13 @@ protected:
 public:
 	UFUNCTION()
 	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	TSoftObjectPtr<UWorld> GetTargetScene();
+	UFUNCTION()
+	int GetTargetId();
+	UFUNCTION()
+	ATargetPoint* GetSpawnRomeo();
 
 private:
 	TObjectPtr<AActor> SceneManager;

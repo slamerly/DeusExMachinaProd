@@ -71,12 +71,26 @@ void ASceneTransition::GetAllLightsInSubLevel()
 
 void ASceneTransition::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Guy."));
 	if (UGameplayStatics::GetPlayerPawn(this, 0) == OtherActor)
 	{
 		if (SceneManager)
 		{
-			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, TargetID, false, true);
+			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, TargetID, false, false);
 		}
 	}
+}
+
+TSoftObjectPtr<UWorld> ASceneTransition::GetTargetScene()
+{
+	return TargetScene;
+}
+
+int ASceneTransition::GetTargetId()
+{
+	return TargetID;
+}
+
+ATargetPoint* ASceneTransition::GetSpawnRomeo()
+{
+	return SpawnRomeo;
 }
