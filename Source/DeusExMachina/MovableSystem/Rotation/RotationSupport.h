@@ -103,6 +103,18 @@ public:
 
 
 // ======================================================
+//            Editable Rot Support Variables
+// ======================================================
+protected:
+	UPROPERTY(EditAnywhere, Category = "Rotation Support", meta = (Tooltip = "Hide the rotation base mesh component in game."))
+	bool bDisableSupportVisibility{ false };
+
+	UPROPERTY(EditAnywhere, Category = "Rotation Support", meta = (Tooltip = "Allow the player to not be rotated by this support."))
+	bool bDisableSupportCollision{ false };	
+
+
+
+// ======================================================
 //               Level Editor Functions
 // ======================================================
 protected:

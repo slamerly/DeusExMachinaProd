@@ -42,6 +42,11 @@ void ARotationSupport::BeginPlay()
 
 	//  call parent begin play after reseting the rotation base so that the computation of StartTransform is correct
 	Super::BeginPlay();
+
+
+	//  hide support and remove collision (if necessary)
+	SceneRootComponent->SetHiddenInGame(bDisableSupportVisibility, true);
+	RotationBase->SetCollisionEnabled(bDisableSupportCollision ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 }
 
 
@@ -55,7 +60,7 @@ void ARotationSupport::Tick(float DeltaTime)
 
 
 // ======================================================
-//                      Tick
+//                  Inner Rotation
 // ======================================================
 float ARotationSupport::GetInnerRotation()
 {
@@ -82,7 +87,22 @@ void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
 	}
 	else
 	{
-		// TODO: compute the nearest rotation angle of current InnerRotation that is a modulo of inputed InnerRot
+		//  compute the nearest rotation angle of current InnerRotation that is a modulo of inputed InnerRot
+
+		const float CurrentInnerMod = UAnglesUtils::ModuloAngle(InnerRotation);
+		const float CurrentInnerDiff = InnerRotation - CurrentInnerMod;
+		float InputRotMod = UAnglesUtils::ModuloAngle(InnerRot);
+
+		if (CurrentInnerMod - InputRotMod > 180.0f)
+		{
+			InputRotMod += 360.0f;
+		}
+		else if (CurrentInnerMod - InputRotMod < -180.0f)
+		{
+			InputRotMod -= 360.0f;
+		}
+
+		InnerRotation = InputRotMod + CurrentInnerDiff;
 	}
 
 	ComputeInnerTransform();
@@ -90,9 +110,12 @@ void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
 
 void ARotationSupport::ComputeInnerTransform()
 {
+	//  simply set the yaw rotation value of InnerTransform to the delta angle done since begin play
 	FRotator CurrentInnerTransformRot = InnerTransform.GetRotation().Rotator();
 	CurrentInnerTransformRot.Yaw = GetInnerRotationBase360() - EditorAngle;
 	InnerTransform.SetRotation(CurrentInnerTransformRot.Quaternion());
+
+	ApplyInnerMovement(RotationBase);
 }
 
 
@@ -156,7 +179,7 @@ void ARotationSupport::OnRotationBaseMovedEditor()
 	const FRotator CompLocalRot = RotationBase->GetRelativeRotation();
 	if (CompLocalRot.Pitch != 0.0f || CompLocalRot.Roll != 0.0f)
 	{
-		RotationBase->SetRelativeRotation(FRotator{ 0.0f, CompLocalRot.Yaw, 0.0f });
+		RotationBase->SetRelativeRotation(FRotator{ 0.0f, EditorAngle, 0.0f });
 		ComponentReset = true;
 	}
 
