@@ -8,6 +8,7 @@
 #include "SceneManagerInterface.h"
 #include <DeusExMachina/Player/PlayerControllerDeusEx.h>
 #include "Components/TimelineComponent.h"
+#include "Components/LightComponent.h"
 #include <Engine/Light.h>
 #include "SceneManager.generated.h"
 
@@ -34,7 +35,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 public:	
 	// Called every frame
@@ -60,6 +61,7 @@ private:
 	TArray<ALight*> Lights;
 	UFUNCTION(BlueprintCallable)
 	void LightsAnimation(bool IsOn);
+	TArray<float> LightsIntensity;
 
 	// ==================
 	//		Change Level
@@ -70,9 +72,15 @@ private:
 	void AfterLevelChange(int IndexSaveSceneBefore, bool WithLoad);
 	float DelayAnimations = .0f;
 	int SaveIndexSceneBefore = 0;
+	TSoftObjectPtr<UWorld> NextLevel;
+	bool FromNarrationScene = false;
+	bool WithLoad = false;
+	FString NextLevelName;
 
-	void OnStreamLevelLoaded(bool FromNarrationScene, bool WithLoad);
-	void OnStreamLevelUnloaded(const TSoftObjectPtr<UWorld>& NextLevel);
+	UFUNCTION()
+	void OnStreamLevelLoaded();
+	UFUNCTION()
+	void OnStreamLevelUnloaded();
 
 	
 	// ==================
@@ -95,6 +103,14 @@ protected:
 	bool bBlockPlayerBeginPlay = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|BeginPlay")
 	bool bFadeBeginPlay = true;
+
+	// ==================
+	//		Change Level
+	// ==================
+	UPROPERTY(VisibleAnywhere, Category = "Default")
+	TArray<FName> ScenesNames;
+	UFUNCTION(CallInEditor, Category = "Default")
+	void UpdateScenesNames();
 
 	// ==================
 	//		Curtains
@@ -136,7 +152,6 @@ protected:
 	// Fonction appelée à la fin de la timeline
 	UFUNCTION()
 	void OnTimelineFinishedLights();
-	
 
 
 // ======================================================
