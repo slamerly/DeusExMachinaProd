@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "DeusExMachina/MovableSystem/MovingSupportBase.h"
+#include "RotSupportValues.h"
 #include "RotationSupport.generated.h"
 
 class USceneComponent;
@@ -56,7 +57,14 @@ public:
 	float GetInnerRotation();
 	float GetInnerRotationBase360();
 
-	void AddInnerRotation(float InnerRotAdd);
+	/**
+	* Add an inner rotation value to this Rotation Support. Allows clamp testing.
+	* Note that if you test clamp and if the inner rotation of this support is already outside of the clamp range, it will go back to the nearest clamp.
+	* @param	InnerRotAdd		The rotation value you want to add.
+	* @param	TestClamp		Do you want this rotation add to test the clamp?
+	* @return					True if the rotation was added successfully, False if clamp was reached.
+	*/
+	bool AddInnerRotation(float InnerRotAdd, bool TestClamp);
 
 	/**
 	* Set the inner rotation value of this Rotation Support to a specific value.
@@ -71,7 +79,26 @@ protected:
 
 
 // ======================================================
-//                Overrided Functions
+//                   Clamp Functions
+// ======================================================
+public:
+	bool UseValidClamp();
+	void GetClampValues(float& ClampLow, float& ClampHigh);
+	
+	/**
+	* Simulate a rotation on this support, allowing to know if it would trigger clamp.
+	* Note that if the inner rotation of this support is already outside of the clamp range, it will return the angle to go back to the nearest clamp.
+	* @param	InputRotationAngle		The rotation angle you want to simulate on this support.
+	* @param	ClampedRotationAngle	[OUT] The rotation angle needed to reach clamp on this support.
+	* @return							True if the simulation triggers clamp.
+	*/
+	bool SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle);
+
+
+
+
+// ======================================================
+//                 Overrided Functions
 // ======================================================
 public:
 	// ====================
@@ -107,6 +134,9 @@ public:
 //            Editable Rot Support Variables
 // ======================================================
 protected:
+	UPROPERTY(EditAnywhere, Category = "Rotation Support", meta = (Tooltip = "The values of snap and clamp of this rotation support."))
+	FRotSupportValues RotSupportValues;
+
 	UPROPERTY(EditAnywhere, Category = "Rotation Support", meta = (Tooltip = "Hide the rotation base mesh component in game."))
 	bool bDisableSupportVisibility{ false };
 

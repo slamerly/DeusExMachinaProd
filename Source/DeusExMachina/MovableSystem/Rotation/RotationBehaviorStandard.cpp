@@ -37,7 +37,7 @@ void URotationBehaviorStandard::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 
 	const float DesiredAngle = RotationAngle * RotationCurve->GetFloatValue(RotationTimer / RotationDuration);
-	OwnerRotSupport->AddInnerRotation(DesiredAngle - LastFrameRotAngle);
+	OwnerRotSupport->AddInnerRotation(DesiredAngle - LastFrameRotAngle, true);
 	
 	LastFrameRotAngle = DesiredAngle;
 }
@@ -61,6 +61,14 @@ void URotationBehaviorStandard::StartStandardRotation(FStandardRotationDatas Dat
 	RotationDuration = Datas.GetRotationDuration();
 	RotationTimer = 0.0f;
 	LastFrameRotAngle = 0.0f;
+
+	//  check clamp on support
+	float RotationAngleClamped = RotationAngle;
+	if (OwnerRotSupport->SimulateRotationWithClamp(RotationAngle, RotationAngleClamped))
+	{
+		RotationAngle = RotationAngleClamped;
+		RotationDuration *= (RotationAngleClamped / RotationAngle); //  reduce the duration of the standard rotation proportionnaly to the reduction of angle rotated so the rotation keeps the same speed
+	}
 
 	//  set rotating and tick for this component
 	bCurrentlyRotating = true;

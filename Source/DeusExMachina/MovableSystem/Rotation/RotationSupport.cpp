@@ -72,11 +72,23 @@ float ARotationSupport::GetInnerRotationBase360()
 	return UAnglesUtils::ModuloAngle(InnerRotation);
 }
 
-void ARotationSupport::AddInnerRotation(float InnerRotAdd)
+bool ARotationSupport::AddInnerRotation(float InnerRotAdd, bool TestClamp)
 {
-	InnerRotation += InnerRotAdd;
+	bool TriggerClamp = false;
+
+	if (TestClamp)
+	{
+		float InnerRotAddClamped = InnerRotAdd;
+		TriggerClamp = SimulateRotationWithClamp(InnerRotAdd, InnerRotAddClamped);
+		InnerRotation += InnerRotAddClamped;
+	}
+	else
+	{
+		InnerRotation += InnerRotAdd;
+	}
 
 	ComputeInnerTransform();
+	return TriggerClamp;
 }
 
 void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
@@ -116,6 +128,62 @@ void ARotationSupport::ComputeInnerTransform()
 	InnerTransform.SetRotation(CurrentInnerTransformRot.Quaternion());
 
 	ApplyInnerMovement(RotationBase);
+}
+
+
+// ======================================================
+//                  Clamp Functions
+// ======================================================
+bool ARotationSupport::UseValidClamp()
+{
+	if (!RotSupportValues.IsDataValid()) return false;
+
+	if (!RotSupportValues.GetUseClamp()) return false;
+
+	return RotSupportValues.GetClampHighValue() > RotSupportValues.GetClampLowValue();
+}
+
+void ARotationSupport::GetClampValues(float& ClampLow, float& ClampHigh)
+{
+	if (!UseValidClamp())
+	{
+		ClampLow = ClampHigh = 0.0f;
+		return;
+	}
+
+	ClampLow = RotSupportValues.GetClampLowValue();
+	ClampHigh = RotSupportValues.GetClampHighValue();
+}
+
+bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle)
+{
+	if (!UseValidClamp())
+	{
+		ClampedRotationAngle = InputRotationAngle;
+		return false;
+	}
+
+	if (InputRotationAngle >= 0.0f)
+	{
+		float ClampHigh = RotSupportValues.GetClampHighValue();
+		if (InnerRotation + InputRotationAngle >= ClampHigh)
+		{
+			ClampedRotationAngle = ClampHigh - InnerRotation;
+			return true;
+		}
+	}
+	else
+	{
+		float ClampLow = RotSupportValues.GetClampLowValue();
+		if (InnerRotation + InputRotationAngle <= ClampLow)
+		{
+			ClampedRotationAngle = ClampLow - InnerRotation;
+			return true;
+		}
+	}
+
+	ClampedRotationAngle = InputRotationAngle;
+	return false;
 }
 
 

@@ -49,7 +49,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 	{
 	//  compute the normal phase of the automatic rotation
 	case EAutoRotationState::AutomaticRotation:
-		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime);
+		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime, false);
 		break;
 
 	//  compute the start phase of the automatic rotation
@@ -60,7 +60,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 			PhaseTimer = PhaseTime;
 			CurrentState = EAutoRotationState::AutomaticRotation;
 		}
-		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
+		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime), false);
 		break;
 
 	//  compute the end phase of the automatic rotation
@@ -71,7 +71,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 			CancelAutomaticRotation();
 			break;
 		}
-		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime* PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
+		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime* PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime), false);
 		break;
 	}
 }
