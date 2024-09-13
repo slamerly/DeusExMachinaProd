@@ -1,7 +1,6 @@
 #include "RotationBehaviorAutomatic.h"
 #include "RotationSupport.h"
 #include "DeusExMachina/MovableSystem/Interactables/AutoRotInteractionDatas.h"
-#include "Defines.h"
 
 
 URotationBehaviorAutomatic::URotationBehaviorAutomatic()
@@ -21,8 +20,7 @@ void URotationBehaviorAutomatic::BeginPlay()
 
 	SetComponentTickEnabled(false);
 
-	const bool Initialized = InitializeOwner();
-	if (!Initialized) return;
+	InitializeOwner();
 }
 
 void URotationBehaviorAutomatic::LateBeginPlay()
@@ -62,7 +60,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 			PhaseTimer = PhaseTime;
 			CurrentState = EAutoRotationState::AutomaticRotation;
 		}
-		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed* DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
+		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
 		break;
 
 	//  compute the end phase of the automatic rotation
@@ -73,7 +71,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 			CancelAutomaticRotation();
 			break;
 		}
-		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed* DeltaTime* PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
+		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime* PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
 		break;
 	}
 }

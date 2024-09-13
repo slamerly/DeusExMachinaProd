@@ -13,7 +13,8 @@ UENUM()
 enum class ERotationState : uint8
 {
 	NotRotating = 0,
-	AutomaticRotation = 1
+	AutomaticRotation = 1,
+	StandardRotation = 2
 };
 
 

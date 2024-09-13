@@ -1,6 +1,7 @@
 #include "MovSysButton.h"
 #include "DeusExMachina/MovableSystem/Rotation/RotationSupport.h"
 #include "DeusExMachina/MovableSystem/Rotation/RotationBehaviorAutomatic.h"
+#include "DeusExMachina/MovableSystem/Rotation/RotationBehaviorStandard.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Defines.h"
 
@@ -29,6 +30,16 @@ void AMovSysButton::BeginPlay()
 		if (!IsValid(LinkAuto.RotationSupport->GetComponentByClass<URotationBehaviorAutomatic>())) continue;
 
 		LinkedSupportsAutomaticVerified.Add(FAutoRotInteractionLink{ LinkAuto.RotationSupport, LinkAuto.InteractionDatas, LinkAuto.RotationSupport->GetComponentByClass<URotationBehaviorAutomatic>() });
+	}
+
+	for (auto& LinkStand : LinkedSupportsStandard)
+	{
+		if (!IsValid(LinkStand.RotationSupport)) continue; //  do not check if there is no rotation support linked
+		if (!LinkStand.StandardDatas.IsDataValid()) continue; //  do not check if there is no datas linked
+
+		if (!IsValid(LinkStand.RotationSupport->GetComponentByClass<URotationBehaviorStandard>())) continue;
+
+		LinkedSupportsStandardVerified.Add(FStandardRotInteractionLink{ LinkStand.RotationSupport, LinkStand.StandardDatas, LinkStand.RotationSupport->GetComponentByClass<URotationBehaviorStandard>() });
 	}
 }
 
@@ -60,6 +71,17 @@ void AMovSysButton::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 
 		LinkAuto.RotationSupport = nullptr;
 	}
+
+	for (auto& LinkStand : LinkedSupportsStandard)
+	{
+		if (!IsValid(LinkStand.RotationSupport)) continue; //  do not check if there is no rotation support linked
+
+		if (LinkStand.RotationSupport->GetComponentByClass(URotationBehaviorStandard::StaticClass())) continue; //  rot support has the good component, end of the check
+
+		kPRINT_COLOR("Warning! Rotation Support " + UKismetSystemLibrary::GetDisplayName(LinkStand.RotationSupport) + " doesn't have the Standard Rotation Behavior component!", FColor::Orange);
+
+		LinkStand.RotationSupport = nullptr;
+	}
 }
 
 
@@ -78,6 +100,11 @@ void AMovSysButton::Interaction_Implementation()
 	for (auto& LinkAuto : LinkedSupportsAutomaticVerified)
 	{
 		LinkAuto.RotationAutomaticComponent->TriggerAutoRotInteraction(LinkAuto.InteractionDatas);
+	}
+
+	for (auto& LinkStand : LinkedSupportsStandardVerified)
+	{
+		LinkStand.RotationStandardComponent->StartStandardRotation(LinkStand.StandardDatas);
 	}
 }
 
