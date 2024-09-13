@@ -8,7 +8,6 @@
 #include "UObject/ConstructorHelpers.h" // Pour charger les courbes
 #include "Engine/LevelStreaming.h"
 #include <DeusExMachina/BlueprintLibrary/LevelUtilitiesFunctions.h>
-//#include <Engine/LevelStreamingDynamic.h>
 
 // Sets default values
 ASceneManager::ASceneManager()
@@ -18,7 +17,6 @@ ASceneManager::ASceneManager()
 
 	TimelineCurtains = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineCurtains"));
 	TimelineLights = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineLights"));
-
 }
 
 // Called when the game starts or when spawned
@@ -34,7 +32,7 @@ void ASceneManager::BeginPlay()
 	{
 		FLatentActionInfo LatentInfo;
 		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(GetWorld(), Scenes[0], true, true, LatentInfo);
-		CurrentLevelIndex = 0;
+		CurrentSceneIndex = 0;
 	}
 	else
 	{
@@ -47,6 +45,9 @@ void ASceneManager::BeginPlay()
 	}
 
 	CurtainsVerifications();
+
+	TimelineCurtains->SetPlayRate(CurtainsPlayRateAnimation);
+	TimelineLights->SetPlayRate(LightsPlayRateAnimation);
 
 	//Delay
 	FTimerDelegate TimerDelegate;
@@ -78,16 +79,46 @@ void ASceneManager::BeginPlay()
 void ASceneManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	// Update the ScenesNames when change Scenes
 	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(ASceneManager, Scenes))
 	{
 		ScenesNames.Empty();
 		for (int i = 0; i < Scenes.Num(); i++)
 		{
-			ScenesNames.Add(Scenes[i]->GetFName());
+			if(Scenes[i] != nullptr)
+				ScenesNames.Add(Scenes[i]->GetFName());
 		}
 	}
 }
 
+void ASceneManager::UpdateScenesNames()
+{
+	ScenesNames.Empty();
+	for (int i = 0; i < Scenes.Num(); i++)
+	{
+		ScenesNames.Add(Scenes[i]->GetFName());
+	}
+}
+
+void ASceneManager::BeginPlayAnimation_Implementation()
+{
+	// When we load the scene for the first time, we block the player inputand do a camera Fade
+	if (bBlockPlayerBeginPlay)
+	{
+		PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
+	}
+	if (bFadeBeginPlay)
+	{
+		UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(1.0f, 1.0f, 1.0f, FLinearColor::Black, false, true);
+	}
+}
+
+// ======================================================
+//             Curtains Functions
+// ======================================================
+
+// Verify if there are 2 curtains and put the right order for te correct animation
 void ASceneManager::CurtainsVerifications()
 {
 	if (!Curtains.IsEmpty())
@@ -107,6 +138,7 @@ void ASceneManager::CurtainsVerifications()
 	}
 }
 
+// Save the curtains positions for the animations
 void ASceneManager::InitializeCurtains()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("%d"), Curtains.Num());
@@ -117,6 +149,50 @@ void ASceneManager::InitializeCurtains()
 	UE_LOG(LogTemp, Log, TEXT("Number of curtains: %f"), CurtainsInitialPosition[0].Y);
 }
 
+void ASceneManager::CurtainsAnimation(bool IsOpen)
+{
+	if (FloatCurveCurtains)
+	{
+		// ==================
+		//		Setup Timeline
+		// ==================
+		// Create the function to update link to the timeline
+		FOnTimelineFloat TimelineProgress;
+		TimelineProgress.BindUFunction(this, FName("OnTimelineUpdateCurtains"));
+
+		// Add the event to update
+		TimelineCurtains->AddInterpFloat(FloatCurveCurtains, TimelineProgress);
+
+		// Create the function of ending
+		FOnTimelineEvent TimelineFinished;
+		TimelineFinished.BindUFunction(this, FName("OnTimelineFinishedCurtains"));
+
+		// Add the event of ending
+		TimelineCurtains->SetTimelineFinishedFunc(TimelineFinished);
+
+		TimelineCurtains->SetLooping(false);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("There is no Float Curve for the curtains animation."));
+		return;
+	}
+
+	if (IsOpen)
+	{
+		TimelineCurtains->PlayFromStart();
+	}
+	else
+	{
+		TimelineCurtains->ReverseFromEnd();
+	}
+}
+
+// ======================================================
+//             Lights Functions
+// ======================================================
+
+// Take all the lights in the scene
 void ASceneManager::GetSceneLights()
 {
 	TArray<AActor*> LightsFund;
@@ -182,7 +258,11 @@ void ASceneManager::LightsAnimation(bool IsOn)
 	}
 }
 
-void ASceneManager::BeforeLevelChange(int pCurrentLevelIndex)
+// ======================================================
+//             Change Scene Fucntions
+// ======================================================
+
+void ASceneManager::BeforeSceneChange(int pCurrentSceneIndex)
 {
 	//TODO - Saving Scene
 	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
@@ -216,7 +296,7 @@ void ASceneManager::BeforeLevelChange(int pCurrentLevelIndex)
 	}
 }
 
-void ASceneManager::AfterLevelChange(int IndexSaveSceneBefore, bool pWithLoad)
+void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore, bool pWithLoad)
 {
 	
 	if (pWithLoad)
@@ -226,8 +306,7 @@ void ASceneManager::AfterLevelChange(int IndexSaveSceneBefore, bool pWithLoad)
 
 	//If the scene contains many transitions, select the good one
 	TArray<AActor*> SceneTransitions;
-	//UGameplayStatics::GetAllActorsOfClass(this, ASceneTransition::StaticClass(), SceneTransitions);
-	ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, Scenes[CurrentLevelIndex], ASceneTransition::StaticClass(), SceneTransitions);
+	ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneTransition::StaticClass(), SceneTransitions);
 
 	ASceneTransition* GoodTransition = nullptr;
 
@@ -237,7 +316,7 @@ void ASceneManager::AfterLevelChange(int IndexSaveSceneBefore, bool pWithLoad)
 		ASceneTransition* CurrentSceneTransition = Cast<ASceneTransition>(SceneTransitions[i]);
 
 		if (CurrentSceneTransition->GetTargetScene() == Scenes[IndexSaveSceneBefore] &&
-			CurrentSceneTransition->GetTargetId() == TargetID)
+			CurrentSceneTransition->GetIdSceneTransition() == TargetID)
 		{
 			if (CurrentSceneTransition->GetSpawnRomeo() != nullptr)
 			{
@@ -282,15 +361,15 @@ void ASceneManager::AfterLevelChange(int IndexSaveSceneBefore, bool pWithLoad)
 	}
 }
 
-void ASceneManager::OnStreamLevelLoaded()
+// Event function streamlevel loaded
+void ASceneManager::OnStreamSceneLoaded()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Second finish"));
 	//AfterLevelChange(RefSceneBefore, WithLoad);
 	//Delay
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]
 		{
-			AfterLevelChange(SaveIndexSceneBefore, WithLoad);
+			AfterSceneChange(SaveIndexSceneBefore, WithLoad);
 
 			//Narration
 			if (FromNarrationScene)
@@ -313,54 +392,80 @@ void ASceneManager::OnStreamLevelLoaded()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.1f, false);
 }
 
-void ASceneManager::OnStreamLevelUnloaded()
+// Event function streamlevel unloaded
+void ASceneManager::OnStreamSceneUnloaded()
 {
-	CurrentLevelIndex = Scenes.Find(NextLevel);
+	CurrentSceneIndex = Scenes.Find(NextScene);
 	//Delay
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]
 		{
 			//Load NextScene
 			FLatentActionInfo LatentInfo;
-			UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextLevel, true, true, LatentInfo);
+			UGameplayStatics::LoadStreamLevelBySoftObjectPtr(this, NextScene, true, true, LatentInfo);
 
 			//Bind event when the level is loaded
-			ULevelStreaming* LevelStreaming = UGameplayStatics::GetStreamingLevel(this, ScenesNames[CurrentLevelIndex]);
-			LevelStreaming->OnLevelLoaded.AddDynamic(this, &ASceneManager::OnStreamLevelLoaded);
+			ULevelStreaming* LevelStreaming = UGameplayStatics::GetStreamingLevel(this, ScenesNames[CurrentSceneIndex]);
+			LevelStreaming->OnLevelLoaded.AddDynamic(this, &ASceneManager::OnStreamSceneLoaded);
 		});
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.1f, false);
 }
 
+void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, int pTargetID, bool pFromNarrationScene, bool pWithLoad)
+{
+	TargetID = pTargetID;
+	if (Scenes.Contains(pNextScene))
+	{
+		BeforeSceneChange(CurrentSceneIndex);
+		DelayAnimations += 0.25f; // add more time to finish the animation before unload scene
+		SaveIndexSceneBefore = CurrentSceneIndex;
+		FromNarrationScene = pFromNarrationScene;
+		WithLoad = pWithLoad;
+		NextScene = pNextScene;
+
+		//Delay
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindLambda([&]
+			{
+				//Unload Scene
+				FLatentActionInfo LatentInfo;
+				UGameplayStatics::UnloadStreamLevel(this, Scenes[CurrentSceneIndex]->GetFName(), LatentInfo, true);
+
+				//UE_LOG(LogTemp, Warning, TEXT("First finish"));
+				ULevelStreaming* StreamingLevel = UGameplayStatics::GetStreamingLevel(this, Scenes[CurrentSceneIndex]->GetFName());
+				if (StreamingLevel)
+				{
+					// Bind to the OnLevelLoaded event
+					StreamingLevel->OnLevelUnloaded.AddDynamic(this, &ASceneManager::OnStreamSceneUnloaded);
+				}
+			});
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayAnimations, false);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Error: scene not contains in SceneManager's Scenes array."));
+	}
+}
+
+// ======================================================
+//             Loading Fucntions
+// ======================================================
+
+// Loading save for the scene
 void ASceneManager::LoadingScene()
 {
 }
 
+// Saveing the current scene
 void ASceneManager::SavingScene()
 {
 }
 
-void ASceneManager::BeginPlayAnimation_Implementation()
-{
-	// When we load the scene for the first time, we block the player inputand do a camera Fade
-	if (bBlockPlayerBeginPlay)
-	{
-		PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
-	}
-	if (bFadeBeginPlay)
-	{
-		UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(1.0f, 1.0f, 1.0f, FLinearColor::Black, false, true);
-	}
-}
-
-void ASceneManager::UpdateScenesNames()
-{
-	ScenesNames.Empty();
-	for (int i = 0; i < Scenes.Num(); i++)
-	{
-		ScenesNames.Add(Scenes[i]->GetFName());
-	}
-}
+// ======================================================
+//             Timeline Events
+// ======================================================
 
 void ASceneManager::OnTimelineUpdateCurtains(float Value)
 {
@@ -392,12 +497,12 @@ void ASceneManager::OnTimelineFinishedLights()
 
 int ASceneManager::GetCurrentIndexScene()
 {
-	return CurrentLevelIndex;
+	return CurrentSceneIndex;
 }
 
 TSoftObjectPtr<UWorld> ASceneManager::GetCurrentScene()
 {
-	return Scenes[CurrentLevelIndex];
+	return Scenes[CurrentSceneIndex];
 }
 
 void ASceneManager::CheckpointPlayerTransform(FTransform PlayerTransform)
@@ -407,88 +512,5 @@ void ASceneManager::CheckpointPlayerTransform(FTransform PlayerTransform)
 FTransform ASceneManager::GetCheckpointPlayerTransform()
 {
 	return FTransform();
-}
-
-void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextLevel, int pTargetID, bool pFromNarrationScene, bool pWithLoad)
-{
-	TargetID = pTargetID;
-	if (Scenes.Contains(pNextLevel))
-	{
-		BeforeLevelChange(CurrentLevelIndex);
-		DelayAnimations += 0.25f; // add more time to finish the animation before unload scene
-		SaveIndexSceneBefore = CurrentLevelIndex;
-		FromNarrationScene = pFromNarrationScene;
-		WithLoad = pWithLoad;
-		NextLevel = pNextLevel;
-
-		//Delay
-		FTimerDelegate TimerDelegate;
-		TimerDelegate.BindLambda([&]
-			{
-				//Unload Scene
-				FLatentActionInfo LatentInfo;
-				UGameplayStatics::UnloadStreamLevel(this, Scenes[CurrentLevelIndex]->GetFName(), LatentInfo, true);
-				
-				UE_LOG(LogTemp, Warning, TEXT("First finish"));
-				ULevelStreaming* StreamingLevel = UGameplayStatics::GetStreamingLevel(this, Scenes[CurrentLevelIndex]->GetFName());
-				if (StreamingLevel)
-				{
-					// Bind to the OnLevelLoaded event
-					StreamingLevel->OnLevelUnloaded.AddDynamic(this, &ASceneManager::OnStreamLevelUnloaded);
-				}
-			});
-		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayAnimations, false);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Error: scene not contains in SceneManager's Scenes array."));
-	}
-}
-
-void ASceneManager::CurtainsAnimation(bool IsOpen)
-{
-	if (FloatCurveCurtains)
-	{
-		// ==================
-		//		Setup Timeline
-		// ==================
-		// Create the function to update link to the timeline
-		FOnTimelineFloat TimelineProgress;
-		TimelineProgress.BindUFunction(this, FName("OnTimelineUpdateCurtains"));
-
-		// Add the event to update
-		TimelineCurtains->AddInterpFloat(FloatCurveCurtains, TimelineProgress);
-
-		// Create the function of ending
-		FOnTimelineEvent TimelineFinished;
-		TimelineFinished.BindUFunction(this, FName("OnTimelineFinishedCurtains"));
-
-		// Add the event of ending
-		TimelineCurtains->SetTimelineFinishedFunc(TimelineFinished);
-
-		TimelineCurtains->SetLooping(false);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("There is no Float Curve for the curtains animation."));
-		return;
-	}
-
-	if (IsOpen)
-	{
-		TimelineCurtains->PlayFromStart();
-	}
-	else
-	{
-		TimelineCurtains->ReverseFromEnd();
-	}
-}
-
-// Called every frame
-void ASceneManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 

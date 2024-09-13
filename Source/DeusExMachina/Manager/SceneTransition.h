@@ -58,6 +58,8 @@ public:
 	UFUNCTION()
 	int GetTargetId();
 	UFUNCTION()
+	int GetIdSceneTransition();
+	UFUNCTION()
 	ATargetPoint* GetSpawnRomeo();
 
 private:

@@ -90,6 +90,11 @@ int ASceneTransition::GetTargetId()
 	return TargetID;
 }
 
+int ASceneTransition::GetIdSceneTransition()
+{
+	return IdSceneTransition;
+}
+
 ATargetPoint* ASceneTransition::GetSpawnRomeo()
 {
 	return SpawnRomeo;
