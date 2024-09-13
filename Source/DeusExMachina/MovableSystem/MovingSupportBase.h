@@ -8,7 +8,7 @@ class UMovableObjectComponent;
 class USceneComponent;
 
 
-UCLASS()
+UCLASS(Abstract)
 class DEUSEXMACHINA_API AMovingSupportBase : public AActor
 {
 	GENERATED_BODY()

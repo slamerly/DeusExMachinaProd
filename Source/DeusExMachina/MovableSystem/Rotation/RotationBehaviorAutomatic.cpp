@@ -1,5 +1,6 @@
 #include "RotationBehaviorAutomatic.h"
 #include "RotationSupport.h"
+#include "DeusExMachina/MovableSystem/Interactables/AutoRotInteractionDatas.h"
 #include "Defines.h"
 
 
@@ -145,6 +146,48 @@ void URotationBehaviorAutomatic::CancelAutomaticRotation()
 	OwnerRotSupport->StopMovementOnChildrens();
 }
 
+
+
+// ======================================================
+//                     Interaction
+// ======================================================
+void URotationBehaviorAutomatic::TriggerAutoRotInteraction(FAutoRotInteractionDatas Datas)
+{
+	if (!bOwnerRotSupportValid) return;
+
+	if (Datas.GetStartStop())
+	{
+		if (CurrentState == EAutoRotationState::AutomaticRotation || CurrentState == EAutoRotationState::StartPhase)
+		{
+			StopAutomaticRotation();
+		}
+		else
+		{
+			if (Datas.GetReverse())
+			{
+				bRunningReverse = !bRunningReverse;
+			}
+			StartAutomaticRotation();
+		}
+	}
+	else
+	{
+		if (Datas.GetReverse())
+		{
+			bRunningReverse = !bRunningReverse;
+			if (CurrentState == EAutoRotationState::AutomaticRotation || CurrentState == EAutoRotationState::StartPhase)
+			{
+				StartAutomaticRotation();
+			}
+		}
+	}
+}
+
+
+
+// ======================================================
+//                   Helper Functions
+// ======================================================
 bool URotationBehaviorAutomatic::IsStartPhaseValid()
 {
 	if (!AutomaticRotationValues.IsDataValid()) return false;

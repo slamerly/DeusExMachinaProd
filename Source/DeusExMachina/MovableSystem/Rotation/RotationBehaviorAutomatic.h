@@ -44,6 +44,13 @@ public:
 
 
 // ======================================================
+//                     Interaction
+// ======================================================
+public:
+	void TriggerAutoRotInteraction(struct FAutoRotInteractionDatas Datas);
+
+
+// ======================================================
 //                   Helper Functions
 // ======================================================
 protected:
