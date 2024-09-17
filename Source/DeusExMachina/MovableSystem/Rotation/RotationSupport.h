@@ -35,7 +35,10 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
+#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void PostEditMove(bool bFinished) override;
+#endif // WITH_EDITOR
 
 
 // ======================================================
@@ -143,13 +146,13 @@ public:
 //            Editable Rot Support Variables
 // ======================================================
 protected:
-	UPROPERTY(EditAnywhere, Category = "Rotation Support", meta = (Tooltip = "The values of snap and clamp of this rotation support."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support", meta = (Tooltip = "The values of snap and clamp of this rotation support."))
 	FRotSupportValues RotSupportValues;
 
-	UPROPERTY(EditAnywhere, Category = "Rotation Support", meta = (Tooltip = "Hide the rotation base mesh component in game."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support", meta = (Tooltip = "Hide the rotation base mesh component in game."))
 	bool bDisableSupportVisibility{ false };
 
-	UPROPERTY(EditAnywhere, Category = "Rotation Support", meta = (Tooltip = "Allow the player to not be rotated by this support."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support", meta = (Tooltip = "Allow the player to not be rotated by this support."))
 	bool bDisableSupportCollision{ false };	
 
 
@@ -160,21 +163,30 @@ protected:
 protected:
 	void ApplyEditorValues() override;
 
+	//UFUNCTION(CallInEditor, Category = "Level Editor", meta = (Tooltip = "If you want to manually update the visual representation of clamps."))
+	void UpdateClampVisual(); //  It should not be useful to call it from editor since it auto updates every time it's needed
+
+	//UFUNCTION(CallInEditor, Category = "Level Editor", meta = (Tooltip = "If you want to manually update the visual representation of snaps."))
+	void UpdateSnapVisual(); //  It should not be useful to call it from editor since it auto updates every time it's needed
+
+
+
 
 // ======================================================
 //               Level Editor Variables
 // ======================================================
-protected:
-	//UFUNCTION(CallInEditor, Category = "Level Editor", meta = (Tooltip = "If you want to manually update the visual representation of clamps."))
-	void UpdateClampVisual(); //  It should not be useful to call it from editor since it auto updates every time it's needed
-
 public:
 	UPROPERTY(EditAnywhere, Category = "Level Editor", meta = (Tooltip = "The angle you want to apply for this Rotation Support.\nCan be used for testing and for applying a specific angle at begin play."))
 	float EditorAngle{ 0.0f }; //  'EditorAngle' also serve as a begin play angle
 
-	UPROPERTY(EditAnywhere, Category = "Level Editor", meta = (Tooltip = "If you want to hide the visual representation of clamps on this support."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level Editor", meta = (Tooltip = "If you want to hide the visual representation of clamps on this support."))
 	bool bHideClampVisual{ false };
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level Editor", meta = (Tooltip = "If you want to hide the visual representation of snaps on this support."))
+	bool bHideSnapVisual{ false };
+
+protected:
+	TArray<UArrowComponent*> SnapArrows;
 
 
 

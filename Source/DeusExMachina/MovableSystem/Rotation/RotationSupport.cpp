@@ -61,7 +61,7 @@ void ARotationSupport::BeginPlay()
 
 	//  update clamp & snap visual
 	UpdateClampVisual();
-	//UpdateSnapVisual();
+	UpdateSnapVisual();
 }
 
 
@@ -88,10 +88,14 @@ void ARotationSupport::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		UpdateClampVisual();
 	}
 
-	if (PropertyChangedName.Contains("Snap"))
-	{
-		//UpdateSnapVisual();
-	}
+	UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
+}
+
+void ARotationSupport::PostEditMove(bool bFinished)
+{
+	Super::PostEditMove(bFinished);
+
+	UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
 }
 
 
@@ -290,6 +294,44 @@ void ARotationSupport::UpdateClampVisual()
 		ClampVisualHigh->SetWorldScale3D(BaseScale * 0.5f);
 		ClampVisualHigh->SetRelativeRotation(FRotator{ 0.0f, UAnglesUtils::ModuloAngle(HighClamp + 180.0f), 0.0f });
 		ClampVisualHigh->SetRelativeLocation(FVector{ FMath::Cos(HighClampRad) * 140.0f, FMath::Sin(HighClampRad) * 140.0f, BaseScale.Z + 2.0f });
+	}
+}
+
+void ARotationSupport::UpdateSnapVisual()
+{
+	//  reset the snap arrows array
+	for (auto SnapArrow : SnapArrows)
+	{
+		if (!IsValid(SnapArrow)) continue;
+		SnapArrow->DestroyComponent();
+	}
+	SnapArrows.Empty();
+
+	//  check if the snap visual representation if needed
+	if (!RotSupportValues.IsDataValid()) return;
+	if (!RotSupportValues.GetUseSnap()) return;
+	if (bHideSnapVisual) return;
+
+	const TArray<FSnapValue> SnapValues = RotSupportValues.GetSnapValues();
+	if (SnapValues.Num() <= 0) return;
+
+
+	//  construct the new arrow components
+	const FVector BaseScale = RotationBase->GetComponentScale();
+
+	SnapArrows.Reserve(SnapValues.Num());
+	for (int i = 0; i < SnapValues.Num(); i++)
+	{
+		const float SnapAngleRad = FMath::DegreesToRadians(SnapValues[i].SnapAngle);
+
+		SnapArrows.Add(Cast<UArrowComponent>(AddComponentByClass(UArrowComponent::StaticClass(), false, FTransform::Identity, false)));
+		UArrowComponent* SnapArrowComp = SnapArrows[i];
+		SnapArrowComp->SetupAttachment(SceneRootComponent);
+
+		SnapArrowComp->SetArrowColor(FLinearColor{ 0.89f, 0.09, 1.0f });
+		SnapArrowComp->SetWorldScale3D(BaseScale * 0.2f);
+		SnapArrowComp->SetRelativeRotation(FRotator{0.0f, UAnglesUtils::ModuloAngle(SnapValues[i].SnapAngle + 180.0f), 0.0f});
+		SnapArrowComp->SetRelativeLocation(FVector{ FMath::Cos(SnapAngleRad) * 150.0f, FMath::Sin(SnapAngleRad) * 150.0f, BaseScale.Z + 2.5f });
 	}
 }
 
