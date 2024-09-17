@@ -62,9 +62,9 @@ public:
 
 
 
-	// ======================================================
-	//                 Interactable Interface
-	// ======================================================
+// ======================================================
+//                 Interactable Interface
+// ======================================================
 public:
 	void Interaction_Implementation() override;
 	bool CanInteract_Implementation() override;
@@ -74,26 +74,25 @@ public:
 	void InteractionHeavyFinished_Implementation() override;
 
 
-	// ======================================================
-	//          Button Visual Feedback (blueprint)
-	// ======================================================
+// ======================================================
+//          Button Visual Feedback (blueprint)
+// ======================================================
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ButtonInteractFeedback();
 
 
-	// ======================================================
-	//              Button Internal Variables
-	// ======================================================
+// ======================================================
+//              Button Internal Variables
+// ======================================================
 protected:
 	UPROPERTY(BlueprintReadWrite)
 	bool bPressed{ false };
 
 
-	// ======================================================
-	//                 Interaction Links
-	// ======================================================
-
+// ======================================================
+//                 Interaction Links
+// ======================================================
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (tooltip = "Rotation Supports with the Rotation Behavior Automatic you want to link to this button."))
 	TArray<FAutoRotInteractionLink> LinkedSupportsAutomatic;
