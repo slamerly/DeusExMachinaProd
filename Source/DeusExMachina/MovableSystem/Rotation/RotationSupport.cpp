@@ -24,6 +24,16 @@ ARotationSupport::ARotationSupport()
 
 	Arrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
 	Arrow->SetupAttachment(RotationBase);
+
+	ClampVisualLow = CreateDefaultSubobject<UArrowComponent>(TEXT("Clamp Low"));
+	ClampVisualLow->SetupAttachment(SceneRootComponent);
+
+	ClampVisualHigh = CreateDefaultSubobject<UArrowComponent>(TEXT("Clamp High"));
+	ClampVisualHigh->SetupAttachment(SceneRootComponent);
+
+
+	//UpdateClampVisual();
+	//UpdateSnapVisual();
 }
 
 
@@ -38,7 +48,7 @@ void ARotationSupport::BeginPlay()
 
 	//  reset the relative transform of rotation base to prevent unexpected behavior in game
 	const FVector RotationBaseScale3D = RotationBase->GetRelativeScale3D();
-	RotationBase->SetRelativeTransform(FTransform{ FRotator{0.0f, InnerRotation, 0.0f}, FVector::ZeroVector, RotationBaseScale3D});
+	RotationBase->SetRelativeTransform(FTransform{ FRotator{0.0f, InnerRotation, 0.0f}, FVector::ZeroVector, RotationBaseScale3D });
 
 	//  call parent begin play after reseting the rotation base so that the computation of StartTransform is correct
 	Super::BeginPlay();
@@ -47,15 +57,41 @@ void ARotationSupport::BeginPlay()
 	//  hide support and remove collision (if necessary)
 	SceneRootComponent->SetHiddenInGame(bDisableSupportVisibility, true);
 	RotationBase->SetCollisionEnabled(bDisableSupportCollision ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
+
+
+	//  update clamp & snap visual
+	UpdateClampVisual();
+	//UpdateSnapVisual();
 }
 
 
 // ======================================================
-//                      Tick
+//                        Tick
 // ======================================================
 void ARotationSupport::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+
+// ======================================================
+//              Auto update Clamp & Snap
+// ======================================================
+void ARotationSupport::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	const FString PropertyChangedName = PropertyChangedEvent.GetPropertyName().ToString();
+	
+	if (PropertyChangedName.Contains("Clamp"))
+	{
+		UpdateClampVisual();
+	}
+
+	if (PropertyChangedName.Contains("Snap"))
+	{
+		//UpdateSnapVisual();
+	}
 }
 
 
@@ -221,12 +257,40 @@ bool ARotationSupport::GetPlayerInRange(FVector PlayerPosition)
 void ARotationSupport::ApplyEditorValues()
 {
 	EditorAngle = UAnglesUtils::ModuloAngle(EditorAngle);
-	
+
 	ComputeChildrensOffsetEditor();
 
-	RotationBase->SetRelativeRotation(FRotator{0.0f, EditorAngle, 0.0f});
+	RotationBase->SetRelativeRotation(FRotator{ 0.0f, EditorAngle, 0.0f });
 
 	ApplyChildLevelEditor();
+}
+
+void ARotationSupport::UpdateClampVisual()
+{
+	if (!RotSupportValues.IsDataValid() || bHideClampVisual || !RotSupportValues.GetUseClamp())
+	{
+		ClampVisualLow->SetVisibility(false);
+		ClampVisualHigh->SetVisibility(false);
+	}
+	else
+	{
+		ClampVisualLow->SetVisibility(true);
+		ClampVisualHigh->SetVisibility(true);
+
+		const FVector BaseScale = RotationBase->GetComponentScale();
+
+		const float LowClamp = RotSupportValues.GetClampLowValue();
+		const float LowClampRad = FMath::DegreesToRadians(LowClamp);
+		ClampVisualLow->SetWorldScale3D(BaseScale * 0.5f);
+		ClampVisualLow->SetRelativeRotation(FRotator{ 0.0f, UAnglesUtils::ModuloAngle(LowClamp + 180.0f), 0.0f });
+		ClampVisualLow->SetRelativeLocation(FVector{FMath::Cos(LowClampRad) * 140.0f, FMath::Sin(LowClampRad) * 140.0f, BaseScale.Z + 2.0f});
+
+		const float HighClamp = RotSupportValues.GetClampHighValue();
+		const float HighClampRad = FMath::DegreesToRadians(HighClamp);
+		ClampVisualHigh->SetWorldScale3D(BaseScale * 0.5f);
+		ClampVisualHigh->SetRelativeRotation(FRotator{ 0.0f, UAnglesUtils::ModuloAngle(HighClamp + 180.0f), 0.0f });
+		ClampVisualHigh->SetRelativeLocation(FVector{ FMath::Cos(HighClampRad) * 140.0f, FMath::Sin(HighClampRad) * 140.0f, BaseScale.Z + 2.0f });
+	}
 }
 
 

@@ -34,6 +34,8 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
 
 // ======================================================
 //                  Default Components
@@ -47,6 +49,12 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
 	UArrowComponent* Arrow;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	UArrowComponent* ClampVisualLow;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly)
+	UArrowComponent* ClampVisualHigh;
 
 
 
@@ -155,10 +163,16 @@ protected:
 // ======================================================
 //               Level Editor Variables
 // ======================================================
+protected:
+	//UFUNCTION(CallInEditor, Category = "Level Editor", meta = (Tooltip = "If you want to manually update the visual representation of clamps."))
+	void UpdateClampVisual(); //  It should not be useful to call it from editor since it auto updates every time it's needed
+
 public:
 	UPROPERTY(EditAnywhere, Category = "Level Editor", meta = (Tooltip = "The angle you want to apply for this Rotation Support.\nCan be used for testing and for applying a specific angle at begin play."))
 	float EditorAngle{ 0.0f }; //  'EditorAngle' also serve as a begin play angle
 
+	UPROPERTY(EditAnywhere, Category = "Level Editor", meta = (Tooltip = "If you want to hide the visual representation of clamps on this support."))
+	bool bHideClampVisual{ false };
 
 
 
