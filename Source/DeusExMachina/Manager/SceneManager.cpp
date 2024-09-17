@@ -8,6 +8,7 @@
 #include "UObject/ConstructorHelpers.h" // Pour charger les courbes
 #include "Engine/LevelStreaming.h"
 #include <DeusExMachina/BlueprintLibrary/LevelUtilitiesFunctions.h>
+#include <Blueprint/WidgetLayoutLibrary.h>
 
 // Sets default values
 ASceneManager::ASceneManager()
@@ -61,17 +62,11 @@ void ASceneManager::BeginPlay()
 			FTimerDelegate TimerDelegate2;
 			TimerDelegate2.BindLambda([&]
 				{
-					if (bBlockPlayerBeginPlay)
-					{
-						PlayerCtrl->UnblockPlayerInputs(EBlockPlayerCause::SceneTransition);
-					}
+					PlayerCtrl->UnblockPlayerInputs(EBlockPlayerCause::SceneTransition);
 				});
-
 			FTimerHandle TimerHandle;
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate2, 0.5f, false);
-			
 		});
-
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.0f, false);
 }
@@ -101,13 +96,40 @@ void ASceneManager::UpdateScenesNames()
 	}
 }
 
+void ASceneManager::Animations(bool CurtainsOpen, bool LightsAreOn)
+{
+	float CurtainsAnimationTime = 0, LightsAnimationTime = 0;
+	if (bCurtainsAnimation)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Curtain animation"));
+		CurtainsAnimation(CurtainsOpen);
+		CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
+		DelayAnimations = CurtainsAnimationTime;
+	}
+	if (bLightsAnimation)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Light animation"));
+		LightsAnimation(LightsAreOn);
+		LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
+		DelayAnimations = LightsAnimationTime;
+	}
+	if (bCurtainsAnimation && bLightsAnimation)
+	{
+		if (CurtainsAnimationTime > LightsAnimationTime)
+			DelayAnimations = CurtainsAnimationTime;
+		else
+			DelayAnimations = LightsAnimationTime;
+	}
+	else if (!bCurtainsAnimation && !bLightsAnimation)
+	{
+		DelayAnimations = 0;
+	}
+}
+
 void ASceneManager::BeginPlayAnimation_Implementation()
 {
 	// When we load the scene for the first time, we block the player inputand do a camera Fade
-	if (bBlockPlayerBeginPlay)
-	{
-		PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
-	}
+	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
 	if (bFadeBeginPlay)
 	{
 		UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(1.0f, 1.0f, 1.0f, FLinearColor::Black, false, true);
@@ -268,32 +290,7 @@ void ASceneManager::BeforeSceneChange(int pCurrentSceneIndex)
 	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
 
 	//Animations
-	float CurtainsAnimationTime = 0, LightsAnimationTime = 0;
-	if (bCurtainsAnimation)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Curtain animation"));
-		CurtainsAnimation(true);
-		CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
-		DelayAnimations = CurtainsAnimationTime;
-	}
-	if (bLightsAnimation)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Light animation"));
-		LightsAnimation(true);
-		LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
-		DelayAnimations = LightsAnimationTime;
-	}
-	if (bCurtainsAnimation && bLightsAnimation)
-	{
-		if (CurtainsAnimationTime > LightsAnimationTime)
-			DelayAnimations = CurtainsAnimationTime;
-		else
-			DelayAnimations = LightsAnimationTime;
-	}
-	else if (!bCurtainsAnimation && !bLightsAnimation)
-	{
-		DelayAnimations = 0;
-	}
+	Animations(true, true);
 }
 
 void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore, bool pWithLoad)
@@ -323,31 +320,7 @@ void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore, bool pWithLoad)
 				UGameplayStatics::GetPlayerPawn(this, 0)->SetActorLocation(CurrentSceneTransition->GetSpawnRomeo()->GetActorLocation());
 
 				//Animations
-				float CurtainsAnimationTime = 0, LightsAnimationTime = 0;				
-				if (bCurtainsAnimation)
-				{
-					//UE_LOG(LogTemp, Warning, TEXT("After Loaded Curtain animation"));
-					CurtainsAnimation(false);
-					CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
-					DelayAnimations = CurtainsAnimationTime;
-				}
-				if (bLightsAnimation)
-				{
-					LightsAnimation(false);
-					LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
-					DelayAnimations = LightsAnimationTime;
-				}
-				if (bCurtainsAnimation && bLightsAnimation)
-				{
-					if (CurtainsAnimationTime > LightsAnimationTime)
-						DelayAnimations = CurtainsAnimationTime;
-					else
-						DelayAnimations = LightsAnimationTime;
-				}
-				else if(!bCurtainsAnimation && !bLightsAnimation)
-				{
-					DelayAnimations = 0;
-				}
+				Animations(false, false);
 				return;
 			}
 			else
@@ -493,6 +466,33 @@ void ASceneManager::OnTimelineUpdateLights(float Value)
 
 void ASceneManager::OnTimelineFinishedLights()
 {
+}
+
+void ASceneManager::LevelTransition(TSoftObjectPtr<UWorld> TargetLevel, float DelayAfterAnimation, bool CurtainsAnimation, bool LightsAnimation, bool FadeCamera)
+{
+	DelayAnimations = 0;
+
+	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
+	Animations(CurtainsAnimation, LightsAnimation);
+
+	//Remove all widgets on the screen
+	UWidgetLayoutLibrary::RemoveAllWidgets(this);
+
+	//Camera Fade
+	if (FadeCamera)
+	{
+		UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(0.0f, 1.0f, 2.0f, FLinearColor::Black, false, true);
+	}
+
+	//Delay
+	FTimerDelegate TimerDelegate;
+	DelayAnimations += DelayAfterAnimation;
+	TimerDelegate.BindLambda([&]
+		{
+			UGameplayStatics::OpenLevelBySoftObjectPtr(this, TargetLevel);
+		});
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayAnimations, false);
 }
 
 int ASceneManager::GetCurrentIndexScene()

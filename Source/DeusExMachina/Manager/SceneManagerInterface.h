@@ -39,4 +39,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void CurtainsAnimation(bool IsOpen) = 0;
+
+	/**
+	* Function call to translate to an other level
+	* @param	TargetLevel	Level you want to go
+	* @param	DelayAfterAnimation	Delay between the end of the animations and the switch of level
+	*/
+	UFUNCTION(BlueprintCallable)
+	virtual void LevelTransition(TSoftObjectPtr<UWorld> TargetLevel, float DelayAfterAnimation, bool CurtainsAnimation, bool LightsAnimation, bool FadeCamera) = 0;
 };

@@ -77,22 +77,25 @@ private:
 //             Events animations and sounds
 // ======================================================
 protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	const TObjectPtr<ATargetPoint> SceneCenter;
+
+	// ==================
+	//		Change Level
+	// ==================
 	/**
 	 *	Animation to do in the Begin Play.
 	 * For now, we block the player and have a camera fade.
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "Animation|BeginPlay")
+	UFUNCTION(BlueprintNativeEvent, Category = "LevelTransition|BeginPlay")
 	void BeginPlayAnimation();
 	// bool to activate to block player at begin play
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|BeginPlay")
-	bool bBlockPlayerBeginPlay = true;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|BeginPlay")
+	//bool bBlockPlayerBeginPlay = true;
 	// bool to activate to fade player camera at begin play
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation|BeginPlay")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|BeginPlay")
 	bool bFadeBeginPlay = true;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	const TObjectPtr<ATargetPoint> SceneCenter;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<const TObjectPtr<AActor>> Curtains;
 
 	// ==================
 	//		Change Scene
@@ -105,11 +108,19 @@ protected:
 	// Update the ScenesNames
 	UFUNCTION(CallInEditor, Category = "Default")
 	void UpdateScenesNames();
+	/**
+	* Function to call animations for curtains and lights.
+	* @param	CurtainsOpen	Know if the curtains are curently open
+	* @param	LighsAreOn	Know if the lights are on
+	*/
+	void Animations(bool CurtainsOpen, bool LightsAreOn);
 
 	// ==================
 	//		Curtains
 	// ==================
 	TArray<FVector> CurtainsInitialPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene")
+	TArray<const TObjectPtr<AActor>> Curtains;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene")
 	bool bCurtainsAnimation = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Curtains")
@@ -167,4 +178,6 @@ public:
 	void ChangeScene(const TSoftObjectPtr<UWorld>& NextScene, int pTargetID, bool FromNarrationScene, bool WithLoad) override;
 
 	void CurtainsAnimation(bool IsOpen) override;
+
+	void LevelTransition(TSoftObjectPtr<UWorld> TargetLevel, float DelayAfterAnimation, bool CurtainsAnimation, bool LightsAnimation, bool FadeCamera) override;
 };
