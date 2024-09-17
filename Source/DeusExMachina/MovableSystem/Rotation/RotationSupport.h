@@ -15,7 +15,8 @@ enum class ERotationState : uint8
 {
 	NotRotating = 0,
 	AutomaticRotation = 1,
-	StandardRotation = 2
+	StandardRotation = 2,
+	ControlledRotation = 3
 };
 
 

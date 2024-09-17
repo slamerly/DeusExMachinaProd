@@ -38,7 +38,7 @@ struct FStandardRotationDatas
 
 	//  Override datas
 
-	UPROPERTY(EDitAnywhere, BlueprintReadOnly, meta = (Tooltip = "Overrides the values of the data asset for this link."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Overrides the values of the data asset for this link."))
 	bool bOverrideValues{ false };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Standard Rotation Datas", meta = (EditCondition = "bOverrideValues", EditConditionHides),
@@ -48,6 +48,7 @@ struct FStandardRotationDatas
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Standard Rotation Datas", meta = (EditCondition = "bOverrideValues", EditConditionHides),
 		meta = (Tooltip = "The time that the complete Standard Rotation will take.\n(In seconds)"))
 	float RotationDuration{ 1.0f };
+
 
 	UPROPERTY(EDitAnywhere, BlueprintReadOnly, meta = (Tooltip = "Overrides the curve value of the data asset for this link."))
 	bool bOverrideCurveValue{ false };

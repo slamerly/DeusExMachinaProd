@@ -1,0 +1,79 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "RotationBehaviorBase.h"
+#include "RotationBehaviorControlled.generated.h"
+
+
+UENUM()
+enum class EControlledRotationState : uint8
+{
+	Inactive = 0,
+	ControlStartup = 1,
+	Control = 2,
+	Snap = 3
+};
+
+
+UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Rotation Behavior Controlled", Tooltip = "Component to add to a Rotation Support if you want it to be able to be controlled by a Wheel or a Handle."))
+class DEUSEXMACHINA_API URotationBehaviorControlled : public URotationBehaviorBase
+{
+	GENERATED_BODY()
+
+public:
+	URotationBehaviorControlled();
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+
+
+
+// ======================================================
+//              Control Controlled Rotation
+// ======================================================
+public:
+	/**
+	* Function to call when an interactable linked to this behavior has gained control by the player.
+	* @param	Datas	The control datas.
+	* @return			True if the control was successfully gained.
+	*/
+	bool StartControlledRotation(struct FControlledRotationDatas Datas);
+	
+	/**
+	* Function to call when an interactable linked to this behavior has lost control from the player.
+	* @param	DontTriggerSnap		Optionnal param to force this behavior to not trigger the snap on release, even if the support has snap enabled.
+	*/
+	void StopControlledRotation(bool DontTriggerSnap = false);
+	
+	/**
+	* Function to call when an interactable controlling this behavior receive update from the player.
+	* @param	ControlValue	The control value for this update frame.
+	* @return					True if this behavior encountered clamp on this update frame.
+	*/
+	bool UpdateControlledRotation(float ControlValue);
+
+
+// ======================================================
+//                   Helper Functions
+// ======================================================
+protected:
+	bool IsControlledRotValid(struct FControlledRotationDatas Datas);
+	bool IsStartupValid(struct FControlledRotationDatas Datas);
+
+
+// ======================================================
+//         Controlled Rotation Internal Variables
+// ======================================================
+protected:
+	EControlledRotationState CurrentState{ EControlledRotationState::Inactive };
+
+	float RotationSpeed{ 0.0f };
+	bool bUseStartup{ false };
+	float StartupDuration{ 0.0f };
+	float StartupTimer{ 0.0f };
+	UCurveFloat* StartupCurve{ nullptr };
+};
