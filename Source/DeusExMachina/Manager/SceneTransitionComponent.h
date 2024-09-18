@@ -3,43 +3,32 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
 #include <Engine/TargetPoint.h>
-#include "SceneManager.h"
-#include "GameFramework/Actor.h"
-#include <Engine/Light.h>
-#include "SceneTransition.generated.h"
+#include "SceneTransitionComponent.generated.h"
 
-UCLASS()
-/**
- *
- */
-class DEUSEXMACHINA_API ASceneTransition : public AActor
+
+
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class DEUSEXMACHINA_API USceneTransitionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	ASceneTransition(const FObjectInitializer& ObjectInitializer);
-
-	~ASceneTransition();
+	// Sets default values for this component's properties
+	USceneTransitionComponent();
 
 protected:
-	virtual void PostActorCreated() override;
+	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	// Collision box
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Default")
 	class UBoxComponent* CollisionBox = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	int IdSceneTransition = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	TObjectPtr<ATargetPoint> SpawnRomeo;
-
 	//Target
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target")
 	TSoftObjectPtr<UWorld> TargetScene;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target")
-	int TargetID = 0;
 
 public:
 	UFUNCTION()
@@ -47,14 +36,7 @@ public:
 
 	UFUNCTION()
 	TSoftObjectPtr<UWorld> GetTargetScene();
-	UFUNCTION()
-	int GetTargetId();
-	UFUNCTION()
-	int GetIdSceneTransition();
-	UFUNCTION()
-	ATargetPoint* GetSpawnRomeo();
 
 private:
 	TObjectPtr<AActor> SceneManager;
 };
-

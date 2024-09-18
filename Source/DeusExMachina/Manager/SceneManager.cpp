@@ -3,7 +3,7 @@
 
 #include "SceneManager.h"
 #include <Kismet/GameplayStatics.h>
-#include "SceneTransition.h"
+#include "SceneEntrance.h"
 #include "Kismet/KismetMathLibrary.h" // Pour les interpolations
 #include "UObject/ConstructorHelpers.h" // Pour charger les courbes
 #include "Engine/LevelStreaming.h"
@@ -323,7 +323,6 @@ void ASceneManager::LightsAnimation(bool IsOn)
 
 void ASceneManager::BeforeSceneChange(int pCurrentSceneIndex)
 {
-	//TODO - Saving Scene
 	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
 
 	//Animations
@@ -332,12 +331,31 @@ void ASceneManager::BeforeSceneChange(int pCurrentSceneIndex)
 
 void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore, bool pWithLoad)
 {
-	
 	if (pWithLoad)
 	{
 		LoadingScene();
 	}
 
+	TObjectPtr<AActor> SceneEntrance = ULevelUtilitiesFunctions::GetActorOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneEntrance::StaticClass());
+
+	if(SceneEntrance != nullptr)
+	{
+		UGameplayStatics::GetPlayerPawn(this, 0)->SetActorLocation(SceneEntrance->GetActorLocation());
+		UGameplayStatics::GetPlayerPawn(this, 0)->SetActorRotation(SceneEntrance->GetActorRotation());
+
+		//Animations
+		Animations(false, false);
+		return;
+	}
+	else
+	{
+		//Error
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red,
+			FString::Printf(TEXT("No SceneEntrance found in the next scene.")));
+		UE_LOG(LogTemp, Warning, TEXT("No SceneEntrance found in the next scene."));
+	}
+	
+	/*
 	//If the scene contains many transitions, select the good one
 	TArray<AActor*> SceneTransitions;
 	ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneTransition::StaticClass(), SceneTransitions);
@@ -369,6 +387,7 @@ void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore, bool pWithLoad)
 			}
 		}
 	}
+	*/
 }
 
 // Event function streamlevel loaded

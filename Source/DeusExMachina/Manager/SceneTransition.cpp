@@ -46,29 +46,6 @@ void ASceneTransition::BeginPlay()
 	}
 }
 
-/*
-void ASceneTransition::GetAllLightsInSubLevel()
-{
-	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("SceneManager not find."));
-	if (SceneManager)
-	{
-		TArray<AActor*> LightsFund;
-		ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, GetLevel()->GetOuter(), ALight::StaticClass(), LightsFund);
-
-		UE_LOG(LogTemp, Log, TEXT("Number of light in the scene %d"), LightsFund.Num());
-
-		for (int i = 0; i < LightsFund.Num(); i++)
-		{
-			ALight* TempLight = Cast<ALight>(LightsFund[i]);
-			if (TempLight)
-			{
-				Lights.AddUnique(TempLight);
-			}
-		}
-	}
-}
-*/
-
 void ASceneTransition::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (UGameplayStatics::GetPlayerPawn(this, 0) == OtherActor)
