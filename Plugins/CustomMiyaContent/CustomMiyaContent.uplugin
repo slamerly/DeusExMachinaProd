@@ -1,0 +1,17 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Custom Miya Content",
+	"Description": "Miya's own suite of Unreal Blueprint Libraries and other custom content.",
+	"Category": "Blueprints",
+	"CreatedBy": "Miya Loustalot",
+	"CreatedByURL": "miyaloustalot.fr",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false
+}

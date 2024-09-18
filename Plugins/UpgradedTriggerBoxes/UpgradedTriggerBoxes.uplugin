@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Upgraded Trigger Boxes",
+	"Description": "A fully modular and customizable solution for Trigger Boxes capable of calling Events through Components.",
+	"Category": "Editor",
+	"CreatedBy": "Miya Loustalot",
+	"CreatedByURL": "miyaloustalot.fr",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Plugins": [
+		{
+			"Name": "CustomMiyaContent",
+			"Enabled": true
+		}
+	]
+}

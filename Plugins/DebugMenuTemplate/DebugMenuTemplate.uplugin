@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Debug Menu Template",
+	"Description": "A basic modular template to quickly assemble data-visualizing Debug Menus.",
+	"Category": "Editor",
+	"CreatedBy": "Miya Loustalot",
+	"CreatedByURL": "miyaloustalot.fr",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Plugins": [
+		{
+			"Name": "CustomMiyaContent",
+			"Enabled": true
+		}
+	]
+}
