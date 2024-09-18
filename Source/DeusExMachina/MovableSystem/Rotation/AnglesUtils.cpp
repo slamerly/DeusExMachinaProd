@@ -9,3 +9,12 @@ float UAnglesUtils::ModuloAngle(const float Angle)
 
 	return AngleMod + 360.0f;
 }
+
+int UAnglesUtils::ModuloAngleInt(const int Angle)
+{
+	const int AngleMod = Angle % 360;
+
+	if (AngleMod >= 0) return AngleMod;
+
+	return AngleMod + 360;
+}

@@ -23,6 +23,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Rotation Startup",
 		meta = (Tooltip = "The interpolation curve of the 'startup' phase of the Controlled Rotation.\n(Must be a normalized curve)"))
 	UCurveFloat* StartupCurve{ nullptr };
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Rotation Snap",
+		meta = (Tooltip = "When searching for snap, ignore clamp on the Rotation Support"))
+	bool bSnapIgnoreClamp{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Rotation Snap",
+		meta = (Tooltip = "When searching for snap, ignore ranges on snap values"))
+	bool bSnapIgnoreRanges{ false };
 };
 
 
@@ -47,7 +56,7 @@ struct FControlledRotationDatas
 	float RotationSpeed{ 60.0f };
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Overrides the startup value of the data asset for this link."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Overrides the startup values of the data asset for this link."))
 	bool bOverrideStartup{ false };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Rotation Startup", meta = (EditCondition = "bOverrideStartup", EditConditionHides),
@@ -59,10 +68,24 @@ struct FControlledRotationDatas
 	UCurveFloat* StartupCurve{ nullptr };
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Overrides the snap values of the data asset for this link."))
+	bool bOverrideSnap{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Rotation Snap", meta = (EditCondition = "bOverrideSnap", EditConditionHides),
+		meta = (Tooltip = "When searching for snap, ignore clamp on the Rotation Support"))
+	bool bSnapIgnoreClamp{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Rotation Snap", meta = (EditCondition = "bOverrideSnap", EditConditionHides),
+		meta = (Tooltip = "When searching for snap, ignore ranges on snap values"))
+	bool bSnapIgnoreRanges{ false };
+
+
 	//  Getter functions
 	bool IsDataValid();
 
 	float GetRotationSpeed();
 	float GetStartupDuration();
 	UCurveFloat* GetStartupCurve();
+	bool GetSnapIgnoreClamp();
+	bool GetSnapIgnoreRanges();
 };

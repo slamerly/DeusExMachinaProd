@@ -6,7 +6,7 @@
 // ======================================================
 bool FControlledRotationDatas::IsDataValid()
 {
-	return IsValid(ControlledRotInteractionDatas) || (bOverrideSpeed && bOverrideStartup);
+	return IsValid(ControlledRotInteractionDatas) || (bOverrideSpeed && bOverrideStartup && bOverrideSnap);
 }
 
 float FControlledRotationDatas::GetRotationSpeed()
@@ -22,4 +22,14 @@ float FControlledRotationDatas::GetStartupDuration()
 UCurveFloat* FControlledRotationDatas::GetStartupCurve()
 {
 	return bOverrideStartup ? StartupCurve : ControlledRotInteractionDatas->StartupCurve;
+}
+
+bool FControlledRotationDatas::GetSnapIgnoreClamp()
+{
+	return bOverrideSnap ? bSnapIgnoreClamp : ControlledRotInteractionDatas->bSnapIgnoreClamp;
+}
+
+bool FControlledRotationDatas::GetSnapIgnoreRanges()
+{
+	return bOverrideSnap ? bSnapIgnoreRanges : ControlledRotInteractionDatas->bSnapIgnoreRanges;
 }

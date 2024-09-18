@@ -1,6 +1,5 @@
 #include "RotationBehaviorControlled.h"
 #include "RotationSupport.h"
-#include "ControlledRotationDatas.h"
 #include "Kismet/GameplayStatics.h"
 #include "Defines.h"
 
@@ -20,11 +19,34 @@ void URotationBehaviorControlled::BeginPlay()
 
 
 // ======================================================
-//              Tick (only used for snap)
+//         Tick (snap and Last Inputed Direction)
 // ======================================================
 void URotationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	//  last inputed direction part
+	LastInputedDirectionTimer -= DeltaTime;
+	if (LastInputedDirectionTimer <= 0.0f) LastInputedDirection = 0;
+
+
+	//  snap part
+	if (CurrentState != EControlledRotationState::Snap) return;
+
+	SnapTimer += DeltaTime;
+	if (SnapTimer >= SnapDuration)
+	{
+		SnapTimer = SnapDuration;
+
+		SetComponentTickEnabled(false);
+		CurrentState = EControlledRotationState::Inactive;
+
+		OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
+		OwnerRotSupport->StopMovementOnChildrens();
+	}
+	
+	const float DesiredSnapAngle = FMath::Lerp<float, float>(SnapAngleDest, SnapAngleStart, SnapCurve->GetFloatValue(SnapTimer / SnapDuration));
+	OwnerRotSupport->ForceInnerRotation(DesiredSnapAngle, true);
 }
 
 
@@ -41,6 +63,7 @@ bool URotationBehaviorControlled::StartControlledRotation(FControlledRotationDat
 	if (CurrentState != EControlledRotationState::Inactive && CurrentState != EControlledRotationState::Snap) return false;
 
 	//  set controlled rot values
+	CurrentDatas = Datas;
 	RotationSpeed = Datas.GetRotationSpeed();
 
 	//  set startup values & state
@@ -58,6 +81,9 @@ bool URotationBehaviorControlled::StartControlledRotation(FControlledRotationDat
 		CurrentState = EControlledRotationState::Control;
 	}
 
+	//  enable tick on this component
+	SetComponentTickEnabled(true);
+
 	//  set state on support and start movement on childrens
 	OwnerRotSupport->CurrentRotationState = ERotationState::ControlledRotation;
 	OwnerRotSupport->StartMovementOnChildrens();
@@ -73,14 +99,31 @@ void URotationBehaviorControlled::StopControlledRotation(bool DontTriggerSnap)
 	//  check already in control
 	if (CurrentState != EControlledRotationState::Control && CurrentState != EControlledRotationState::ControlStartup) return;
 
-	//  TODO: Implement snap (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa)
+	//  check snap
+	const FRotSupportValues OwnerValues = OwnerRotSupport->GetSupportValues();
+	const float SnapSearchAdvantage = LastInputedDirection * ((OwnerValues.GetSnapDirectionAdvantage() * 2.0f) - 1.0f); //  converts snap direction advantage to generic snap search advantage
 
-	//  set state for this component
-	CurrentState = EControlledRotationState::Inactive;
+	if (OwnerRotSupport->SearchSnapAngle(OwnerRotSupport->GetInnerRotation(), SnapAngleDest, SnapSearchAdvantage, CurrentDatas.GetSnapIgnoreClamp(), CurrentDatas.GetSnapIgnoreRanges()))
+	{
+		//  set snap values & state
+		SnapAngleStart = OwnerRotSupport->GetInnerRotation();
+		SnapTimer = 0.0f;
+		SnapDuration = FMath::Abs(SnapAngleDest - SnapAngleStart) / OwnerValues.GetSnapSpeed();
 
-	//  set state on support and stop movement on childrens
-	OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
-	OwnerRotSupport->StopMovementOnChildrens();
+		SnapCurve = FMath::RoundToInt(FMath::Sign<float>(SnapAngleDest - SnapAngleStart)) == LastInputedDirection ? OwnerValues.GetSnapCurveContinue() : OwnerValues.GetSnapCurveNeutralReverse();
+
+		CurrentState = EControlledRotationState::Snap;
+	}
+	else
+	{
+		//  set state and disable tick for this component
+		SetComponentTickEnabled(false);
+		CurrentState = EControlledRotationState::Inactive;
+
+		//  set state on support and stop movement on childrens
+		OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
+		OwnerRotSupport->StopMovementOnChildrens();
+	}
 }
 
 bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
@@ -121,6 +164,11 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 			CurrentState = EControlledRotationState::ControlStartup;
 		}
 	}
+	else
+	{
+		LastInputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(RotationSpeed);
+		LastInputedDirectionTimer = OwnerRotSupport->GetSupportValues().GetSnapDirectionDelay();
+	}
 
 	return TriggeredClamp;
 }
@@ -138,5 +186,7 @@ bool URotationBehaviorControlled::IsControlledRotValid(FControlledRotationDatas 
 
 bool URotationBehaviorControlled::IsStartupValid(FControlledRotationDatas Datas)
 {
+	if (!Datas.IsDataValid()) return false;
+
 	return Datas.GetStartupDuration() > 0.0f && IsValid(Datas.GetStartupCurve());
 }

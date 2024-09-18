@@ -91,20 +91,47 @@ protected:
 
 
 // ======================================================
+//                Utility Get Functions
+// ======================================================
+public:
+	const FRotSupportValues GetSupportValues() { return RotSupportValues; }
+
+
+
+// ======================================================
 //                   Clamp Functions
 // ======================================================
 public:
 	bool UseValidClamp();
-	void GetClampValues(float& ClampLow, float& ClampHigh);
+	void GetClampValues(int& ClampLow, int& ClampHigh);
 	
 	/**
 	* Simulate a rotation on this support, allowing to know if it would trigger clamp.
-	* Note that if the inner rotation of this support is already outside of the clamp range, it will return the angle to go back to the nearest clamp.
 	* @param	InputRotationAngle		The rotation angle you want to simulate on this support.
 	* @param	ClampedRotationAngle	[OUT] The rotation angle needed to reach clamp on this support.
 	* @return							True if the simulation triggers clamp.
 	*/
 	bool SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle);
+
+
+
+// ======================================================
+//                   Snap Functions
+// ======================================================
+public:
+	bool UseValidSnap();
+
+	/**
+	* Search for the nearest snap angle from an inputed angle. Will prevent going through clamps if the support uses clamping.
+	* Note that even if the snap values are stored between 0 and 360, will return the angle in the range of the input.
+	* @param	InputRotationAngle		The rotation angle from which you want to search a snap angle.
+	* @param	SnapAngle				[OUT] The found snap angle. Will be set to 'InputRotationAngle' if the snap search fails.
+	* @param	SnapSearchAdvantage		(optionnal) Advantage for searching angles with a lower or a higher value than input. 0 is no advantage. (Between -1 and 1)
+	* @param	IgnoreClamp				(optionnal) Force the snap search to not compute clamp, even if the support uses clamping.
+	* @param	IgnoreSnapRanges		(optionnal) Force the snap search to ignore the range of every snap values.
+	* @return							True if the search was successful. False if the search couldn't find a suitable snap angle (the support doesn't uses snap, it was blocked by clamp, the input was outside any snap range). 
+	*/
+	bool SearchSnapAngle(const float InputRotationAngle, float& SnapAngle, const float SnapSearchAdvantage = 0.0f, const bool IgnoreClamp = false, const bool IgnoreSnapRanges = false);
 
 
 
@@ -149,11 +176,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support", meta = (Tooltip = "The values of snap and clamp of this rotation support."))
 	FRotSupportValues RotSupportValues;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support", meta = (Tooltip = "Hide the rotation base mesh component in game."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support|Advanced", meta = (Tooltip = "Hide the rotation base mesh component in game."))
 	bool bDisableSupportVisibility{ false };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support", meta = (Tooltip = "Allow the player to not be rotated by this support."))
-	bool bDisableSupportCollision{ false };	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support|Advanced", meta = (Tooltip = "If you want to hide the visual arrow for the inner angle on this support."))
+	bool bHideAngleArrowVisual{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support|Advanced", meta = (Tooltip = "Allow the player to not be rotated by this support."))
+	bool bDisableSupportCollision{ false };
 
 
 
@@ -163,11 +193,10 @@ protected:
 protected:
 	void ApplyEditorValues() override;
 
-	//UFUNCTION(CallInEditor, Category = "Level Editor", meta = (Tooltip = "If you want to manually update the visual representation of clamps."))
-	void UpdateClampVisual(); //  It should not be useful to call it from editor since it auto updates every time it's needed
+	void UpdateClampVisual();
 
-	//UFUNCTION(CallInEditor, Category = "Level Editor", meta = (Tooltip = "If you want to manually update the visual representation of snaps."))
-	void UpdateSnapVisual(); //  It should not be useful to call it from editor since it auto updates every time it's needed
+	UFUNCTION(BlueprintCallable)
+	void UpdateSnapVisual(); //  Callable from blueprint to be able to call this function on the "Construction Script"
 
 
 

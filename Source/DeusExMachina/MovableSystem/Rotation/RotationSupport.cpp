@@ -55,8 +55,10 @@ void ARotationSupport::BeginPlay()
 
 
 	//  hide support and remove collision (if necessary)
-	SceneRootComponent->SetHiddenInGame(bDisableSupportVisibility, true);
+	RotationBase->SetHiddenInGame(bDisableSupportVisibility);
+	Arrow->SetHiddenInGame(bHideAngleArrowVisual);
 	RotationBase->SetCollisionEnabled(bDisableSupportCollision ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
+
 
 
 	//  update clamp & snap visual
@@ -88,14 +90,16 @@ void ARotationSupport::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		UpdateClampVisual();
 	}
 
-	UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
+	//UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
+	//  called from blueprint construction script
 }
 
 void ARotationSupport::PostEditMove(bool bFinished)
 {
 	Super::PostEditMove(bFinished);
 
-	UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
+	//UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
+	//  called from blueprint construction script
 }
 
 
@@ -183,11 +187,11 @@ bool ARotationSupport::UseValidClamp()
 	return RotSupportValues.GetClampHighValue() > RotSupportValues.GetClampLowValue();
 }
 
-void ARotationSupport::GetClampValues(float& ClampLow, float& ClampHigh)
+void ARotationSupport::GetClampValues(int& ClampLow, int& ClampHigh)
 {
 	if (!UseValidClamp())
 	{
-		ClampLow = ClampHigh = 0.0f;
+		ClampLow = ClampHigh = 0;
 		return;
 	}
 
@@ -205,7 +209,7 @@ bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle,
 
 	if (InputRotationAngle >= 0.0f)
 	{
-		float ClampHigh = RotSupportValues.GetClampHighValue();
+		const int ClampHigh = RotSupportValues.GetClampHighValue();
 		if (InnerRotation + InputRotationAngle >= ClampHigh)
 		{
 			ClampedRotationAngle = ClampHigh - InnerRotation;
@@ -214,7 +218,7 @@ bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle,
 	}
 	else
 	{
-		float ClampLow = RotSupportValues.GetClampLowValue();
+		const int ClampLow = RotSupportValues.GetClampLowValue();
 		if (InnerRotation + InputRotationAngle <= ClampLow)
 		{
 			ClampedRotationAngle = ClampLow - InnerRotation;
@@ -223,6 +227,165 @@ bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle,
 	}
 
 	ClampedRotationAngle = InputRotationAngle;
+	return false;
+}
+
+
+// ======================================================
+//                   Snap Functions
+// ======================================================
+bool ARotationSupport::UseValidSnap()
+{
+	if (!RotSupportValues.IsDataValid()) return false;
+
+	if (!RotSupportValues.GetUseSnap()) return false;
+
+	if (!IsValid(RotSupportValues.GetSnapCurveContinue()) || !IsValid(RotSupportValues.GetSnapCurveNeutralReverse())) return false;
+
+	return RotSupportValues.GetSnapValues().Num() > 0;
+}
+
+bool ARotationSupport::SearchSnapAngle(const float InputRotationAngle, float& SnapAngle, const float SnapSearchAdvantage, const bool IgnoreClamp, const bool IgnoreSnapRanges)
+{
+	if (!UseValidSnap())
+	{
+		SnapAngle = InputRotationAngle;
+		return false;
+	}
+
+
+	// Preparation
+	// ------------------------------------------
+
+	const int InputMod = UAnglesUtils::ModuloAngleInt(FMath::RoundToInt(InputRotationAngle)); //  'InputRotationAngle' modulated between 0 and 360
+	const int InputDiff = FMath::RoundToInt(InputRotationAngle) - InputMod; //  The value to add to an angle base 360 for it to become in the range of 'InputRotationAngle'
+	const int InputDiff180 = InputMod - 180; //  The value to "convert" snap values to the search range of input (useful for query highers and lowers)
+
+	const bool UsesClamp = UseValidClamp() && !IgnoreClamp; //  Do it once here to avoir unecessary computations
+	const int ClampHigh = RotSupportValues.GetClampHighValue();
+	const int ClampLow = RotSupportValues.GetClampLowValue();
+	const TArray<FSnapValue> EverySnapValues = RotSupportValues.GetSnapValues();
+
+
+
+	// Query higher and lower snaps
+	// ------------------------------------------
+
+	//  query the nearest suitable higher snap value
+	int NearestHigherSnap = 1000; //  arbitrary value (higher than any value that can be found by this query)
+	for (FSnapValue SnapValue : EverySnapValues)
+	{
+		const int SnapValueConverted = UAnglesUtils::ModuloAngleInt(SnapValue.SnapAngle - InputDiff180);
+		if (SnapValueConverted < 180) continue; //  This snap value is for the lower query
+
+		//  check nearest
+		if (SnapValueConverted - 180 >= NearestHigherSnap) continue; //  This snap value is not the nearest
+
+		//  check snap value range
+		if (SnapValue.bLimitedRangeSnap && !IgnoreSnapRanges)
+		{
+			if (SnapValueConverted - SnapValue.SnapRangeLower > 180) continue; //  The input angle is outside the range of this snap value
+		}
+
+		//  check clamp
+		if (UsesClamp)
+		{
+			const int SnapValueRanged = SnapValue.SnapAngle + InputDiff;
+			if (SnapValueRanged > ClampHigh) continue; //  This snap value is outside the clamping range
+		}
+
+		//  if the snap value survived through all this, it is valid! congratulations
+		NearestHigherSnap = SnapValueConverted - 180;
+	}
+
+
+	//  query the nearest suitable lower snap value
+	int NearestLowerSnap = 1000; //  arbitrary value (higher than any value that can be found by this query)
+	for (FSnapValue SnapValue : EverySnapValues)
+	{
+		const int SnapValueConverted = UAnglesUtils::ModuloAngleInt(SnapValue.SnapAngle - InputDiff180);
+		if (SnapValueConverted > 180) continue; //  This snap value is for the higher query
+
+		//  check nearest
+		if (180 - SnapValueConverted >= NearestLowerSnap) continue; //  This snap value is not the nearest
+
+		//  check snap value range
+		if (SnapValue.bLimitedRangeSnap && !IgnoreSnapRanges)
+		{
+			if (SnapValueConverted + SnapValue.SnapRangeUpper < 180) continue; //  The input angle is outside the range of this snap value
+		}
+
+		//  check clamp
+		if (UsesClamp)
+		{
+			const int SnapValueRanged = SnapValue.SnapAngle + InputDiff;
+			if (SnapValueRanged < ClampLow) continue; //  This snap value is outside the clamping range
+		}
+
+		//  if the snap value survived through all this, it is valid! congratulations
+		NearestLowerSnap = 180 - SnapValueConverted;
+	}
+
+
+
+	// Choose best snap with query results
+	// ------------------------------------------
+
+	//  no valid snap value found
+	if (NearestHigherSnap >= 1000 && NearestLowerSnap >= 1000)
+	{
+		SnapAngle = InputRotationAngle;
+		return false;
+	}
+
+	//  only the higher snap value is valid
+	if (NearestHigherSnap < 1000 && NearestLowerSnap >= 1000)
+	{
+		SnapAngle = FMath::RoundToInt(InputRotationAngle) + NearestHigherSnap;
+		return true;
+	}
+
+	//  only the lower snap value is valid
+	if (NearestHigherSnap >= 1000 && NearestLowerSnap < 1000)
+	{
+		SnapAngle = FMath::RoundToInt(InputRotationAngle) - NearestLowerSnap;
+		return true;
+	}
+
+	//  both higher and lower snap values are valid
+	if (NearestHigherSnap < 1000 && NearestLowerSnap < 1000)
+	{
+		const float SearchAdvantage = FMath::Clamp(SnapSearchAdvantage, -1.0f, 1.0f);
+		if (SearchAdvantage == -1.0f)
+		{
+			SnapAngle = FMath::RoundToInt(InputRotationAngle) - NearestLowerSnap;
+			return true;
+		}
+		if (SearchAdvantage == 1.0f)
+		{
+			SnapAngle = FMath::RoundToInt(InputRotationAngle) + NearestHigherSnap;
+			return true;
+		}
+
+		const float LowerAdvantaged = FMath::Abs(NearestLowerSnap * (-1.0f - SnapSearchAdvantage));
+		const float HigherAdvantaged = FMath::Abs(NearestHigherSnap * (1.0f - SnapSearchAdvantage));
+
+		if (LowerAdvantaged < HigherAdvantaged)
+		{
+			SnapAngle = FMath::RoundToInt(InputRotationAngle) - NearestLowerSnap;
+			return true;
+		}
+		else
+		{
+			SnapAngle = FMath::RoundToInt(InputRotationAngle) + NearestHigherSnap;
+			return true;
+		}
+
+		return true;
+	}
+
+	//  if the code reach here (it shouldn't) return false
+	SnapAngle = InputRotationAngle;
 	return false;
 }
 
@@ -246,7 +409,7 @@ FTransform ARotationSupport::GetObjectTransformRelative()
 // ======================================================
 bool ARotationSupport::IsCurrentlyMoving()
 {
-	return false;
+	return CurrentRotationState != ERotationState::NotRotating;
 }
 
 bool ARotationSupport::GetPlayerInRange(FVector PlayerPosition)
@@ -327,6 +490,7 @@ void ARotationSupport::UpdateSnapVisual()
 		SnapArrows.Add(Cast<UArrowComponent>(AddComponentByClass(UArrowComponent::StaticClass(), false, FTransform::Identity, false)));
 		UArrowComponent* SnapArrowComp = SnapArrows[i];
 		SnapArrowComp->SetupAttachment(SceneRootComponent);
+		SnapArrowComp->SetHiddenInGame(false);
 
 		SnapArrowComp->SetArrowColor(FLinearColor{ 0.89f, 0.09, 1.0f });
 		SnapArrowComp->SetWorldScale3D(BaseScale * 0.2f);

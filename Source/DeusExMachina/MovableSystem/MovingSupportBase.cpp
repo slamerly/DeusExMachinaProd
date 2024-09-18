@@ -29,6 +29,14 @@ void AMovingSupportBase::BeginPlay()
 	StartTransformRelative = GetObjectTransformRelative();
 }
 
+void AMovingSupportBase::Tick(float DeltaTime)
+{
+	if (StopMovementPending <= 0) return;
+	StopMovementPending--;
+	if (StopMovementPending > 0) return;
+	StopMovementOnChildrens(false);
+}
+
 
 // ======================================================
 //           Apply Support Inner Movement
@@ -55,8 +63,14 @@ void AMovingSupportBase::StartMovementOnChildrens()
 	}
 }
 
-void AMovingSupportBase::StopMovementOnChildrens()
+void AMovingSupportBase::StopMovementOnChildrens(bool Delay)
 {
+	if (Delay)
+	{
+		StopMovementPending = 2;
+		return;
+	}
+
 	if (IsCurrentlyMoving()) return;
 
 	if (bIsSelfMovable && SelfMovable->IsObjectMoving()) return;

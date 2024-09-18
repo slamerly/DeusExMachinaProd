@@ -10,19 +10,19 @@ struct FSnapValue
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Angle to which the rotation support can snap.\n(Angle between 0 and 360 degrees)", ClampMin = 0.0f, ClampMax = 360.0f))
-	float SnapAngle{ 0.0f };
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Angle to which the rotation support can snap.\n(Angle between 0 and 360 degrees)", ClampMin = 0, ClampMax = 360))
+	int SnapAngle{ 0 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Limit the range of this snap value."))
 	bool bLimitedRangeSnap{ false };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The lower range of the snap.\n(In degrees)\n0 means that it can't snap from a lower angle.", ClampMin = 0.0f,
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The lower range of the snap.\n(In degrees)\n0 means that it can't snap from a lower angle.", ClampMin = 0,
 		EditCondition = "bLimitedRangeSnap", EditConditionHides))
-	float SnapRangeLower{ 0.0f };
+	int SnapRangeLower{ 0 };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The upper range of the snap.\n(In degrees)\n0 means that it can't snap from a upper angle.", ClampMin = 0.0f,
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The upper range of the snap.\n(In degrees)\n0 means that it can't snap from a upper angle.", ClampMin = 0,
 		EditCondition = "bLimitedRangeSnap", EditConditionHides))
-	float SnapRangeUpper{ 0.0f };
+	int SnapRangeUpper{ 0 };
 };
 
 
@@ -38,11 +38,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Clamp",
 		meta = (Tooltip = "The lower clamp value, aka the one that should be used when rotating anticlockwise.\nCan be out of the - 180 / 180 range to allow complex clamping.\n(In degrees)"))
-	float ClampLowValue{ 0.0f };
+	int ClampLowValue{ 0 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Clamp",
 		meta = (Tooltip = "The higher clamp value, aka the one that should be used when rotating clockwise.\nCan be out of the - 180 / 180 range to allow complex clamping.\n(In degrees)"))
-	float ClampHighValue{ 0.0f };
+	int ClampHighValue{ 0 };
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Snap",
@@ -90,11 +90,11 @@ struct FClampValuesOverride
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Clamp", meta = (EditCondition = "bOverrideClampValues", EditConditionHides),
 		meta = (Tooltip = "The lower clamp value, aka the one that should be used when rotating anticlockwise.\nCan be out of the - 180 / 180 range to allow complex clamping.\n(In degrees)"))
-	float ClampLowValue{ 0.0f };
+	int ClampLowValue{ 0 };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Clamp", meta = (EditCondition = "bOverrideClampValues", EditConditionHides),
 		meta = (Tooltip = "The higher clamp value, aka the one that should be used when rotating clockwise.\nCan be out of the - 180 / 180 range to allow complex clamping.\n(In degrees)"))
-	float ClampHighValue{ 0.0f };
+	int ClampHighValue{ 0 };
 };
 
 
@@ -174,18 +174,18 @@ struct FRotSupportValues
 
 
 	//  Getter functions
-	bool IsDataValid();
+	bool IsDataValid() const;
 
-	bool GetUseClamp();
-	float GetClampLowValue();
-	float GetClampHighValue();
+	bool GetUseClamp() const;
+	int GetClampLowValue() const;
+	int GetClampHighValue() const;
 
-	bool GetUseSnap();
-	TArray<FSnapValue> GetSnapValues();
-	float GetSnapDirectionAdvantage();
-	float GetSnapDirectionDelay();
-	float GetSnapSpeed();
+	bool GetUseSnap() const;
+	TArray<FSnapValue> GetSnapValues() const;
+	float GetSnapDirectionAdvantage() const;
+	float GetSnapDirectionDelay() const;
+	float GetSnapSpeed() const;
 
-	UCurveFloat* GetSnapCurveNeutralReverse();
-	UCurveFloat* GetSnapCurveContinue();
+	UCurveFloat* GetSnapCurveNeutralReverse() const;
+	UCurveFloat* GetSnapCurveContinue() const;
 };

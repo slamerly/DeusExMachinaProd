@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "RotationBehaviorBase.h"
+#include "ControlledRotationDatas.h"
 #include "RotationBehaviorControlled.generated.h"
 
 
@@ -61,8 +62,8 @@ public:
 //                   Helper Functions
 // ======================================================
 protected:
-	bool IsControlledRotValid(struct FControlledRotationDatas Datas);
-	bool IsStartupValid(struct FControlledRotationDatas Datas);
+	bool IsControlledRotValid(FControlledRotationDatas Datas);
+	bool IsStartupValid(FControlledRotationDatas Datas);
 
 
 // ======================================================
@@ -71,9 +72,22 @@ protected:
 protected:
 	EControlledRotationState CurrentState{ EControlledRotationState::Inactive };
 
+	FControlledRotationDatas CurrentDatas;
+
 	float RotationSpeed{ 0.0f };
+
+	int LastInputedDirection{ 0 };
+	float LastInputedDirectionTimer{ 0.0f };
+
+
 	bool bUseStartup{ false };
 	float StartupDuration{ 0.0f };
 	float StartupTimer{ 0.0f };
 	UCurveFloat* StartupCurve{ nullptr };
+
+	float SnapAngleStart{ 0.0f };
+	float SnapAngleDest{ 0.0f };
+	float SnapDuration{ 0.0f };
+	float SnapTimer{ 0.0f };
+	UCurveFloat* SnapCurve{ nullptr };
 };

@@ -19,6 +19,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	virtual void Tick(float DeltaTime) override;
+
 
 
 // ======================================================
@@ -35,7 +38,7 @@ public:
 	// ====================
 	void AddMovableChild(UMovableObjectComponent* MovableChild);
 	void StartMovementOnChildrens();
-	void StopMovementOnChildrens();
+	void StopMovementOnChildrens(bool Delay = true);
 
 	UFUNCTION()
 	void UpdateEveryChildrens(); //  bindable
@@ -95,4 +98,6 @@ protected:
 
 	bool bIsSelfMovable{ false };
 	UMovableObjectComponent* SelfMovable{ nullptr };
+
+	int StopMovementPending{ 2 };
 };

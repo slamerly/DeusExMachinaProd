@@ -18,4 +18,12 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Angles Utils")
 	static float ModuloAngle(const float Angle);
+
+	/**
+	* Modulate an angle by a base 360. (Variant that works with integers)
+	* @param	Angle	The angle to modulate.
+	* @return			The angle between 0 and 360.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Angles Utils")
+	static int ModuloAngleInt(const int Angle);
 };
