@@ -50,28 +50,19 @@ private:
 	//		Change Scene
 	// ==================
 	int CurrentSceneIndex = 0;
-	int TargetID = 0; //The id of the SceneTransition to identify the SceneTransition linked in the new scene
 	int SaveIndexSceneBefore = 0; //Save the index of the scene come from
 	float DelayAnimations = .0f; // Time to do the animations
 	// Need the 2 next bool, for the event functions OnStreamSceneLoaded, OnStreamSceneUnloaded
 	bool FromNarrationScene = false;
-	bool WithLoad = false;
 	TSoftObjectPtr<UWorld> NextScene; //ref of the scene to transit
 	void BeforeSceneChange(int pCurrentSceneIndex);
-	void AfterSceneChange(int IndexSaveSceneBefore, bool WithLoad);
+	void AfterSceneChange(int IndexSaveSceneBefore);
 
 	//Functions event scene loading
 	UFUNCTION()
 	void OnStreamSceneLoaded();
 	UFUNCTION()
 	void OnStreamSceneUnloaded();
-
-	
-	// ==================
-	//		Save System
-	// ==================
-	void LoadingScene();
-	void SavingScene();	
 
 // ======================================================
 //             Events animations and sounds
@@ -187,7 +178,7 @@ public:
 
 	FTransform GetCheckpointPlayerTransform() override;
 
-	void ChangeScene(const TSoftObjectPtr<UWorld>& NextScene, int pTargetID, bool FromNarrationScene, bool WithLoad) override;
+	void ChangeScene(const TSoftObjectPtr<UWorld>& NextScene, bool FromNarrationScene) override;
 
 	void CurtainsAnimation(bool IsOpen) override;
 

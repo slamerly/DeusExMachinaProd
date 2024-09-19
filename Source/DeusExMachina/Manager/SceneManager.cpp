@@ -107,21 +107,7 @@ void ASceneManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	{
 		UpdateScenesNames();
 	}
-	/*
-	//Update the NextLevelName when change NextLevel
-	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(ASceneManager, NextLevel))
-	{
-		UpdateNextLevelName();
-	}
-	*/
 }
-/*
-void ASceneManager::UpdateNextLevelName()
-{
-	if (NextLevel != nullptr)
-		NextLevelName = NextLevel->GetFName();
-}
-*/
 
 void ASceneManager::UpdateScenesNames()
 {
@@ -329,13 +315,8 @@ void ASceneManager::BeforeSceneChange(int pCurrentSceneIndex)
 	Animations(true, true);
 }
 
-void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore, bool pWithLoad)
+void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore)
 {
-	if (pWithLoad)
-	{
-		LoadingScene();
-	}
-
 	TObjectPtr<AActor> SceneEntrance = ULevelUtilitiesFunctions::GetActorOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneEntrance::StaticClass());
 
 	if(SceneEntrance != nullptr)
@@ -398,7 +379,7 @@ void ASceneManager::OnStreamSceneLoaded()
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]
 		{
-			AfterSceneChange(SaveIndexSceneBefore, WithLoad);
+			AfterSceneChange(SaveIndexSceneBefore);
 
 			//Narration
 			if (FromNarrationScene)
@@ -441,16 +422,14 @@ void ASceneManager::OnStreamSceneUnloaded()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.1f, false);
 }
 
-void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, int pTargetID, bool pFromNarrationScene, bool pWithLoad)
+void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, bool pFromNarrationScene)
 {
-	TargetID = pTargetID;
 	if (Scenes.Contains(pNextScene))
 	{
 		BeforeSceneChange(CurrentSceneIndex);
 		DelayAnimations += 0.25f; // add more time to finish the animation before unload scene
 		SaveIndexSceneBefore = CurrentSceneIndex;
 		FromNarrationScene = pFromNarrationScene;
-		WithLoad = pWithLoad;
 		NextScene = pNextScene;
 
 		//Delay
@@ -476,20 +455,6 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, int pT
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Error: scene not contains in SceneManager's Scenes array."));
 	}
-}
-
-// ======================================================
-//             Loading Fucntions
-// ======================================================
-
-// Loading save for the scene
-void ASceneManager::LoadingScene()
-{
-}
-
-// Saveing the current scene
-void ASceneManager::SavingScene()
-{
 }
 
 // ======================================================
