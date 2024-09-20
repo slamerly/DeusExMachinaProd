@@ -12,7 +12,8 @@ enum class EAutoTranslationState : uint8
 	Inactive = 0,
 	AutomaticTranslation = 1,
 	StartPhase = 2,
-	EndPhase = 3
+	EndPhase = 3,
+	StopOnSplinePoint = 4
 };
 
 

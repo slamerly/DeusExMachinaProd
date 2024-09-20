@@ -72,9 +72,10 @@ float ATranslationSupport::GetProgressToNextIndex()
 	return ProgressToNextIndex;
 }
 
-void ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd)
+bool ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd, const bool StopIfSplinePointReached)
 {
 	float RemainingTranslationAdd = FMath::Abs(TranslationAdd);
+	bool SplinePointReached = false;
 
 	if (TranslationAdd > 0.0f)
 	{
@@ -87,6 +88,9 @@ void ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd)
 				InnerSplineIndex = GetNextSplineIndex(InnerSplineIndex);
 				ProgressToNextIndex = 0.0f;
 				RemainingTranslationAdd -= DistanceToNextPoint;
+
+				SplinePointReached = true;
+				if(StopIfSplinePointReached) RemainingTranslationAdd = 0.0f;
 			}
 			else
 			{
@@ -107,6 +111,9 @@ void ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd)
 				InnerSplineIndex = GetPrevSplineIndex(InnerSplineIndex);
 				ProgressToNextIndex = 1.0f;
 				RemainingTranslationAdd -= DistanceToPrevPoint;
+
+				SplinePointReached = true;
+				if (StopIfSplinePointReached) RemainingTranslationAdd = 0.0f;
 			}
 			else
 			{
@@ -118,6 +125,7 @@ void ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd)
 	}
 
 	ComputeInnerTransform();
+	return SplinePointReached;
 }
 
 void ATranslationSupport::ForcePositionOnSpline(const int SplineIndex, const float ProgressToNextPoint)

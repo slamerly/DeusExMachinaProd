@@ -60,9 +60,11 @@ public:
 
 	/**
 	* Add a translation distance to this Translation Support along its spline.
-	* @param	TranslationAdd		The translation value you want to add.
+	* @param	TranslationAdd				The translation value you want to add.
+	* @param	StopIfSplinePointReached	Cancel the remaining movement if a spline point is reached.
+	* @return								True if the movement reached a spline point.
 	*/
-	void AddTranslationAlongSpline(const float TranslationAdd);
+	bool AddTranslationAlongSpline(const float TranslationAdd, const bool StopIfSplinePointReached = false);
 
 	/**
 	* Set the position of this Translation Support to a specific spline position.
