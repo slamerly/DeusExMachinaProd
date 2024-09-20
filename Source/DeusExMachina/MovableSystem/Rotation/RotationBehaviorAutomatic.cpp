@@ -71,7 +71,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 			CancelAutomaticRotation();
 			break;
 		}
-		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime* PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime), false);
+		OwnerRotSupport->AddInnerRotation(AutomaticRotationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime), false);
 		break;
 	}
 }
@@ -107,6 +107,7 @@ void URotationBehaviorAutomatic::StartAutomaticRotation(bool bForceNoStartPhase)
 
 void URotationBehaviorAutomatic::StopAutomaticRotation(bool bForceNoEndPhase)
 {
+	//  check validities
 	if (!bOwnerRotSupportValid) return;
 	if (!AutomaticRotationValues.IsDataValid()) return;
 
