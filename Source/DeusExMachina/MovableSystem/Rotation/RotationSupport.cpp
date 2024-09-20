@@ -40,7 +40,6 @@ ARotationSupport::ARotationSupport()
 // ======================================================
 //                    Begin Play
 // ======================================================
-
 void ARotationSupport::BeginPlay()
 {
 	//  'EditorAngle' serve as a begin play angle, initialize 'InnerRotation' with it
@@ -470,7 +469,7 @@ void ARotationSupport::UpdateSnapVisual()
 	}
 	SnapArrows.Empty();
 
-	//  check if the snap visual representation if needed
+	//  check if the snap visual representation is needed
 	if (!RotSupportValues.IsDataValid()) return;
 	if (!RotSupportValues.GetUseSnap()) return;
 	if (bHideSnapVisual) return;

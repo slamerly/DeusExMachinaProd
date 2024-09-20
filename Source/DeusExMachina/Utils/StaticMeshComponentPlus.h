@@ -9,7 +9,7 @@
  * A classic Static Mesh Component with minor additionnal functionnalities
  * Actually there is hardcoded system for Rotation Support because the event didn't worked properly.
  */
-UCLASS(ClassGroup = RotSysMeshComponent, meta = (BlueprintSpawnableComponent), Blueprintable)
+UCLASS(ClassGroup = MovSysCustomComponent, meta = (BlueprintSpawnableComponent), Blueprintable)
 class DEUSEXMACHINA_API UStaticMeshComponentPlus : public UStaticMeshComponent
 {
 	GENERATED_BODY()
