@@ -191,6 +191,11 @@ int ATranslationSupport::GetPrevSplineIndex(const int SplineIndex)
 	return PrevSplinePoint;
 }
 
+int ATranslationSupport::GetNumberOfSplinePoints()
+{
+	return TranslationSpline->GetNumberOfSplinePoints();
+}
+
 
 // ======================================================
 //                   Get Transforms

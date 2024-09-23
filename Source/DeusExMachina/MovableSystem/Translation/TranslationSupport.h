@@ -94,9 +94,11 @@ public:
 	/** Get the distance from the spline point A to B. */
 	float GetDistanceFromToSplinePoint(const int SplineIndex, const int SplineIndexB);
 
-protected:
+
 	int GetNextSplineIndex(const int SplineIndex);
 	int GetPrevSplineIndex(const int SplineIndex);
+
+	int GetNumberOfSplinePoints();
 
 
 

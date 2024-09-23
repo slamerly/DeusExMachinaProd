@@ -16,25 +16,19 @@ float FAutomaticTranslationDatas::GetTranslationSpeed()
 	return bOverrideAutomaticTranslation ? TranslationSpeed : AutomaticTranslationDatas->TranslationSpeed;
 }
 
+UCurveFloat* FAutomaticTranslationDatas::GetTranslationCurve()
+{
+	return bOverrideAutomaticTranslation ? TranslationCurve : AutomaticTranslationDatas->TranslationCurve;
+}
+
 bool FAutomaticTranslationDatas::GetStartAutomatic()
 {
 	return bOverrideAutomaticTranslation ? bStartAutomatic : AutomaticTranslationDatas->bStartAutomatic;
 }
 
-
-EStopBehavior FAutomaticTranslationDatas::GetStopBehavior()
+EAutomaticTranslationType FAutomaticTranslationDatas::GetAutomaticTranslationType()
 {
-	return bOverrideAutomaticStop ? StopBehavior : AutomaticTranslationDatas->StopBehavior;
-}
-
-float FAutomaticTranslationDatas::GetStopDuration()
-{
-	return bOverrideAutomaticStop ? StopDuration : AutomaticTranslationDatas->StopDuration;
-}
-
-TArray<int> FAutomaticTranslationDatas::GetStopSplineIndex()
-{
-	return bOverrideAutomaticStop ? StopSplineIndex : AutomaticTranslationDatas->StopSplineIndex;
+	return bOverrideAutomaticTranslation ? AutomaticTranslationType : AutomaticTranslationDatas->AutomaticTranslationType;
 }
 
 
@@ -57,4 +51,20 @@ float FAutomaticTranslationDatas::GetEndDuration()
 UCurveFloat* FAutomaticTranslationDatas::GetEndCurve()
 {
 	return bOverrideEndPhase ? EndCurve : AutomaticTranslationDatas->EndCurve;
+}
+
+
+EStopBehavior FAutomaticTranslationDatas::GetStopBehavior()
+{
+	return bOverrideAutomaticStop ? StopBehavior : AutomaticTranslationDatas->StopBehavior;
+}
+
+float FAutomaticTranslationDatas::GetStopDuration()
+{
+	return bOverrideAutomaticStop ? StopDuration : AutomaticTranslationDatas->StopDuration;
+}
+
+TArray<int> FAutomaticTranslationDatas::GetStopSplineIndex()
+{
+	return bOverrideAutomaticStop ? StopSplineIndex : AutomaticTranslationDatas->StopSplineIndex;
 }

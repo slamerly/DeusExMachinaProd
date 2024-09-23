@@ -10,10 +10,13 @@ UENUM()
 enum class EAutoTranslationState : uint8
 {
 	Inactive = 0,
+	
 	AutomaticTranslation = 1,
 	StartPhase = 2,
 	EndPhase = 3,
-	StopOnSplinePoint = 4
+	
+	AutomaticTranslationWithStop = 4,
+	StopOnSplinePoint = 5
 };
 
 
@@ -37,6 +40,10 @@ public:
 // ======================================================
 //              Control Automatic Translation
 // ======================================================
+protected:
+	void LaunchAutomaticTranslationBeginPlay();
+	void StartAutomaticTranslationWithStop();
+
 public:
 	void StartAutomaticTranslation(bool bForceNoStartPhase = false);
 	void StopAutomaticTranslation(bool bForceNoEndPhase = false);
@@ -47,8 +54,12 @@ public:
 //                   Helper Functions
 // ======================================================
 protected:
+	bool IsAutomaticStopValid();
 	bool IsStartPhaseValid();
 	bool IsEndPhaseValid();
+
+	/** Unsafe function. Please make sure 'IsAutomaticStopValid()' is called before this function to prevent potential crashes. */
+	float DistanceUntilNextStopPoint();
 
 
 // ======================================================
@@ -71,4 +82,14 @@ protected:
 	float PhaseTime{ 0.0f };
 	float PhaseTimer{ 0.0f };
 	UCurveFloat* PhaseCurve{ nullptr };
+
+	float AutomaticTranslationDuration{ 0.0f };
+	float AutomaticTranslationTimer{ 0.0f };
+	UCurveFloat* AutomaticTranslationCurve{ nullptr };
+	float AutomaticTranslationDistance{ 0.0f };
+	float AutomaticTranslationDistanceDone{ 0.0f };
+
+	float AutomaticStopDuration{ 0.0f };
+	float AutomaticStopTimer{ 0.0f };
+	
 };
