@@ -22,10 +22,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UFUNCTION(BlueprintCallable)
 	void PuzzleDone();
 
 private:
 	UGameInstanceDeusEx* GameInstance = nullptr;
-	//USaveProgress* SaveProgress = nullptr;
 		
 };

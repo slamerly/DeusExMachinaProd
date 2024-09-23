@@ -31,8 +31,8 @@ void ASceneManager::BeginPlay()
 	if (!Scenes.IsEmpty())
 	{
 		FLatentActionInfo LatentInfo;
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(GetWorld(), Scenes[0], true, true, LatentInfo);
-		CurrentSceneIndex = 0;
+		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(GetWorld(), Scenes[CurrentSceneIndex], true, true, LatentInfo);
+		//CurrentSceneIndex = 0;
 	}
 	else
 	{
@@ -551,6 +551,11 @@ void ASceneManager::LevelTransition()
 		});
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayAnimations, false);
+}
+
+void ASceneManager::SetCurrentSceneIndex(FName pSceneName)
+{
+	CurrentSceneIndex = ScenesNames.Find(pSceneName);
 }
 
 int ASceneManager::GetCurrentIndexScene()

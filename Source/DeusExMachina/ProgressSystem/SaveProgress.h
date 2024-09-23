@@ -12,9 +12,11 @@ struct FSceneProgress
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSoftObjectPtr<UWorld> Scene;
+	FString SceneName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bPuzzleDone;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString LevelName;
 };
 
 /**
@@ -27,11 +29,10 @@ class DEUSEXMACHINA_API USaveProgress : public USaveGame
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<TSoftObjectPtr<UWorld>, bool> ScenesProgress;
-	//TArray<FSceneProgress> ScenesProgress;
+	TArray<FSceneProgress> ScenesProgress;
 
 public:
-	//TArray<FSceneProgress> GetScenesProgress();
-	TMap<TSoftObjectPtr<UWorld>, bool> GetScenesProgress();
+	TArray<FSceneProgress> GetScenesProgress();
+	void SetScenesProgress(FString pSceneName, bool bIsDone, FString pLevelName);
 
 };

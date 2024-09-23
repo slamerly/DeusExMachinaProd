@@ -4,6 +4,7 @@
 #include "GameInstanceDeusEx.h"
 #include <Kismet/GameplayStatics.h>
 #include "ProgressSystem/SaveProgress.h"
+#include "Manager/SceneManager.h"
 
 void UGameInstanceDeusEx::Init()
 {
@@ -20,22 +21,75 @@ void UGameInstanceDeusEx::Init()
 	}
 }
 
+void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	// Update the ScenesNames when change Scenes
+	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UGameInstanceDeusEx, MainLevelsList))
+	{
+		if (!MainLevelsList.IsEmpty())
+		{
+			for (int i = 0; i < MainLevelsList.Num(); i++)
+			{
+				if (MainLevelsList[i] != nullptr) {
+					TArray<ULevelStreaming*> subLevels = MainLevelsList[i]->GetStreamingLevels();
+
+					for (int j = 0; j < subLevels.Num(); j++)
+					{
+						ScenesList.AddUnique(*subLevels[j]->GetWorldAssetPackageName());
+					}
+				}
+			}
+		}
+	}
+}
+
 USaveGame* UGameInstanceDeusEx::GetSaveProgressRef()
 {
 	return SaveRef;
 }
 
-void UGameInstanceDeusEx::SetSaveProgress(TSoftObjectPtr<UWorld> scene, bool bIsDone)
+void UGameInstanceDeusEx::SetSaveProgress(FString pSceneName, bool bIsDone, FString pLevelName)
 {
-	
 	USaveProgress* SaveProgress = Cast<USaveProgress>(SaveRef);
-	SaveProgress->GetScenesProgress().Add(scene, bIsDone);
-	UGameplayStatics::SaveGameToSlot(SaveProgress, "DEMSave", 0);
-	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Yellow, TEXT("Progress Saved."));
-	
+	SaveProgress->SetScenesProgress(pSceneName, bIsDone, pLevelName);
+	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Blue, FString::Printf(TEXT("Level : %s, Scene: %s, puzzle done %d"), *pLevelName, *pSceneName, bIsDone));
+	GetSaveMap();
+
+	if (UGameplayStatics::SaveGameToSlot(SaveProgress, "DEMSave", 0))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Yellow, TEXT("Progress Saved."));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Progress Not Saved."));
+	}
 }
 
 void UGameInstanceDeusEx::GetSaveMap()
 {
+	USaveProgress* SaveProgress = Cast<USaveProgress>(SaveRef);
+	if (!SaveProgress->GetScenesProgress().IsEmpty())
+	{
+		for (auto& scene : SaveProgress->GetScenesProgress())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Green, FString::Printf(TEXT("Level : %s, Scene: %s, puzzle done %d"), *scene.LevelName, *scene.SceneName, scene.bPuzzleDone));
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("The array is empty.")));
+	}
+}
+
+void UGameInstanceDeusEx::LoadProgress(FString pLevelName, FString pSceneName)
+{
+	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, pLevelName);
+	UGameplayStatics::OpenLevel(this, FName(*pSceneName));
+	AActor* ActorSceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
+	ASceneManager* SceneManager = Cast<ASceneManager>(ActorSceneManager);
+
+	SceneManager->SetCurrentSceneIndex(FName(*pSceneName));
 
 }

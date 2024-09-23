@@ -17,13 +17,24 @@ class DEUSEXMACHINA_API UGameInstanceDeusEx : public UGameInstance
 
 protected:
 	virtual void Init() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	
 	// Save reference
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	USaveGame* SaveRef = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<UWorld*> MainLevelsList;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FName> ScenesList;
+
 public:
 	USaveGame* GetSaveProgressRef();
-	void SetSaveProgress(TSoftObjectPtr<UWorld> scene, bool bIsDone);
+	UFUNCTION(BlueprintCallable)
+	void SetSaveProgress(FString pSceneName, bool bIsDone, FString pLevelName);
+	UFUNCTION(BlueprintCallable)
 	void GetSaveMap();
+
+	UFUNCTION(BlueprintCallable)
+	void LoadProgress(FString pLevelName, FString pSceneName);
 };
