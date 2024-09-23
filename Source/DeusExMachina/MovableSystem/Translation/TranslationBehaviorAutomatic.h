@@ -51,6 +51,13 @@ public:
 
 
 // ======================================================
+//                     Interaction
+// ======================================================
+public:
+	void TriggerAutoTransInteraction(struct FAutoTransInteractionDatas Datas);
+
+
+// ======================================================
 //                   Helper Functions
 // ======================================================
 protected:

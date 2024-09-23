@@ -5,12 +5,15 @@
 #include "DeusExMachina/Interaction/Interactable.h"
 #include "AutoRotInteractionDatas.h"
 #include "DeusExMachina/MovableSystem/Rotation/StandardRotationDatas.h"
+#include "AutoTransInteractionDatas.h"
 #include "MovSysButton.generated.h"
 
 
 class ARotationSupport;
+class ATranslationSupport;
 class URotationBehaviorAutomatic;
 class URotationBehaviorStandard;
+class UTranslationBehaviorAutomatic;
 
 
 USTRUCT(BlueprintType, meta = (Tooltip = "Link a Rotation Support with the Rotation Behavior Automatic component to a MovSys Button."))
@@ -40,6 +43,21 @@ struct FStandardRotInteractionLink
 	FStandardRotationDatas StandardDatas;
 
 	URotationBehaviorStandard* RotationStandardComponent{ nullptr };
+};
+
+
+USTRUCT(BlueprintType, meta = (Tooltip = "Link a Translation Support with the Translation Behavior Automatic component to a MovSys Button."))
+struct FAutoTransInteractionLink
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The Translation Support you want to link. It must have the Translation Behavior Automatic component."))
+	ATranslationSupport* TranslationSupport{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The datas you want to link the support with. It will be used on this Translation Support when using the button."))
+	FAutoTransInteractionDatas InteractionDatas;
+
+	UTranslationBehaviorAutomatic* TranslationAutomaticComponent{ nullptr };
 };
 
 
@@ -94,14 +112,17 @@ protected:
 //                 Interaction Links
 // ======================================================
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (tooltip = "Rotation Supports with the Rotation Behavior Automatic you want to link to this button."))
-	TArray<FAutoRotInteractionLink> LinkedSupportsAutomatic;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Rotation Supports", meta = (tooltip = "Rotation Supports with the Rotation Behavior Automatic you want to link to this button."))
+	TArray<FAutoRotInteractionLink> LinkedRotSupportsAutomatic;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (tooltip = "Rotation Supports with the Rotation Behavior Standard you want to link to this button."))
-	TArray<FStandardRotInteractionLink> LinkedSupportsStandard;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Rotation Supports", meta = (tooltip = "Rotation Supports with the Rotation Behavior Standard you want to link to this button."))
+	TArray<FStandardRotInteractionLink> LinkedRotSupportsStandard;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Automatic you want to link to this button."))
+	TArray<FAutoTransInteractionLink> LinkedTransSupportsAutomatic;
 
 protected:
-	TArray<FAutoRotInteractionLink> LinkedSupportsAutomaticVerified;
-	TArray<FStandardRotInteractionLink> LinkedSupportsStandardVerified;
-
+	TArray<FAutoRotInteractionLink> LinkedRotSupportsAutomaticVerified;
+	TArray<FStandardRotInteractionLink> LinkedRotSupportsStandardVerified;
+	TArray<FAutoTransInteractionLink> LinkedTransSupportsAutomaticVerified;
 };

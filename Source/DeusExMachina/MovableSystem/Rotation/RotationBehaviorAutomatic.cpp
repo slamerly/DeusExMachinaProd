@@ -153,6 +153,7 @@ void URotationBehaviorAutomatic::CancelAutomaticRotation()
 void URotationBehaviorAutomatic::TriggerAutoRotInteraction(FAutoRotInteractionDatas Datas)
 {
 	if (!bOwnerRotSupportValid) return;
+	if (!Datas.IsDataValid()) return;
 
 	if (Datas.GetStartStop())
 	{

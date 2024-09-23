@@ -1,5 +1,6 @@
 #include "TranslationBehaviorAutomatic.h"
 #include "TranslationSupport.h"
+#include "DeusExMachina/MovableSystem/Interactables/AutoTransInteractionDatas.h"
 #include "Defines.h"
 
 UTranslationBehaviorAutomatic::UTranslationBehaviorAutomatic()
@@ -14,7 +15,7 @@ UTranslationBehaviorAutomatic::UTranslationBehaviorAutomatic()
 void UTranslationBehaviorAutomatic::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	GetWorld()->OnWorldBeginPlay.AddUObject(this, &UTranslationBehaviorAutomatic::LateBeginPlay);
 
 	SetComponentTickEnabled(false);
@@ -48,12 +49,12 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 
 	switch (CurrentState)
 	{
-	//  compute the normal phase of the automatic translation
+		//  compute the normal phase of the automatic translation
 	case EAutoTranslationState::AutomaticTranslation:
 		OwnerTransSupport->AddTranslationAlongSpline(AutomaticTranslationSpeed * DeltaTime);
 		break;
 
-	//  compute the start phase of the automatic translation
+		//  compute the start phase of the automatic translation
 	case EAutoTranslationState::StartPhase:
 		PhaseTimer += DeltaTime;
 		if (PhaseTimer >= PhaseTime)
@@ -64,7 +65,7 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 		OwnerTransSupport->AddTranslationAlongSpline(AutomaticTranslationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
 		break;
 
-	//  compute the end phase of the automatic translation
+		//  compute the end phase of the automatic translation
 	case EAutoTranslationState::EndPhase:
 		PhaseTimer += DeltaTime;
 		if (PhaseTimer >= PhaseTime)
@@ -75,7 +76,7 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 		OwnerTransSupport->AddTranslationAlongSpline(AutomaticTranslationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
 		break;
 
-	//  compute the movement phase of the automatic translation with stop
+		//  compute the movement phase of the automatic translation with stop
 	case EAutoTranslationState::AutomaticTranslationWithStop:
 		AutomaticTranslationTimer += DeltaTime;
 		if (AutomaticTranslationTimer >= AutomaticTranslationDuration)
@@ -89,7 +90,7 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 		AutomaticTranslationDistanceDone = DistanceDone;
 		break;
 
-	//  compute the stop phase of the automatic translation with stop
+		//  compute the stop phase of the automatic translation with stop
 	case EAutoTranslationState::StopOnSplinePoint:
 		AutomaticStopTimer += DeltaTime;
 		if (AutomaticStopTimer >= AutomaticStopDuration)
@@ -208,6 +209,56 @@ void UTranslationBehaviorAutomatic::CancelAutomaticTranslation()
 
 
 // ======================================================
+//                     Interaction
+// ======================================================
+void UTranslationBehaviorAutomatic::TriggerAutoTransInteraction(FAutoTransInteractionDatas Datas)
+{
+	if (!bOwnerTransSupportValid) return;
+	if (!Datas.IsDataValid()) return;
+	if (AutomaticTranslationValues.GetAutomaticTranslationType() != EAutomaticTranslationType::AutomaticTranslation)
+	{
+		kPRINT_WARNING("You can't trigger a automatic translation interaction with a MovSys Button on an automatic Translation Support in automatic stop mode. If you need it to be a thing, please ask Cyril.");
+		return;
+	}
+
+	if (CurrentState == EAutoTranslationState::AutomaticTranslationWithStop || CurrentState == EAutoTranslationState::StopOnSplinePoint)
+	{
+		//  pure security, should never get in this situation
+		kPRINT_WARNING("You can't trigger a automatic translation interaction with a MovSys Button on an automatic Translation Support in automatic stop mode. If you need it to be a thing, please ask Cyril.");
+		return;
+	}
+	
+	if (Datas.GetStartStop())
+	{
+		if (CurrentState == EAutoTranslationState::AutomaticTranslation || CurrentState == EAutoTranslationState::StartPhase)
+		{
+			StopAutomaticTranslation();
+		}
+		else
+		{
+			if (Datas.GetReverse())
+			{
+				bRunningReverse = !bRunningReverse;
+			}
+			StartAutomaticTranslation();
+		}
+	}
+	else
+	{
+		if (Datas.GetReverse())
+		{
+			bRunningReverse = !bRunningReverse;
+			if (CurrentState == EAutoTranslationState::AutomaticTranslation || CurrentState == EAutoTranslationState::StartPhase)
+			{
+				StartAutomaticTranslation();
+			}
+		}
+	}
+}
+
+
+
+// ======================================================
 //                   Helper Functions
 // ======================================================
 bool UTranslationBehaviorAutomatic::IsAutomaticStopValid()
@@ -261,7 +312,7 @@ float UTranslationBehaviorAutomatic::DistanceUntilNextStopPoint()
 	{
 		int SplineCheckIndex = OwnerTransSupport->GetInnerSplineIndex();
 		bool bSplineCheckValid = false;
-		
+
 		while (!bSplineCheckValid) //  if 'IsAutomaticStopValid()' has been called and returned true, this while loop shouldn't be infinite
 		{
 			SplineCheckIndex = OwnerTransSupport->GetNextSplineIndex(SplineCheckIndex);
