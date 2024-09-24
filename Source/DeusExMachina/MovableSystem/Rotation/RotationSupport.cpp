@@ -165,12 +165,7 @@ void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
 
 void ARotationSupport::ComputeInnerTransform()
 {
-	//  simply set the yaw rotation value of InnerTransform to the delta angle done since begin play
-	FRotator CurrentInnerTransformRot = InnerTransform.GetRotation().Rotator();
-	CurrentInnerTransformRot.Yaw = GetInnerRotationBase360() - EditorAngle;
-	InnerTransform.SetRotation(CurrentInnerTransformRot.Quaternion());
-
-	ApplyInnerMovement(RotationBase);
+	RotationBase->SetRelativeRotation(FRotator{ 0.0f, InnerRotation, 0.0f });
 }
 
 
@@ -396,12 +391,6 @@ FTransform ARotationSupport::GetObjectTransform()
 {
 	return RotationBase->GetComponentTransform();
 }
-
-FTransform ARotationSupport::GetObjectTransformRelative()
-{
-	return RotationBase->GetRelativeTransform();
-}
-
 
 // ======================================================
 //                      Utility

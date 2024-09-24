@@ -55,16 +55,21 @@ protected:
 //               Inner Rotation Functions
 // ======================================================
 public:
-	int GetInnerSplineIndex();
-	float GetProgressToNextIndex();
+	float GetDistanceFromSplineOrigin() const;
+	int GetInnerSplineIndex() const;
+	float GetProgressToNextIndex() const;
 
 	/**
 	* Add a translation distance to this Translation Support along its spline.
 	* @param	TranslationAdd				The translation value you want to add.
-	* @param	StopIfSplinePointReached	Cancel the remaining movement if a spline point is reached.
-	* @return								True if the movement reached a spline point.
 	*/
-	bool AddTranslationAlongSpline(const float TranslationAdd, const bool StopIfSplinePointReached = false);
+	void AddTranslationAlongSpline(const float TranslationAdd);
+
+	/**
+	* Set the position of this Translation Support to a specific spline position.
+	* @param	DistanceFromOrigin		The distance along the spline you want to set the support.
+	*/
+	void ForcePositionOnSpline(const float DistanceFromOrigin);
 
 	/**
 	* Set the position of this Translation Support to a specific spline position.
@@ -79,26 +84,44 @@ protected:
 
 
 // ======================================================
+//                    Clamp Functions
+// ======================================================
+public:
+	/**
+	* Clamp a movement from the support current position to ensure the result isn't out of the specified clamp range.
+	* Note that A will be the clamp low and B the clamp high, so if A is 4 and B is 1 the clamp will be between 4 and 1 and not between 1 and 4.
+	* This function can return an opposite movement if the support is already outside the clamp range.
+	* @param	Movement			The movement you want to clamp.
+	* @param	SplineIndexA		The low bound of the clamp range.
+	* @param	SplineIndexB		The high bound of the clamp range.
+	* @return						The clamped movement.
+	*/
+	float ClampMovementBetweenSplinePoints(const float Movement, const int SplineIndexA, const int SplineIndexB);
+
+
+
+// ======================================================
 //                   Utility Functions
 // ======================================================
 public:
-	/** Get the distance between the support actual position and the next point on its spline. */
-	float GetDistanceToNextSplinePoint();
+	/** Get the distance along spline between the support actual position and the next point on its spline. */
+	float GetSplineDistanceToNextSplinePoint();
 
-	/** Get the distance between the support actual position and the current point on its spline. (Useful when the support is between two spline points.) */
-	float GetDistanceToCurrentSplinePoint();
+	/** Get the distance along spline between the support actual position and the spline point A. */
+	float GetSplineDistanceToPoint(const int SplineIndexA);
 
-	/** Get the direction from spline point A to B. */
-	FVector GetDirectionFromToSplinePoint(const int SplineIndexA, const int SplineIndexB);
-
-	/** Get the distance from the spline point A to B. */
-	float GetDistanceFromToSplinePoint(const int SplineIndex, const int SplineIndexB);
+	/** Get the distance on the spline from the spline point A to B. */
+	float GetSplineDistanceAToB(const int SplineIndexA, const int SplineIndexB);
 
 
 	int GetNextSplineIndex(const int SplineIndex);
 	int GetPrevSplineIndex(const int SplineIndex);
 
 	int GetNumberOfSplinePoints();
+
+protected:
+	void ComputeDistanceFromSplineOrigin();
+	void ComputeInnerIndexAndProgress();
 
 
 
@@ -110,7 +133,6 @@ public:
 	//      Transform
 	// ====================
 	FTransform GetObjectTransform() override;
-	FTransform GetObjectTransformRelative() override;
 
 	// ====================
 	//   Support Movement
@@ -128,6 +150,7 @@ public:
 //               Inner Translation Variables
 // ======================================================
 protected:
+	float DistanceFromSplineOrigin{ 0.0f };
 	int InnerSplineIndex{ 0 };
 	float ProgressToNextIndex{ 0.0f };
 
@@ -146,7 +169,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Translation Support", meta = (Tooltip = "Allow the player to not be moved by this support."))
 	bool bDisableSupportCollision{ false };
 
-	UPROPERTY(EditAnywhere, Category = "Translation Support", meta = (Tooltip = "If you want to have a visual representation of where the spline points are in the world during game."))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Translation Support", meta = (Tooltip = "If you want to have a visual representation of where the spline points are in the world during game."))
 	bool bShowSplinePointsVisual{ false };
 
 	TArray<UArrowComponent*> SplinePointsVisualArrows;

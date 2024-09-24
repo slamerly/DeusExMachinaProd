@@ -306,28 +306,25 @@ bool UTranslationBehaviorAutomatic::IsEndPhaseValid()
 
 float UTranslationBehaviorAutomatic::DistanceUntilNextStopPoint()
 {
-	float DistanceUntilNextStop = OwnerTransSupport->GetDistanceToNextSplinePoint();
-
-	if (AutomaticTranslationValues.GetStopBehavior() == EStopBehavior::StopSpecifedPoint)
+	int StopPointIndex = OwnerTransSupport->GetInnerSplineIndex();
+	bool bStopIndexValid = false;
+	while (!bStopIndexValid)
 	{
-		int SplineCheckIndex = OwnerTransSupport->GetInnerSplineIndex();
-		bool bSplineCheckValid = false;
-
-		while (!bSplineCheckValid) //  if 'IsAutomaticStopValid()' has been called and returned true, this while loop shouldn't be infinite
+		StopPointIndex++;
+		switch (AutomaticTranslationValues.GetStopBehavior())
 		{
-			SplineCheckIndex = OwnerTransSupport->GetNextSplineIndex(SplineCheckIndex);
+		case EStopBehavior::StopEveryPoint:
+			bStopIndexValid = true;
+			break;
 
+		case EStopBehavior::StopSpecifedPoint:
 			for (int StopIndex : AutomaticTranslationValues.GetStopSplineIndex())
 			{
-				if (StopIndex == SplineCheckIndex) bSplineCheckValid = true;
+				bStopIndexValid = bStopIndexValid || (StopIndex == StopPointIndex);
 			}
-
-			if (!bSplineCheckValid)
-			{
-				DistanceUntilNextStop += OwnerTransSupport->GetDistanceFromToSplinePoint(SplineCheckIndex, OwnerTransSupport->GetNextSplineIndex(SplineCheckIndex));
-			}
+			break;
 		}
 	}
 
-	return DistanceUntilNextStop;
+	return OwnerTransSupport->GetSplineDistanceToPoint(StopPointIndex);
 }

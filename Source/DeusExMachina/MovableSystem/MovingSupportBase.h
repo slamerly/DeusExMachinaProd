@@ -29,11 +29,6 @@ public:
 // ======================================================
 public:
 	// ====================
-	//   Support Movement
-	// ====================
-	void ApplyInnerMovement(USceneComponent* ComponentToMove);
-
-	// ====================
 	//  Movable Childrens
 	// ====================
 	void AddMovableChild(UMovableObjectComponent* MovableChild);
@@ -54,7 +49,6 @@ public:
 	//      Transform
 	// ====================
 	virtual FTransform GetObjectTransform();
-	virtual FTransform GetObjectTransformRelative();
 
 	// ====================
 	//   Support Movement
@@ -65,6 +59,8 @@ public:
 	// ====================
 	//    Debug Movement
 	// ====================
+
+	/** Currently unimplemented */
 	virtual bool GetPlayerInRange(FVector PlayerPosition);
 
 
@@ -87,14 +83,6 @@ protected:
 // ======================================================
 protected:
 	TArray<UMovableObjectComponent*> MovableChildrens;
-
-	FTransform InnerTransform{ FTransform::Identity }; // Transform containing the movement created by the support since the start (begin play)
-
-	FTransform StartTransform{ FTransform::Identity }; // Transform of the support at begin play in world space
-	FTransform StartTransformRelative{ FTransform::Identity }; // Transform of the support at begin play in local space
-
-	// TODO: After finishing the core of Movable System, check if StartTransform are still relevant (it shouldn't be for rotations, maybe for translations?)
-
 
 	bool bIsSelfMovable{ false };
 	UMovableObjectComponent* SelfMovable{ nullptr };

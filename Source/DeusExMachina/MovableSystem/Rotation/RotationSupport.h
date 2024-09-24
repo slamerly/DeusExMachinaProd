@@ -144,7 +144,6 @@ public:
 	//      Transform
 	// ====================
 	FTransform GetObjectTransform() override;
-	FTransform GetObjectTransformRelative() override;
 
 	// ====================
 	//   Support Movement
