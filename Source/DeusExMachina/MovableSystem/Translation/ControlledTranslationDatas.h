@@ -34,7 +34,7 @@ public:
 	float SnapPreference{ 0.5f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Translation Snap",
-		meta = (Tooltip = "The speed of the Translation Support when snapping.\n(In cm/s)"))
+		meta = (Tooltip = "The speed of the Translation Support when snapping.\nNote that the curves can make it feel faster or slower in game.\n(In cm/s)"))
 	float SnapSpeed{ 60.0f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Translation Snap",
@@ -92,7 +92,7 @@ struct FControlledTranslationDatas
 	float SnapPreference{ 0.5f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Translation Snap", meta = (EditCondition = "bOverrideSnap", EditConditionHides),
-		meta = (Tooltip = "The speed of the Translation Support when snapping.\n(In cm/s)"))
+		meta = (Tooltip = "The speed of the Translation Support when snapping.\nNote that the curves can make it feel faster or slower in game.\n(In cm/s)"))
 	float SnapSpeed{ 60.0f };
 
 

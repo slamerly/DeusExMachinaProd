@@ -58,11 +58,7 @@ public:
 	float SnapDirectionAdvantage{ 0.65f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Snap", meta = (ClampMin = 0.0f),
-		meta = (Tooltip = "How many seconds does it remember the last inputed direction when releasing the joystick.\nFor the 'SnapDirectionAdvantage' parameter."))
-	float SnapDirectionDelay{ 0.3f };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Snap", meta = (ClampMin = 0.0f),
-		meta = (Tooltip = "The speed of the rotation support when snapping.\n(In degrees per second)"))
+		meta = (Tooltip = "The speed of the rotation support when snapping.\nNote that the curves can make it feel faster or slower in game.\n(In degrees per second)"))
 	float SnapSpeed{ 90.0f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Snap",
@@ -120,11 +116,7 @@ struct FSnapValuesOverride
 	float SnapDirectionAdvantage{ 0.65f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Snap", meta = (ClampMin = 0.0f), meta = (EditCondition = "bOverrideSnapValues", EditConditionHides),
-		meta = (Tooltip = "How many seconds does it remember the last inputed direction when releasing the joystick.\nFor the 'SnapDirectionAdvantage' parameter."))
-	float SnapDirectionDelay{ 0.3f };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Snap", meta = (ClampMin = 0.0f), meta = (EditCondition = "bOverrideSnapValues", EditConditionHides),
-		meta = (Tooltip = "The speed of the rotation support when snapping.\n(In degrees per second)"))
+		meta = (Tooltip = "The speed of the rotation support when snapping.\nNote that the curves can make it feel faster or slower in game.\n(In degrees per second)"))
 	float SnapSpeed{ 90.0f };
 };
 
@@ -183,7 +175,6 @@ struct FRotSupportValues
 	bool GetUseSnap() const;
 	TArray<FSnapValue> GetSnapValues() const;
 	float GetSnapDirectionAdvantage() const;
-	float GetSnapDirectionDelay() const;
 	float GetSnapSpeed() const;
 
 	UCurveFloat* GetSnapCurveNeutralReverse() const;

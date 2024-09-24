@@ -62,6 +62,7 @@ public:
 protected:
 	bool IsControlledTransValid(FControlledTranslationDatas Datas);
 	bool IsStartupValid(FControlledTranslationDatas Datas);
+	bool IsSnapValid(FControlledTranslationDatas Datas);
 
 
 // ======================================================
@@ -74,8 +75,17 @@ protected:
 
 	float TranslationSpeed{ 0.0f };
 
+	int LastInputedDirection{ 0 };
+	float LastInputedDirectionTimer{ 0.0f };
+
 	bool bUseStartup{ false };
 	float StartupDuration{ 0.0f };
 	float StartupTimer{ 0.0f };
 	UCurveFloat* StartupCurve{ nullptr };
+
+	float SnapDistance{ 0.0f };
+	float SnapDistanceDone{ 0.0f };
+	float SnapDuration{ 0.0f };
+	float SnapTimer{ 0.0f };
+	UCurveFloat* SnapCurve{ nullptr };
 };

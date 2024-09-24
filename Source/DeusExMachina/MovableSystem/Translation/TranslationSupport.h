@@ -101,14 +101,31 @@ public:
 
 
 // ======================================================
+//                    Snap Functions
+// ======================================================
+public:
+	/**
+	* Search for the nearest spline point to snap on.
+	* @param	InputDistanceOnSpline	The distance on spline from which you wnt to search a snap point.
+	* @param	SnapSearchAdvantage		(optionnal) Adantage for searching points with a lower or a higher distance on spline than input. 0.5f is no advantage. (Between 0 and 1)
+	* @return							The found snap point index.
+	*/
+	int SearchNearestSplinePointToSnap(const float InputDistanceOnSpline, const float SnapSearchAdvantage = 0.5f);
+
+
+
+// ======================================================
 //                   Utility Functions
 // ======================================================
 public:
-	/** Get the distance along spline between the support actual position and the next point on its spline. */
+	/** Get the distance along spline from the support actual position to the next point on its spline. */
 	float GetSplineDistanceToNextSplinePoint();
 
-	/** Get the distance along spline between the support actual position and the spline point A. */
+	/** Get the distance along spline from the support actual position to the spline point A. */
 	float GetSplineDistanceToPoint(const int SplineIndexA);
+
+	/** Get the distance along spline from the spline point A to the support actual position. */
+	float GetSplineDistanceToPointReversed(const int SplineIndexA);
 
 	/** Get the distance on the spline from the spline point A to B. */
 	float GetSplineDistanceAToB(const int SplineIndexA, const int SplineIndexB);

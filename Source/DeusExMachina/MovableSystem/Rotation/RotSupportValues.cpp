@@ -39,11 +39,6 @@ float FRotSupportValues::GetSnapDirectionAdvantage() const
 	return SnapValuesOverride.bOverrideSnapValues ? SnapValuesOverride.SnapDirectionAdvantage : RotSupportValues->SnapDirectionAdvantage;
 }
 
-float FRotSupportValues::GetSnapDirectionDelay() const
-{
-	return SnapValuesOverride.bOverrideSnapValues ? SnapValuesOverride.SnapDirectionDelay : RotSupportValues->SnapDirectionDelay;
-}
-
 float FRotSupportValues::GetSnapSpeed() const
 {
 	return SnapValuesOverride.bOverrideSnapValues ? SnapValuesOverride.SnapSpeed : RotSupportValues->SnapSpeed;

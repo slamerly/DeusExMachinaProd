@@ -30,6 +30,8 @@ void URotationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick Tick
 	if (LastInputedDirectionTimer <= 0.0f) LastInputedDirection = 0;
 
 
+	if (!bOwnerRotSupportValid) return;
+
 	//  snap part
 	if (CurrentState != EControlledRotationState::Snap) return;
 
@@ -167,7 +169,7 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 	else
 	{
 		LastInputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(RotationSpeed);
-		LastInputedDirectionTimer = OwnerRotSupport->GetSupportValues().GetSnapDirectionDelay();
+		LastInputedDirectionTimer = 0.3f; //  like for controlled translation, need to retreive this value from elsewhere
 	}
 
 	return TriggeredClamp;

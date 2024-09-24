@@ -361,8 +361,8 @@ bool ARotationSupport::SearchSnapAngle(const float InputRotationAngle, float& Sn
 			return true;
 		}
 
-		const float LowerAdvantaged = FMath::Abs(NearestLowerSnap * (-1.0f - SnapSearchAdvantage));
-		const float HigherAdvantaged = FMath::Abs(NearestHigherSnap * (1.0f - SnapSearchAdvantage));
+		const float LowerAdvantaged = FMath::Abs(NearestLowerSnap * (-1.0f - SearchAdvantage));
+		const float HigherAdvantaged = FMath::Abs(NearestHigherSnap * (1.0f - SearchAdvantage));
 
 		if (LowerAdvantaged < HigherAdvantaged)
 		{

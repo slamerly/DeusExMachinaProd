@@ -217,6 +217,42 @@ float ATranslationSupport::ClampMovementBetweenSplinePoints(const float Movement
 
 
 // ======================================================
+//                    Snap Functions
+// ======================================================
+int ATranslationSupport::SearchNearestSplinePointToSnap(const float InputDistanceOnSpline, const float SnapSearchAdvantage)
+{
+	//  same code base than 'ComputeInnerIndexAndProgress()' but different utility
+	float EvaluateIndex = 0;
+	while (InputDistanceOnSpline >= TranslationSpline->GetDistanceAlongSplineAtSplinePoint(EvaluateIndex))
+	{
+		EvaluateIndex++;
+	}
+	const float LowerSnap = EvaluateIndex - 1;
+	const float HigherSnap = GetNextSplineIndex(LowerSnap);
+
+	const float DistanceLowerToHigher = GetSplineDistanceAToB(LowerSnap, HigherSnap); //  distance between the lower snap point and the higher snap point
+	const float DistanceLowerToInputDist = InputDistanceOnSpline - TranslationSpline->GetDistanceAlongSplineAtSplinePoint(LowerSnap); //  distance between the lower spline point and the inputed distance on spline
+	const float SnapProgress = DistanceLowerToInputDist / DistanceLowerToHigher;
+
+
+	//  compute the snap search advantage
+	const float SearchAdvantage = FMath::Clamp(SnapSearchAdvantage, 0.0f, 1.0f);
+	if (SearchAdvantage == 0.0f) return LowerSnap;
+	if (SearchAdvantage == 1.0f) return HigherSnap;
+
+	const float AdvantagedSnapProgress = SnapProgress + (SearchAdvantage - 0.5f);
+	if (AdvantagedSnapProgress >= 0.5f)
+	{
+		return HigherSnap;
+	}
+	else
+	{
+		return LowerSnap;
+	}
+}
+
+
+// ======================================================
 //                   Utility Functions
 // ======================================================
 float ATranslationSupport::GetSplineDistanceToNextSplinePoint()
@@ -232,6 +268,16 @@ float ATranslationSupport::GetSplineDistanceToPoint(const int SplineIndexA)
 	if (DistanceIA < 0.0f) DistanceIA += TranslationSpline->GetSplineLength();
 
 	return DistanceIA;
+}
+
+float ATranslationSupport::GetSplineDistanceToPointReversed(const int SplineIndexA)
+{
+	const float DistanceOA = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(SplineIndexA);
+
+	float DistanceAI = DistanceFromSplineOrigin - DistanceOA; //  I for inner
+	if (DistanceAI < 0.0f) DistanceAI += TranslationSpline->GetSplineLength();
+
+	return DistanceAI;
 }
 
 float ATranslationSupport::GetSplineDistanceAToB(const int SplineIndexA, const int SplineIndexB)
