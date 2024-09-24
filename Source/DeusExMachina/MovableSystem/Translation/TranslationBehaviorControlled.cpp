@@ -1,5 +1,6 @@
 #include "TranslationBehaviorControlled.h"
 #include "TranslationSupport.h"
+#include "DeusExMachina/Player/PlayerControllerInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Defines.h"
 
@@ -184,8 +185,7 @@ bool UTranslationBehaviorControlled::UpdateControlledTranslation(float ControlVa
 	else
 	{
 		LastInputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(TranslationSpeed);
-		LastInputedDirectionTimer = 0.3f; //  arbitrary feeling value of how many time does it need to remember the last inputed direction.
-		//  might centralize this data with the snap direction delay from rotation, need to find where (on the player controller?)
+		LastInputedDirectionTimer = Cast<IPlayerControllerInterface>(UGameplayStatics::GetPlayerController(OwnerTransSupport, 0))->GetControlDirectionDelay();
 	}
 
 	return TriggeredClamp;

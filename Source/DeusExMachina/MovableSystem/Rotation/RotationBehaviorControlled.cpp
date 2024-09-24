@@ -1,5 +1,6 @@
 #include "RotationBehaviorControlled.h"
 #include "RotationSupport.h"
+#include "DeusExMachina/Player/PlayerControllerInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Defines.h"
 
@@ -169,7 +170,7 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 	else
 	{
 		LastInputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(RotationSpeed);
-		LastInputedDirectionTimer = 0.3f; //  like for controlled translation, need to retreive this value from elsewhere
+		LastInputedDirectionTimer = Cast<IPlayerControllerInterface>(UGameplayStatics::GetPlayerController(OwnerRotSupport, 0))->GetControlDirectionDelay();
 	}
 
 	return TriggeredClamp;

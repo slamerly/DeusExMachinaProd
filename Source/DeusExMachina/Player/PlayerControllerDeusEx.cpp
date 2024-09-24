@@ -41,9 +41,11 @@ void APlayerControllerDeusEx::LateBeginPlay()
 // ======================================================
 void APlayerControllerDeusEx::Tick(float DeltaTime)
 {
-	bool LastInteractableValid = IsValid(CurrentInteractable);
-	InteractionRaycast();
-	if (LastInteractableValid && !IsValid(CurrentInteractable))
+	if (PlayerInputMode != EPlayerInputMode::PlayerMovement) return;
+
+	bool bLastInteractableValid = IsValid(CurrentInteractable);
+	CurrentInteractable = InteractionRaycast();
+	if (bLastInteractableValid && !IsValid(CurrentInteractable))
 	{
 		HudRef->HideInteractionTooltip();
 	}
@@ -53,11 +55,11 @@ void APlayerControllerDeusEx::Tick(float DeltaTime)
 // ======================================================
 //	        	Interaction (raycast)
 // ======================================================
-void APlayerControllerDeusEx::InteractionRaycast()
+AActor* APlayerControllerDeusEx::InteractionRaycast()
 {
-	CurrentInteractable = nullptr;
+	AActor* InteractableFound = nullptr;
 
-	if (!IsValid(Character)) return;
+	if (!IsValid(Character)) return InteractableFound;
 
 	const FVector RaycastStart = Character->GetActorLocation();
 	const FVector RaycastEnd = RaycastStart + Character->GetActorForwardVector() * InteractionRaycastDistance;
@@ -73,22 +75,27 @@ void APlayerControllerDeusEx::InteractionRaycast()
 
 	if (!InteractionHit)
 	{
-		return; //  return if the raycast didn't found any object
+		return InteractableFound; //  return if the raycast didn't found any object
 	}
 
 	if (!OutInteraction.GetActor()->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 	{
-		return; //  return if the found object doesn't implement the Interactable interface
+		return InteractableFound; //  return if the found object doesn't implement the Interactable interface
 	}
 
 	if (!IInteractable::Execute_CanInteract(OutInteraction.GetActor()))
 	{
-		return; //  return if the found interactable object can't interact this frame
+		return InteractableFound; //  return if the found interactable object can't interact this frame
 	}
 
-	CurrentInteractable = OutInteraction.GetActor();
+	if (FVector::DotProduct(Character->GetActorForwardVector(), -OutInteraction.GetActor()->GetActorForwardVector()) < 0.7f)
+	{
+		return InteractableFound;
+	}
 
-	const FVector TooltipWorldPos = IInteractable::Execute_GetInteractableTooltipPosition(CurrentInteractable);
+	InteractableFound = OutInteraction.GetActor();
+
+	const FVector TooltipWorldPos = IInteractable::Execute_GetInteractableTooltipPosition(InteractableFound);
 	FVector2D TooltipScreenPos;
 	const bool TooltipInScreen = UGameplayStatics::ProjectWorldToScreen(this, TooltipWorldPos, TooltipScreenPos, true);
 	if (TooltipInScreen)
@@ -96,6 +103,8 @@ void APlayerControllerDeusEx::InteractionRaycast()
 		const FVector2D ViewportSize = GEngine->GameViewport->Viewport->GetSizeXY();
 		HudRef->ShowInteractionTooltip(TooltipScreenPos / ViewportSize);
 	}
+
+	return InteractableFound;
 }
 
 
@@ -300,4 +309,13 @@ void APlayerControllerDeusEx::SetInPause(bool bInPauseValue)
 bool APlayerControllerDeusEx::GetInPause()
 {
 	return bInPause;
+}
+
+
+// ======================================================
+//      Inputs Settings (Player Controller Interface)
+// ======================================================
+float APlayerControllerDeusEx::GetControlDirectionDelay()
+{
+	return ControlDirectionDelay;
 }

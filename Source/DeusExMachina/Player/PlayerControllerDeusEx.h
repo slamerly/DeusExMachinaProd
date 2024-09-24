@@ -64,6 +64,13 @@ protected:
 	int InteractionRaycastDistance{ 160 };
 
 
+	// ====================
+	//    Inputs Settings
+	// ====================
+	UPROPERTY(EditDefaultsOnly, Category = "Inputs Settings", meta = (Tooltip = "The duration controlled GPE remember the last direction inputed by the player.\nIn seconds."))
+	float ControlDirectionDelay{ 0.3f };
+
+
 
 // ======================================================
 //                     Functions
@@ -83,7 +90,7 @@ protected:
 	// ====================
 	//     Interaction
 	// ====================
-	void InteractionRaycast();
+	AActor* InteractionRaycast();
 
 
 
@@ -133,4 +140,9 @@ public:
 	// ====================
 	void SetInPause(bool bInPauseValue) override;
 	bool GetInPause() override;
+
+	// ====================
+	//    Input Settings
+	// ====================
+	float GetControlDirectionDelay() override;
 };
