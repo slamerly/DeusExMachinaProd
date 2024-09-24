@@ -37,7 +37,10 @@ void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& Property
 
 					for (int j = 0; j < subLevels.Num(); j++)
 					{
-						ScenesList.AddUnique(*subLevels[j]->GetWorldAssetPackageName());
+						FString RightName, LeftName;
+						subLevels[j]->GetWorldAssetPackageName().Split(TEXT("/"), &RightName, &LeftName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+
+						ScenesList.Add(*LeftName, MainLevelsList[i]);
 					}
 				}
 			}
@@ -85,11 +88,12 @@ void UGameInstanceDeusEx::GetSaveMap()
 
 void UGameInstanceDeusEx::LoadProgress(FString pLevelName, FString pSceneName)
 {
-	//UGameplayStatics::OpenLevelBySoftObjectPtr(this, pLevelName);
+	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Scene : %s"), *pSceneName));
+
 	UGameplayStatics::OpenLevel(this, FName(*pSceneName));
 	AActor* ActorSceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
 	ASceneManager* SceneManager = Cast<ASceneManager>(ActorSceneManager);
 
 	SceneManager->SetCurrentSceneIndex(FName(*pSceneName));
-
+	
 }

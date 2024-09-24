@@ -335,40 +335,6 @@ void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore)
 			FString::Printf(TEXT("No SceneEntrance found in the next scene.")));
 		UE_LOG(LogTemp, Warning, TEXT("No SceneEntrance found in the next scene."));
 	}
-	
-	/*
-	//If the scene contains many transitions, select the good one
-	TArray<AActor*> SceneTransitions;
-	ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneTransition::StaticClass(), SceneTransitions);
-
-	ASceneTransition* GoodTransition = nullptr;
-
-	UE_LOG(LogTemp, Warning, TEXT("Num: %d"), SceneTransitions.Num());
-	for (int i = 0; i < SceneTransitions.Num(); i++)
-	{
-		ASceneTransition* CurrentSceneTransition = Cast<ASceneTransition>(SceneTransitions[i]);
-
-		if (CurrentSceneTransition->GetTargetScene() == Scenes[IndexSaveSceneBefore] &&
-			CurrentSceneTransition->GetIdSceneTransition() == TargetID)
-		{
-			if (CurrentSceneTransition->GetSpawnRomeo() != nullptr)
-			{
-				UGameplayStatics::GetPlayerPawn(this, 0)->SetActorLocation(CurrentSceneTransition->GetSpawnRomeo()->GetActorLocation());
-
-				//Animations
-				Animations(false, false);
-				return;
-			}
-			else
-			{
-				//Error
-				GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red,
-					FString::Printf(TEXT("SpawnRomeo is empty in %s"), *GoodTransition->GetName()));
-				UE_LOG(LogTemp, Warning, TEXT("SpawnRomeo is empty in %s"), *GoodTransition->GetName());
-			}
-		}
-	}
-	*/
 }
 
 // Event function streamlevel loaded

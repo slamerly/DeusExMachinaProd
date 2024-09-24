@@ -26,7 +26,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<UWorld*> MainLevelsList;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FName> ScenesList;
+	TMap<FName, UWorld*> ScenesList;
 
 public:
 	USaveGame* GetSaveProgressRef();
