@@ -70,8 +70,8 @@ void AMovSysButton::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	//  check if the property changed is the rotation support in a link
-	if (PropertyChangedEvent.GetPropertyName() != FName("RotationSupport")) return;
+	//  check if the property changed is the rotation support or the translation support in a link
+	if (!(PropertyChangedEvent.GetPropertyName() == FName("RotationSupport") || PropertyChangedEvent.GetPropertyName() == FName("TranslationSupport"))) return;
 
 	for (auto& LinkAutoR : LinkedRotSupportsAutomatic)
 	{

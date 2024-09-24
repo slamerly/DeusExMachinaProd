@@ -1,6 +1,8 @@
 #include "MovSysWheel.h"
 #include "DeusExMachina/MovableSystem/Rotation/RotationSupport.h"
 #include "DeusExMachina/MovableSystem/Rotation/RotationBehaviorControlled.h"
+#include "DeusExMachina/MovableSystem/Translation/TranslationSupport.h"
+#include "DeusExMachina/MovableSystem/Translation/TranslationBehaviorControlled.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Defines.h"
 
@@ -18,14 +20,24 @@ void AMovSysWheel::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (auto& LinkCtrl : LinkedSupportsControlled)
+	for (auto& LinkCtrlR : LinkedRotSupportsControlled)
 	{
-		if (!IsValid(LinkCtrl.RotationSupport)) continue; //  do not check if there is no rotation support linked
-		if (!LinkCtrl.ControlDatas.IsDataValid()) continue; //  do not check if there is no datas linked
+		if (!IsValid(LinkCtrlR.RotationSupport)) continue; //  do not check if there is no rotation support linked
+		if (!LinkCtrlR.ControlDatas.IsDataValid()) continue; //  do not check if there is no datas linked
 
-		if (!IsValid(LinkCtrl.RotationSupport->GetComponentByClass<URotationBehaviorControlled>())) continue;
+		if (!IsValid(LinkCtrlR.RotationSupport->GetComponentByClass<URotationBehaviorControlled>())) continue;
 
-		LinkedSupportsControlledVerified.Add(FControlledRotInteractionLink{ LinkCtrl.RotationSupport, LinkCtrl.ControlDatas, LinkCtrl.RotationSupport->GetComponentByClass<URotationBehaviorControlled>() });
+		LinkedRotSupportsControlledVerified.Add(FControlledRotInteractionLink{ LinkCtrlR.RotationSupport, LinkCtrlR.ControlDatas, LinkCtrlR.RotationSupport->GetComponentByClass<URotationBehaviorControlled>() });
+	}
+
+	for (auto& LinkCtrlT : LinkedTransSupportsControlled)
+	{
+		if (!IsValid(LinkCtrlT.TranslationSupport)) continue; //  do not check if there is no translation support linked
+		if (!LinkCtrlT.ControlDatas.IsDataValid()) continue; //  do not check if there is no datas linked
+
+		if (!IsValid(LinkCtrlT.TranslationSupport->GetComponentByClass<UTranslationBehaviorControlled>())) continue;
+
+		LinkedTransSupportsControlledVerified.Add(FControlledTransInteractionLink{ LinkCtrlT.TranslationSupport, LinkCtrlT.ControlDatas, LinkCtrlT.TranslationSupport->GetComponentByClass<UTranslationBehaviorControlled>() });
 	}
 }
 
@@ -38,18 +50,29 @@ void AMovSysWheel::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	//  check if the property changed is the rotation support in a link
-	if (PropertyChangedEvent.GetPropertyName() != FName("RotationSupport")) return;
+	//  check if the property changed is the rotation support or the translation support in a link
+	if (!(PropertyChangedEvent.GetPropertyName() == FName("RotationSupport") || PropertyChangedEvent.GetPropertyName() == FName("TranslationSupport"))) return;
 
-	for (auto& LinkCtrl : LinkedSupportsControlled)
+	for (auto& LinkCtrlR : LinkedRotSupportsControlled)
 	{
-		if (!IsValid(LinkCtrl.RotationSupport)) continue; //  do not check if there is no rotation support linked
+		if (!IsValid(LinkCtrlR.RotationSupport)) continue; //  do not check if there is no rotation support linked
 
-		if (LinkCtrl.RotationSupport->GetComponentByClass(URotationBehaviorControlled::StaticClass())) continue; //  rot support has the good component, end of the check
+		if (LinkCtrlR.RotationSupport->GetComponentByClass(URotationBehaviorControlled::StaticClass())) continue; //  rot support has the good component, end of the check
 
-		kPRINT_COLOR("Warning! Rotation Support " + UKismetSystemLibrary::GetDisplayName(LinkCtrl.RotationSupport) + " doesn't have the Controlled Rotation Behavior component!", FColor::Orange);
+		kPRINT_COLOR("Warning! Rotation Support " + UKismetSystemLibrary::GetDisplayName(LinkCtrlR.RotationSupport) + " doesn't have the Controlled Rotation Behavior component!", FColor::Orange);
 
-		LinkCtrl.RotationSupport = nullptr;
+		LinkCtrlR.RotationSupport = nullptr;
+	}
+
+	for (auto& LinkCtrlT : LinkedTransSupportsControlled)
+	{
+		if (!IsValid(LinkCtrlT.TranslationSupport)) continue; //  do not check if there is no translation support linked
+
+		if (LinkCtrlT.TranslationSupport->GetComponentByClass(UTranslationBehaviorControlled::StaticClass())) continue; //  trans support has the good component, end of the check
+
+		kPRINT_COLOR("Warning! Translation Support " + UKismetSystemLibrary::GetDisplayName(LinkCtrlT.TranslationSupport) + " doesn't have the Controlled Translation Behavior component!", FColor::Orange);
+
+		LinkCtrlT.TranslationSupport = nullptr;
 	}
 }
 
@@ -64,9 +87,14 @@ void AMovSysWheel::Interaction_Implementation()
 
 	bInControl = true;
 
-	for (auto& LinkCtrl : LinkedSupportsControlledVerified)
+	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
-		LinkCtrl.RotationControlledComponent->StartControlledRotation(LinkCtrl.ControlDatas);
+		LinkCtrlR.RotationControlledComponent->StartControlledRotation(LinkCtrlR.ControlDatas);
+	}
+
+	for (auto& LinkCtrlT : LinkedTransSupportsControlledVerified)
+	{
+		LinkCtrlT.TranslationControlledComponent->StartControlledTranslation(LinkCtrlT.ControlDatas);
 	}
 
 	WheelStartFeedback();
@@ -96,9 +124,14 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
 		ComputedControlValue = ControlValue.X;
 	}
 
-	for (auto& LinkCtrl : LinkedSupportsControlledVerified)
+	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
-		ControlClamp = ControlClamp && LinkCtrl.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
+		ControlClamp = ControlClamp && LinkCtrlR.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
+	}
+
+	for (auto& LinkCtrlT : LinkedTransSupportsControlledVerified)
+	{
+		ControlClamp = ControlClamp && LinkCtrlT.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
 	}
 
 
@@ -114,9 +147,14 @@ void AMovSysWheel::InteractionHeavyFinished_Implementation()
 
 	bInControl = false;
 
-	for (auto& LinkCtrl : LinkedSupportsControlledVerified)
+	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
-		LinkCtrl.RotationControlledComponent->StopControlledRotation();
+		LinkCtrlR.RotationControlledComponent->StopControlledRotation();
+	}
+
+	for (auto& LinkCtrlT : LinkedTransSupportsControlledVerified)
+	{
+		LinkCtrlT.TranslationControlledComponent->StopControlledTranslation();
 	}
 
 	WheelStopFeedback();

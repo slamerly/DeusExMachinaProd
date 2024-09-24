@@ -51,7 +51,7 @@ void URotationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick Tick
 
 
 // ======================================================
-//             Control Controlled Rotation
+//              Control Controlled Rotation
 // ======================================================
 bool URotationBehaviorControlled::StartControlledRotation(FControlledRotationDatas Datas)
 {
