@@ -26,4 +26,24 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Angles Utils")
 	static int ModuloAngleInt(const int Angle);
+
+
+	/**
+	* Get the delta between two angles in degrees, with a negative value if needed.
+	* @param	AngleFrom	The from angle.
+	* @param	AngleTo		The to angle.
+	* @return				The signed delta angle. Will be between -180 and 180.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Angles Utils")
+	static float SignedDeltaAngle(const float AngleFrom, const float AngleTo);
+
+
+	/**
+	* Get the delta between two angles in degrees, with a negative value if needed. (Variant that works with integers)
+	* @param	AngleFrom	The from angle.
+	* @param	AngleTo		The to angle.
+	* @return				The signed delta angle. Will be between -180 and 180.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Angles Utils")
+	static int SignedDeltaAngleInt(const int AngleFrom, const int AngleTo);
 };

@@ -18,3 +18,22 @@ int UAnglesUtils::ModuloAngleInt(const int Angle)
 
 	return AngleMod + 360;
 }
+
+
+float UAnglesUtils::SignedDeltaAngle(const float AngleFrom, const float AngleTo)
+{
+	const float Diff = ModuloAngle(ModuloAngle(AngleTo) - ModuloAngle(AngleFrom));
+
+	if (Diff < 360.0f - Diff) return Diff;
+
+	return -1.0f * (360.0f - Diff);
+}
+
+int UAnglesUtils::SignedDeltaAngleInt(const int AngleFrom, const int AngleTo)
+{
+	const int Diff = ModuloAngleInt(ModuloAngleInt(AngleTo) - ModuloAngleInt(AngleFrom));
+
+	if (Diff < 360 - Diff) return Diff;
+
+	return -1 * (360 - Diff);
+}

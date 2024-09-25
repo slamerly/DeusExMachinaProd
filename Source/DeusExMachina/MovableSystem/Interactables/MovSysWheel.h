@@ -43,6 +43,13 @@ public:
 //          Wheel Visual Feedback (blueprint)
 // ======================================================
 protected:
+	float GetAdvancedJoystickControl(const FVector2D JoystickValue);
+
+
+// ======================================================
+//          Wheel Visual Feedback (blueprint)
+// ======================================================
+protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wheel Feedback")
 	void WheelStartFeedback();
 
@@ -66,6 +73,10 @@ public:
 // ======================================================
 protected:
 	bool bInControl{ false };
+
+	float JoystickAngle{ 0.0f };
+	float JoystickForgotTime{ 0.0f };
+	float JoystickLastControl{ 0.0f };
 
 
 // ======================================================

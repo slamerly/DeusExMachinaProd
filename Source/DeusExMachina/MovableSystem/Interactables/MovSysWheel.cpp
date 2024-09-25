@@ -4,6 +4,8 @@
 #include "DeusExMachina/MovableSystem/Translation/TranslationSupport.h"
 #include "DeusExMachina/MovableSystem/Translation/TranslationBehaviorControlled.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "DeusExMachina/MovableSystem/Rotation/AnglesUtils.h"
 #include "Defines.h"
 
 AMovSysWheel::AMovSysWheel()
@@ -119,7 +121,7 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
 
 	if (bActivateAdvancedJoystickControl)
 	{
-		// TODO: implement the advanced joystick control
+		ComputedControlValue = GetAdvancedJoystickControl(ControlValue);
 	}
 	else
 	{
@@ -170,4 +172,39 @@ bool AMovSysWheel::IsInteractableBothSides_Implementation()
 void AMovSysWheel::ForceReleaseInteractable()
 {
 	InteractionHeavyFinished_Implementation();
+}
+
+float AMovSysWheel::GetAdvancedJoystickControl(const FVector2D JoystickValue)
+{
+	if (JoystickValue.IsZero()) return 0.0f;
+
+	const float NewJoystickAngle = UKismetMathLibrary::DegAcos(UKismetMathLibrary::DotProduct2D(JoystickValue, FVector2D::UnitY())) * 
+		(JoystickValue.X < 0.0f ? -1.0f : 1.0f);
+
+	const float JoystickDelta = UAnglesUtils::SignedDeltaAngle(JoystickAngle, NewJoystickAngle);
+	float JoystickControl = 0.0f;
+	if (FMath::Abs(JoystickDelta) > 5.0f && FMath::Abs(JoystickDelta) < 45.0f)
+	{
+		JoystickControl = FMath::Sign<float>(JoystickDelta);
+	}
+
+	JoystickAngle = NewJoystickAngle;
+	if (JoystickControl != 0.0f)
+	{
+		JoystickLastControl = JoystickControl;
+		JoystickForgotTime = UKismetSystemLibrary::GetGameTimeInSeconds(this);
+
+		return JoystickControl;
+	}
+	else
+	{
+		if (UKismetSystemLibrary::GetGameTimeInSeconds(this) - JoystickForgotTime < 0.2f)
+		{
+			return JoystickLastControl;
+		}
+		else
+		{
+			return 0.0f;
+		}
+	}
 }
