@@ -112,6 +112,8 @@ bool AMovSysWheel::IsInteractionHeavy_Implementation()
 
 void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
 {
+	if (!bInControl) return;
+
 	float ComputedControlValue = 0.0f;
 	bool ControlClamp = true;
 
@@ -158,6 +160,11 @@ void AMovSysWheel::InteractionHeavyFinished_Implementation()
 	}
 
 	WheelStopFeedback();
+}
+
+bool AMovSysWheel::IsInteractableBothSides_Implementation()
+{
+	return false;
 }
 
 void AMovSysWheel::ForceReleaseInteractable()

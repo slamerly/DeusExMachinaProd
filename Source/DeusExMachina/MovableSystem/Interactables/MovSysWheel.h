@@ -3,45 +3,8 @@
 #include "CoreMinimal.h"
 #include "MovSysInteractableBase.h"
 #include "DeusExMachina/Interaction/Interactable.h"
-#include "DeusExMachina/MovableSystem/Rotation/ControlledRotationDatas.h"
-#include "DeusExMachina/MovableSystem/Translation/ControlledTranslationDatas.h"
+#include "ControlledLinkStructs.h"
 #include "MovSysWheel.generated.h"
-
-
-class ARotationSupport;
-class URotationBehaviorControlled;
-class ATranslationSupport;
-class UTranslationBehaviorControlled;
-
-
-USTRUCT(BlueprintType, meta = (Tooltip = "Link a Rotation Support with the Rotation Behavior Controlled component to a MovSys Wheel."))
-struct FControlledRotInteractionLink
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The Rotation Support you want to link. It must have the Rotation Behavior Controlled component."))
-	ARotationSupport* RotationSupport{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The datas you want to link the support with. It will be used on this Rotation Support when using the wheel."))
-	FControlledRotationDatas ControlDatas;
-
-	URotationBehaviorControlled* RotationControlledComponent{ nullptr };
-};
-
-
-USTRUCT(BlueprintType, meta = (Tooltip = "Link a Translation Support with the Translation Behavior Controlled component to a MovSys Wheel."))
-struct FControlledTransInteractionLink
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The Translation Support you want to link. It must have the Translation Behavior Controlled component."))
-	ATranslationSupport* TranslationSupport{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The datas you want to link the support with. It will be used on this Translation Support when using the wheel."))
-	FControlledTranslationDatas ControlDatas;
-
-	UTranslationBehaviorControlled* TranslationControlledComponent{ nullptr };
-};
 
 
 UCLASS()
@@ -70,6 +33,8 @@ public:
 	bool IsInteractionHeavy_Implementation() override;
 	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue) override;
 	void InteractionHeavyFinished_Implementation() override;
+
+	bool IsInteractableBothSides_Implementation() override;
 
 	virtual void ForceReleaseInteractable() override;
 

@@ -36,4 +36,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent)
 	void InteractionHeavyFinished();
+
+	UFUNCTION(BlueprintNativeEvent)
+	bool IsInteractableBothSides();
 };

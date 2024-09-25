@@ -88,9 +88,13 @@ AActor* APlayerControllerDeusEx::InteractionRaycast()
 		return InteractableFound; //  return if the found interactable object can't interact this frame
 	}
 
-	if (FVector::DotProduct(Character->GetActorForwardVector(), -OutInteraction.GetActor()->GetActorForwardVector()) < 0.7f)
+	const float ForwardDot = FVector::DotProduct(Character->GetActorForwardVector(), -OutInteraction.GetActor()->GetActorForwardVector()); //  1 in the player is in front of the interactable, -1 if he's in the back
+
+	if (FMath::Abs(ForwardDot) < 0.7f) return InteractableFound; //  return if the player is on the side (neither in front or in the back)
+
+	if (!IInteractable::Execute_IsInteractableBothSides(OutInteraction.GetActor()) && ForwardDot < 0.7f)
 	{
-		return InteractableFound;
+		return InteractableFound; //  return if the found interactable object can't be interacted from behind and if the player is not in front of it.
 	}
 
 	InteractableFound = OutInteraction.GetActor();
