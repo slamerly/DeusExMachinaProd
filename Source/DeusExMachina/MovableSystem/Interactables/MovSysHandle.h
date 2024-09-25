@@ -81,6 +81,7 @@ public:
 // ======================================================
 protected:
 	bool bInControl{ false };
+	APlayerCameraManager* Camera{ nullptr };
 
 
 // ======================================================

@@ -8,6 +8,7 @@
 #include "DeusExMachina/MovableSystem/MovableObjectComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Defines.h"
 
 AMovSysHandle::AMovSysHandle()
@@ -111,6 +112,8 @@ void AMovSysHandle::Interaction_Implementation()
 
 	HandleStartFeedback();
 
+	Camera = UGameplayStatics::GetPlayerCameraManager(this, 0); //  assume that the camera won't change during an interaction with a handle
+
 
 	if (!bLinkValid) return;
 
@@ -140,12 +143,15 @@ void AMovSysHandle::InteractionHeavyUpdate_Implementation(FVector2D ControlValue
 {
 	if (!bInControl) return;
 
-	const FVector2D ControlDirection = FVector2D(ControlValue.Y, ControlValue.X).GetSafeNormal();
+	const FVector2D ControlDirection = UKismetMathLibrary::Conv_VectorToVector2D(
+		FRotator{ 0.0f, Camera->GetCameraRotation().Yaw, 0.0f }
+		.RotateVector(FVector{ ControlValue.Y, ControlValue.X, 0.0f })
+	);
+
 	const FVector2D PushDirection = UKismetMathLibrary::Conv_VectorToVector2D(PushDirArrow->GetForwardVector());
 	const float ComputedControlValue = UKismetMathLibrary::DotProduct2D(ControlDirection, PushDirection);
 
 	HandleControlFeedback(ComputedControlValue);
-
 
 	if (!bLinkValid) return;
 
