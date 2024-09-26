@@ -4,6 +4,7 @@
 #include "DeusExMachina/MovableSystem/Rotation/RotationBehaviorStandard.h"
 #include "DeusExMachina/MovableSystem/Translation/TranslationSupport.h"
 #include "DeusExMachina/MovableSystem/Translation/TranslationBehaviorAutomatic.h"
+#include "DeusExMachina/MovableSystem/Translation/TranslationBehaviorStandard.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Defines.h"
 
@@ -52,6 +53,16 @@ void AMovSysButton::BeginPlay()
 		if (!IsValid(LinkAutoT.TranslationSupport->GetComponentByClass<UTranslationBehaviorAutomatic>())) continue;
 
 		LinkedTransSupportsAutomaticVerified.Add(FAutoTransInteractionLink{ LinkAutoT.TranslationSupport, LinkAutoT.InteractionDatas, LinkAutoT.TranslationSupport->GetComponentByClass<UTranslationBehaviorAutomatic>() });
+	}
+
+	for (auto& LinkStandT : LinkedTransSupportsStandard)
+	{
+		if (!IsValid(LinkStandT.TranslationSupport)) continue; //  do not check if there is no translation support linked
+		if (!LinkStandT.StandardDatas.IsDataValid()) continue; //  do not check if there is no datas linked
+
+		if (!IsValid(LinkStandT.TranslationSupport->GetComponentByClass<UTranslationBehaviorStandard>())) continue;
+
+		LinkedTransSupportsStandardVerified.Add(FStandardTransInteractionLink{ LinkStandT.TranslationSupport, LinkStandT.StandardDatas, LinkStandT.TranslationSupport->GetComponentByClass<UTranslationBehaviorStandard>() });
 	}
 }
 
@@ -105,6 +116,17 @@ void AMovSysButton::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 
 		LinkAutoT.TranslationSupport = nullptr;
 	}
+
+	for (auto& LinkStandT : LinkedTransSupportsStandard)
+	{
+		if (!IsValid(LinkStandT.TranslationSupport)) continue; //  do not check if there is no translation support linked
+
+		if (LinkStandT.TranslationSupport->GetComponentByClass(UTranslationBehaviorStandard::StaticClass())) continue; //  trans support has the good component, end of the check
+
+		kPRINT_COLOR("Warning! Translation Support " + UKismetSystemLibrary::GetDisplayName(LinkStandT.TranslationSupport) + " doesn't have the Standard Translation Behavior component!", FColor::Orange);
+
+		LinkStandT.TranslationSupport = nullptr;
+	}
 }
 
 
@@ -133,6 +155,11 @@ void AMovSysButton::Interaction_Implementation()
 	for (auto& LinkAutoT : LinkedTransSupportsAutomaticVerified)
 	{
 		LinkAutoT.TranslationAutomaticComponent->TriggerAutoTransInteraction(LinkAutoT.InteractionDatas);
+	}
+
+	for (auto& LinkStandT : LinkedTransSupportsStandardVerified)
+	{
+		LinkStandT.TranslationStandardComponent->StartStandardTranslation(LinkStandT.StandardDatas);
 	}
 }
 

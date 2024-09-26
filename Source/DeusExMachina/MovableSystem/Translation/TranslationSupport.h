@@ -135,6 +135,7 @@ public:
 	int GetPrevSplineIndex(const int SplineIndex);
 
 	int GetNumberOfSplinePoints();
+	float GetFullSplineLength();
 
 protected:
 	void ComputeDistanceFromSplineOrigin();

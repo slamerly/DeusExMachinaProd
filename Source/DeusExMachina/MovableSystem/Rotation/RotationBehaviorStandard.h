@@ -33,7 +33,7 @@ public:
 //                   Helper Functions
 // ======================================================
 protected:
-	bool IsStandardRotValid(FStandardRotationDatas Datas);
+	bool IsStandardRotValid(struct FStandardRotationDatas Datas);
 
 
 // ======================================================

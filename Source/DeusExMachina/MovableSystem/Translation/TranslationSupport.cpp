@@ -143,11 +143,11 @@ void ATranslationSupport::ForcePositionOnSpline(const int SplineIndex, const flo
 	ProgressToNextIndex = ProgressToNextPoint;
 	if (ProgressToNextIndex >= 1.0f)
 	{
-		ProgressToNextIndex = UKismetMathLibrary::Percent_FloatFloat(ProgressToNextIndex, 1.0f);
+		ProgressToNextIndex = UKismetMathLibrary::GenericPercent_FloatFloat(ProgressToNextIndex, 1.0f);
 	}
-	else if (ProgressToNextIndex <= 0.0f)
+	else if (ProgressToNextIndex < 0.0f)
 	{
-		ProgressToNextIndex = UKismetMathLibrary::Percent_FloatFloat(ProgressToNextIndex, 1.0f);
+		ProgressToNextIndex = UKismetMathLibrary::GenericPercent_FloatFloat(ProgressToNextIndex, 1.0f);
 		ProgressToNextIndex += 1.0f; //  modulo does not get the number above 0.0f
 	}
 
@@ -306,6 +306,11 @@ int ATranslationSupport::GetPrevSplineIndex(const int SplineIndex)
 int ATranslationSupport::GetNumberOfSplinePoints()
 {
 	return TranslationSpline->GetNumberOfSplinePoints();
+}
+
+float ATranslationSupport::GetFullSplineLength()
+{
+	return TranslationSpline->GetSplineLength();
 }
 
 void ATranslationSupport::ComputeDistanceFromSplineOrigin()

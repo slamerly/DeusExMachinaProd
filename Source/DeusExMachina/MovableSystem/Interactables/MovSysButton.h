@@ -5,6 +5,7 @@
 #include "DeusExMachina/Interaction/Interactable.h"
 #include "AutoRotInteractionDatas.h"
 #include "DeusExMachina/MovableSystem/Rotation/StandardRotationDatas.h"
+#include "DeusExMachina/MovableSystem/Translation/StandardTranslationDatas.h"
 #include "AutoTransInteractionDatas.h"
 #include "MovSysButton.generated.h"
 
@@ -14,6 +15,7 @@ class ATranslationSupport;
 class URotationBehaviorAutomatic;
 class URotationBehaviorStandard;
 class UTranslationBehaviorAutomatic;
+class UTranslationBehaviorStandard;
 
 
 USTRUCT(BlueprintType, meta = (Tooltip = "Link a Rotation Support with the Rotation Behavior Automatic component to a MovSys Button."))
@@ -58,6 +60,21 @@ struct FAutoTransInteractionLink
 	FAutoTransInteractionDatas InteractionDatas;
 
 	UTranslationBehaviorAutomatic* TranslationAutomaticComponent{ nullptr };
+};
+
+
+USTRUCT(BlueprintType, meta = (Tooltip = "Link a Translation Support with the Translation Behavior Standard component to a MovSys Button."))
+struct FStandardTransInteractionLink
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The Translation Support you want to link. It must have the Translation Behavior Standard component."))
+	ATranslationSupport* TranslationSupport{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The datas you want to link the support with. It will be used on this Translation Support when using the button."))
+	FStandardTranslationDatas StandardDatas;
+
+	UTranslationBehaviorStandard* TranslationStandardComponent{ nullptr };
 };
 
 
@@ -121,8 +138,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Automatic you want to link to this button."))
 	TArray<FAutoTransInteractionLink> LinkedTransSupportsAutomatic;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Standard you want to link to this button."))
+	TArray<FStandardTransInteractionLink> LinkedTransSupportsStandard;
+
 protected:
 	TArray<FAutoRotInteractionLink> LinkedRotSupportsAutomaticVerified;
 	TArray<FStandardRotInteractionLink> LinkedRotSupportsStandardVerified;
 	TArray<FAutoTransInteractionLink> LinkedTransSupportsAutomaticVerified;
+	TArray<FStandardTransInteractionLink> LinkedTransSupportsStandardVerified;
 };
