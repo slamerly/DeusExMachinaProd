@@ -15,8 +15,6 @@ struct FSceneProgress
 	FString SceneName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bPuzzleDone;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString LevelName;
 };
 
 /**
@@ -33,6 +31,6 @@ protected:
 
 public:
 	TArray<FSceneProgress> GetScenesProgress();
-	void SetScenesProgress(FString pSceneName, bool bIsDone, FString pLevelName);
+	void SetSaveProgress(FString pSceneName, bool bIsDone);
 
 };

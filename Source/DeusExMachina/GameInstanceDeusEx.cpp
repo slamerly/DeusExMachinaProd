@@ -53,11 +53,11 @@ USaveGame* UGameInstanceDeusEx::GetSaveProgressRef()
 	return SaveRef;
 }
 
-void UGameInstanceDeusEx::SetSaveProgress(FString pSceneName, bool bIsDone, FString pLevelName)
+void UGameInstanceDeusEx::SetRefProgress(FString pSceneName, bool bIsDone)
 {
 	USaveProgress* SaveProgress = Cast<USaveProgress>(SaveRef);
-	SaveProgress->SetScenesProgress(pSceneName, bIsDone, pLevelName);
-	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Blue, FString::Printf(TEXT("Level : %s, Scene: %s, puzzle done %d"), *pLevelName, *pSceneName, bIsDone));
+	SaveProgress->SetSaveProgress(pSceneName, bIsDone);
+	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Blue, FString::Printf(TEXT("Scene: %s, puzzle done %d"), *pSceneName, bIsDone));
 	GetSaveMap();
 
 	if (UGameplayStatics::SaveGameToSlot(SaveProgress, "DEMSave", 0))
@@ -77,7 +77,7 @@ void UGameInstanceDeusEx::GetSaveMap()
 	{
 		for (auto& scene : SaveProgress->GetScenesProgress())
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Green, FString::Printf(TEXT("Level : %s, Scene: %s, puzzle done %d"), *scene.LevelName, *scene.SceneName, scene.bPuzzleDone));
+			GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Green, FString::Printf(TEXT("Scene: %s, puzzle done %d"), *scene.SceneName, scene.bPuzzleDone));
 		}
 	}
 	else
@@ -89,11 +89,14 @@ void UGameInstanceDeusEx::GetSaveMap()
 void UGameInstanceDeusEx::LoadProgress(FString pLevelName, FString pSceneName)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Scene : %s"), *pSceneName));
+	// Load level if this is another then a current
+	if (GetWorld()->GetName() != pLevelName)
+	{
+		UGameplayStatics::OpenLevel(this, FName(*pLevelName));
+	}
 
-	UGameplayStatics::OpenLevel(this, FName(*pSceneName));
 	AActor* ActorSceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
 	ASceneManager* SceneManager = Cast<ASceneManager>(ActorSceneManager);
-
-	SceneManager->SetCurrentSceneIndex(FName(*pSceneName));
 	
+	SceneManager->ChangeSceneByFName(FName(*pSceneName), false);
 }

@@ -31,7 +31,7 @@ protected:
 public:
 	USaveGame* GetSaveProgressRef();
 	UFUNCTION(BlueprintCallable)
-	void SetSaveProgress(FString pSceneName, bool bIsDone, FString pLevelName);
+	void SetRefProgress(FString pSceneName, bool bIsDone);
 	UFUNCTION(BlueprintCallable)
 	void GetSaveMap();
 

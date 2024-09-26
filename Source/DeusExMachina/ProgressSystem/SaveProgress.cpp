@@ -8,10 +8,10 @@ TArray<FSceneProgress> USaveProgress::GetScenesProgress()
 	return ScenesProgress;
 }
 
-void USaveProgress::SetScenesProgress(FString pSceneName, bool bIsDone, FString pLevelName)
+void USaveProgress::SetSaveProgress(FString pSceneName, bool bIsDone)
 {
 	bool created = false;
-
+	//if the 
 	if (!ScenesProgress.IsEmpty())
 	{
 		for (int i = 0; i < ScenesProgress.Num(); i++)
@@ -29,11 +29,11 @@ void USaveProgress::SetScenesProgress(FString pSceneName, bool bIsDone, FString 
 
 		if (!created)
 		{
-			ScenesProgress.Add(FSceneProgress(pSceneName, bIsDone, pLevelName));
+			ScenesProgress.Add(FSceneProgress(pSceneName, bIsDone));
 		}
 	}
 	else
 	{
-		ScenesProgress.Add(FSceneProgress(pSceneName, bIsDone, pLevelName));
+		ScenesProgress.Add(FSceneProgress(pSceneName, bIsDone));
 	}
 }

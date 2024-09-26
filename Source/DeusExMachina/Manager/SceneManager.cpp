@@ -423,6 +423,20 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, bool p
 	}
 }
 
+void ASceneManager::ChangeSceneByFName(FName pNextLevelName, bool pFromNarrationScene)
+{
+	int IndexNextLevel = ScenesNames.Find(pNextLevelName);
+
+	if (IndexNextLevel == -1)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Scene not find, cannot change scene.")));
+	}
+	else
+	{
+		ChangeScene(Scenes[IndexNextLevel], FromNarrationScene);
+	}
+}
+
 // ======================================================
 //             Timeline Events
 // ======================================================

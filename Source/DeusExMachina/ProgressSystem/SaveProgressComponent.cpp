@@ -25,12 +25,12 @@ void USaveProgressComponent::BeginPlay()
 		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("The game instance isn't of type GameInstanceDeusEx."));
 	}
 	
-	GameInstance->SetSaveProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), false, GetWorld()->GetName());
+	GameInstance->SetRefProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), false);
 	
 }
 
 void USaveProgressComponent::PuzzleDone()
 {
-	GameInstance->SetSaveProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), true, GetWorld()->GetName());
+	GameInstance->SetRefProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), true);
 }
 

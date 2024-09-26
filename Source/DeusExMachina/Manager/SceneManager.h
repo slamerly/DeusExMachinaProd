@@ -184,7 +184,9 @@ public:
 
 	FTransform GetCheckpointPlayerTransform() override;
 
-	void ChangeScene(const TSoftObjectPtr<UWorld>& NextScene, bool FromNarrationScene) override;
+	void ChangeScene(const TSoftObjectPtr<UWorld>& pNextLevel, bool pFromNarrationScene) override;
+
+	void ChangeSceneByFName(FName pNextLevelName, bool pFromNarrationScene) override;
 
 	void CurtainsAnimation(bool IsOpen) override;
 

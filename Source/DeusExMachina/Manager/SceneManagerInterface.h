@@ -35,7 +35,10 @@ public:
 	virtual FTransform GetCheckpointPlayerTransform() = 0;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ChangeScene(const TSoftObjectPtr<UWorld>& NextLevel, bool FromNarrationScene) = 0;
+	virtual void ChangeScene(const TSoftObjectPtr<UWorld>& pNextLevel, bool pFromNarrationScene) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void ChangeSceneByFName(FName pNextLevelName, bool pFromNarrationScene) = 0;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void CurtainsAnimation(bool IsOpen) = 0;
