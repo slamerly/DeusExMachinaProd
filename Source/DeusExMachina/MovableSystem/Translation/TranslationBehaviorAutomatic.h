@@ -66,7 +66,9 @@ protected:
 	bool IsEndPhaseValid();
 
 	/** Unsafe function. Please make sure 'IsAutomaticStopValid()' is called before this function to prevent potential crashes. */
-	float DistanceUntilNextStopPoint();
+	bool ComputeNextStopPoint();
+
+	bool GetReverse();
 
 
 // ======================================================
@@ -84,7 +86,9 @@ protected:
 	EAutoTranslationState CurrentState{ EAutoTranslationState::Inactive };
 
 	float AutomaticTranslationSpeed{ 0.0f };
-	bool bRunningReverse{ false };
+
+	bool bExteriorReverse{ false };
+	bool bAutomaticSpeedReverse{ false };
 
 	float PhaseTime{ 0.0f };
 	float PhaseTimer{ 0.0f };
@@ -96,7 +100,8 @@ protected:
 	float AutomaticTranslationDistance{ 0.0f };
 	float AutomaticTranslationDistanceDone{ 0.0f };
 
+	int AutomaticStopDestIndex{ 0 };
 	float AutomaticStopDuration{ 0.0f };
 	float AutomaticStopTimer{ 0.0f };
-	
+	bool bAutomaticStopReverse{ false };
 };

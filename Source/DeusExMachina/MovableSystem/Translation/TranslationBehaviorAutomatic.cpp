@@ -21,6 +21,11 @@ void UTranslationBehaviorAutomatic::BeginPlay()
 	SetComponentTickEnabled(false);
 
 	InitializeOwner();
+
+	if (AutomaticTranslationValues.IsDataValid())
+	{
+		bAutomaticSpeedReverse = AutomaticTranslationValues.GetTranslationSpeed() < 0.0f;
+	}
 }
 
 void UTranslationBehaviorAutomatic::LateBeginPlay()
@@ -46,12 +51,13 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 	if (!bOwnerTransSupportValid) return;
 
 	float DistanceDone = 0.0f; //  used only for Automatic Translation With Stop, but we cannot initialize variables inside switches.
+	float TranslationAdd = 0.0f;
 
 	switch (CurrentState)
 	{
 		//  compute the normal phase of the automatic translation
 	case EAutoTranslationState::AutomaticTranslation:
-		OwnerTransSupport->AddTranslationAlongSpline(AutomaticTranslationSpeed * DeltaTime);
+		TranslationAdd = AutomaticTranslationSpeed * DeltaTime;
 		break;
 
 		//  compute the start phase of the automatic translation
@@ -62,7 +68,8 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 			PhaseTimer = PhaseTime;
 			CurrentState = EAutoTranslationState::AutomaticTranslation;
 		}
-		OwnerTransSupport->AddTranslationAlongSpline(AutomaticTranslationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
+
+		TranslationAdd = AutomaticTranslationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime);
 		break;
 
 		//  compute the end phase of the automatic translation
@@ -73,7 +80,8 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 			CancelAutomaticTranslation();
 			break;
 		}
-		OwnerTransSupport->AddTranslationAlongSpline(AutomaticTranslationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime));
+
+		TranslationAdd = AutomaticTranslationSpeed * DeltaTime * PhaseCurve->GetFloatValue(PhaseTimer / PhaseTime);
 		break;
 
 		//  compute the movement phase of the automatic translation with stop
@@ -82,11 +90,14 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 		if (AutomaticTranslationTimer >= AutomaticTranslationDuration)
 		{
 			CurrentState = EAutoTranslationState::StopOnSplinePoint;
-			AutomaticStopDuration = AutomaticTranslationValues.GetStopDuration();
 			AutomaticStopTimer = 0.0f;
+
+			OwnerTransSupport->ForcePositionOnSpline(AutomaticStopDestIndex, 0.0f);
+			break;
 		}
+
 		DistanceDone = AutomaticTranslationCurve->GetFloatValue(AutomaticTranslationTimer / AutomaticTranslationDuration) * AutomaticTranslationDistance;
-		OwnerTransSupport->AddTranslationAlongSpline(DistanceDone - AutomaticTranslationDistanceDone); //  'AutomaticTranslationDistanceDone' serve here as a "distance done last frame"
+		TranslationAdd = DistanceDone - AutomaticTranslationDistanceDone; //  'AutomaticTranslationDistanceDone' serve here as a "distance done last frame"
 		AutomaticTranslationDistanceDone = DistanceDone;
 		break;
 
@@ -99,6 +110,9 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 		}
 		break;
 	}
+
+	if (GetReverse()) TranslationAdd *= -1.0f;
+	OwnerTransSupport->AddTranslationAlongSpline(TranslationAdd);
 }
 
 
@@ -125,9 +139,22 @@ void UTranslationBehaviorAutomatic::StartAutomaticTranslationWithStop()
 	if (!bOwnerTransSupportValid) return;
 	if (!IsAutomaticStopValid()) return;
 
+	//  check auto reverse
+	if (bAutomaticStopReverse)
+	{
+		bAutomaticStopReverse = false;
+		bExteriorReverse = !bExteriorReverse;
+	}
+
 	//  set automatic translation with stop values
-	AutomaticTranslationDistance = DistanceUntilNextStopPoint();
-	AutomaticTranslationDuration = AutomaticTranslationDistance / AutomaticTranslationValues.GetTranslationSpeed();
+	const bool StopSuccess = ComputeNextStopPoint();
+	if (!StopSuccess)
+	{
+		CancelAutomaticTranslation();
+		return;
+	}
+
+	AutomaticTranslationDuration = AutomaticTranslationDistance / FMath::Abs(AutomaticTranslationValues.GetTranslationSpeed());
 	AutomaticTranslationTimer = 0.0f;
 	AutomaticTranslationCurve = AutomaticTranslationValues.GetTranslationCurve();
 	AutomaticTranslationDistanceDone = 0.0f;
@@ -149,8 +176,7 @@ void UTranslationBehaviorAutomatic::StartAutomaticTranslation(bool bForceNoStart
 	if (AutomaticTranslationValues.GetAutomaticTranslationType() != EAutomaticTranslationType::AutomaticTranslation) return;
 
 	//  set translation speed
-	AutomaticTranslationSpeed = AutomaticTranslationValues.GetTranslationSpeed();
-	if (bRunningReverse) AutomaticTranslationSpeed *= -1.0f;
+	AutomaticTranslationSpeed = FMath::Abs(AutomaticTranslationValues.GetTranslationSpeed());
 
 	//  set start phase values
 	PhaseTimer = 0.0f;
@@ -180,8 +206,7 @@ void UTranslationBehaviorAutomatic::StopAutomaticTranslation(bool bForceNoEndPha
 	}
 
 	//  set translation speed
-	AutomaticTranslationSpeed = AutomaticTranslationValues.GetTranslationSpeed();
-	if (bRunningReverse) AutomaticTranslationSpeed *= -1.0f;
+	AutomaticTranslationSpeed = FMath::Abs(AutomaticTranslationValues.GetTranslationSpeed());
 
 	//  set end phase values
 	PhaseTimer = 0.0f;
@@ -238,7 +263,7 @@ void UTranslationBehaviorAutomatic::TriggerAutoTransInteraction(FAutoTransIntera
 		{
 			if (Datas.GetReverse())
 			{
-				bRunningReverse = !bRunningReverse;
+				bExteriorReverse = !bExteriorReverse;
 			}
 			StartAutomaticTranslation();
 		}
@@ -247,7 +272,7 @@ void UTranslationBehaviorAutomatic::TriggerAutoTransInteraction(FAutoTransIntera
 	{
 		if (Datas.GetReverse())
 		{
-			bRunningReverse = !bRunningReverse;
+			bExteriorReverse = !bExteriorReverse;
 			if (CurrentState == EAutoTranslationState::AutomaticTranslation || CurrentState == EAutoTranslationState::StartPhase)
 			{
 				StartAutomaticTranslation();
@@ -267,19 +292,20 @@ bool UTranslationBehaviorAutomatic::IsAutomaticStopValid()
 
 	if (AutomaticTranslationValues.GetAutomaticTranslationType() != EAutomaticTranslationType::StopOnSplinePoints) return false;
 	if (!IsValid(AutomaticTranslationValues.GetTranslationCurve())) return false;
-	if (AutomaticTranslationValues.GetStopDuration() < 0.0f) return false;
 
 	switch (AutomaticTranslationValues.GetStopBehavior())
 	{
 	case EStopBehavior::StopEveryPoint:
+		if (AutomaticTranslationValues.GetGlobalStopDuration() <= 0.0f) return false;
 		return true;
 
 	case EStopBehavior::StopSpecifedPoint:
 		//  check if at least one index of the stop specified is a valid index on the owner support spline
 		if (!bOwnerTransSupportValid) return false;
 
-		for (int StopIndex : AutomaticTranslationValues.GetStopSplineIndex())
+		for (FStopSplinePoint StopPoint : AutomaticTranslationValues.GetStopSplinePoints())
 		{
+			const int StopIndex = StopPoint.StopSplineIndex;
 			if (StopIndex >= 0 && StopIndex < OwnerTransSupport->GetNumberOfSplinePoints()) return true;
 		}
 
@@ -304,27 +330,83 @@ bool UTranslationBehaviorAutomatic::IsEndPhaseValid()
 	return AutomaticTranslationValues.GetEndDuration() > 0.0f && IsValid(AutomaticTranslationValues.GetEndCurve());
 }
 
-float UTranslationBehaviorAutomatic::DistanceUntilNextStopPoint()
+bool UTranslationBehaviorAutomatic::ComputeNextStopPoint()
 {
+	//  find the starting index point (if going reverse & between two points, select the next point in the spline)
 	int StopPointIndex = OwnerTransSupport->GetInnerSplineIndex();
+	if(GetReverse() && OwnerTransSupport->GetProgressToNextIndex() > 0.0f) StopPointIndex = OwnerTransSupport->GetNextSplineIndex(StopPointIndex);
+
+	//  loop through all points in the spline
+	const int WhileIndexStart = StopPointIndex; //  while loop security
+	bool bFirstLoopIteration = true; //  while loop security
+
 	bool bStopIndexValid = false;
 	while (!bStopIndexValid)
 	{
-		StopPointIndex++;
+		//  check if we aren't in an infite loop
+		if (StopPointIndex == WhileIndexStart)
+		{
+			if (bFirstLoopIteration)
+			{
+				bFirstLoopIteration = false;
+			}
+			else
+			{
+				kPRINT_ERROR("Automatic Translation couldn't retrieve a valid stop point!");
+				return false;
+			}
+		}
+
+		//  select the next point in order
+		if (GetReverse())
+		{
+			StopPointIndex = OwnerTransSupport->GetPrevSplineIndex(StopPointIndex);
+		}
+		else
+		{
+			StopPointIndex = OwnerTransSupport->GetNextSplineIndex(StopPointIndex);
+		}
+		
 		switch (AutomaticTranslationValues.GetStopBehavior())
 		{
 		case EStopBehavior::StopEveryPoint:
+			//  if stop behavior is every point, any point index is valid (will return the first one in order)
 			bStopIndexValid = true;
+			AutomaticStopDuration = AutomaticTranslationValues.GetGlobalStopDuration();
+			bAutomaticStopReverse = false;
+			AutomaticStopDestIndex = StopPointIndex;
 			break;
 
 		case EStopBehavior::StopSpecifedPoint:
-			for (int StopIndex : AutomaticTranslationValues.GetStopSplineIndex())
+			//  if stop behavior is specified point, we need to check if the currently evaluated point index is on the stop point list
+			for (FStopSplinePoint StopPoint : AutomaticTranslationValues.GetStopSplinePoints())
 			{
-				bStopIndexValid = bStopIndexValid || (StopIndex == StopPointIndex);
+				if (StopPoint.StopSplineIndex == StopPointIndex)
+				{
+					bStopIndexValid = true;
+					AutomaticStopDuration = StopPoint.StopIndexDuration;
+					bAutomaticStopReverse = StopPoint.bStopIndexReverse;
+					AutomaticStopDestIndex = StopPointIndex;
+				}
 			}
 			break;
 		}
 	}
 
-	return OwnerTransSupport->GetSplineDistanceToPoint(StopPointIndex);
+	//  search successful, set Automatic Translation Distance to the distance until the found stop point
+	if (GetReverse())
+	{
+		AutomaticTranslationDistance = OwnerTransSupport->GetSplineDistanceToPointReversed(StopPointIndex);
+	}
+	else
+	{
+		AutomaticTranslationDistance = OwnerTransSupport->GetSplineDistanceToPoint(StopPointIndex);
+	}
+
+	return true;
+}
+
+bool UTranslationBehaviorAutomatic::GetReverse()
+{
+	return bExteriorReverse ^ bAutomaticSpeedReverse;
 }

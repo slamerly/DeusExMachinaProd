@@ -19,6 +19,21 @@ enum class EStopBehavior : uint8
 	StopSpecifedPoint = 1 UMETA(Tooltip = "The Translation Support stops when it reaches a spline point during its automatic movement only if the spline point index correspond to one specified.")
 };
 
+USTRUCT(BlueprintType)
+struct FStopSplinePoint
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Spline point index this Translation Support will stop.", ClampMin = 0))
+	int StopSplineIndex{ 0 };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Stop duration for this index.\n(In seconds)", ClampMin = 0.0f))
+	float StopIndexDuration{ 0.0f };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Does it restart in reverse after stopping on this index?"))
+	bool bStopIndexReverse{ false };
+};
+
 
 UCLASS()
 class DEUSEXMACHINA_API UAutomaticTranslationBaseDatas : public UPrimaryDataAsset
@@ -31,6 +46,10 @@ public:
 		meta = (Tooltip = "The speed of the Automatic Translation.\nA positive speed makes the support going forward, a negative speed makes the support going backward.\n(In cm/s)"))
 	float TranslationSpeed{ 50.0f };
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation",
+		meta = (Tooltip = "The Automatic Translation type for this Translation Support."))
+	EAutomaticTranslationType AutomaticTranslationType{ EAutomaticTranslationType::AutomaticTranslation };
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation", meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints", EditConditionHides),
 		meta = (Tooltip = "The interpolation curve of the translation when in Automatic Stop mode.\n(Must be a normalized curve.)"))
 	UCurveFloat* TranslationCurve{ nullptr };
@@ -38,10 +57,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation",
 		meta = (Tooltip = "Does the Translation Support rotate automatically at begin play?"))
 	bool bStartAutomatic{ true };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation",
-		meta = (Tooltip = "Does the Translation Support rotate automatically at begin play?"))
-	EAutomaticTranslationType AutomaticTranslationType{ EAutomaticTranslationType::AutomaticTranslation };
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Start Phase", meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::AutomaticTranslation", EditConditionHides),
@@ -62,17 +77,20 @@ public:
 	UCurveFloat* EndCurve{ nullptr };
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints", EditConditionHides),
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", 
+		meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints", EditConditionHides),
 		meta = (Tooltip = "Choose the automatic stop behavior of the Translation Support."))
 	EStopBehavior StopBehavior{ EStopBehavior::StopEveryPoint };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints", EditConditionHides),
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", 
+		meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints && StopBehavior == EStopBehavior::StopEveryPoint", EditConditionHides),
 		meta = (Tooltip = "The duration of the stop when stopping on a spline point during the automatic movement.\n(In seconds)"))
-	float StopDuration{ 1.0f };
+	float GlobalStopDuration{ 1.0f };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints && StopBehavior == EStopBehavior::StopSpecifedPoint", EditConditionHides),
-		meta = (Tooltip = "Index of the spline points this Translation Support will stop.", ClampMin = 0))
-	TArray<int> StopSplineIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", 
+		meta = (EditCondition = "AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints && StopBehavior == EStopBehavior::StopSpecifedPoint", EditConditionHides),
+		meta = (Tooltip = "List of spline points index this Translation Support will automatically stop on.\nAlso have a stop duration parameter for each index.", ClampMin = 0))
+	TArray<FStopSplinePoint> StopSplinePoints;
 };
 
 
@@ -94,6 +112,10 @@ struct FAutomaticTranslationDatas
 	bool bOverrideAutomaticTranslation{ false };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation", meta = (EditCondition = "bOverrideAutomaticTranslation", EditConditionHides),
+		meta = (Tooltip = "The Automatic Translation type for this Translation Support."))
+	EAutomaticTranslationType AutomaticTranslationType{ EAutomaticTranslationType::AutomaticTranslation };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation", meta = (EditCondition = "bOverrideAutomaticTranslation", EditConditionHides),
 		meta = (Tooltip = "The speed of the Automatic Translation.\nA positive speed makes the support going forward, a negative speed makes the support going backward.\n(In cm/s)"))
 	float TranslationSpeed{ 50.0f };
 
@@ -104,10 +126,6 @@ struct FAutomaticTranslationDatas
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation", meta = (EditCondition = "bOverrideAutomaticTranslation", EditConditionHides),
 		meta = (Tooltip = "Does the Translation Support rotate automatically at begin play?"))
 	bool bStartAutomatic{ true };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation", meta = (EditCondition = "bOverrideAutomaticTranslation", EditConditionHides),
-		meta = (Tooltip = "Does the Translation Support rotate automatically at begin play?"))
-	EAutomaticTranslationType AutomaticTranslationType{ EAutomaticTranslationType::AutomaticTranslation };
 
 
 	//  Override start phase
@@ -146,17 +164,20 @@ struct FAutomaticTranslationDatas
 		meta = (Tooltip = "Overrides the 'Automatic Stop' part of the datas for this component."))
 	bool bOverrideAutomaticStop{ false };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", meta = (EditCondition = "bOverrideAutomaticStop && AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints", EditConditionHides),
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", 
+		meta = (EditCondition = "bOverrideAutomaticStop && AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints", EditConditionHides),
 		meta = (Tooltip = "Choose the behavior of the Translation Support when it reaches a spline point during its automatic movement."))
 	EStopBehavior StopBehavior{ EStopBehavior::StopEveryPoint };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", meta = (EditCondition = "bOverrideAutomaticStop && AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints", EditConditionHides),
-		meta = (Tooltip = "The duration of the stop when reaching a stop condition during the automatic movement.\n(In seconds)"))
-	float StopDuration{ 1.0f };
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", 
+		meta = (EditCondition = "bOverrideAutomaticStop && AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints && StopBehavior == EStopBehavior::StopEveryPoint", EditConditionHides),
+		meta = (Tooltip = "The duration of the stop when stopping on a spline point during the automatic movement.\n(In seconds)"))
+	float GlobalStopDuration{ 1.0f };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop", meta = (EditCondition = "bOverrideAutomaticStop && AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints && StopBehavior == EStopBehavior::StopSpecifedPoint", EditConditionHides),
-		meta = (Tooltip = "Index of the spline points this Translation Support will stop.", ClampMin = 0))
-	TArray<int> StopSplineIndex;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Stop",
+		meta = (EditCondition = "bOverrideAutomaticStop && AutomaticTranslationType == EAutomaticTranslationType::StopOnSplinePoints && StopBehavior == EStopBehavior::StopSpecifedPoint", EditConditionHides),
+		meta = (Tooltip = "List of spline points index this Translation Support will automatically stop on.\nAlso have a stop duration parameter for each index.", ClampMin = 0))
+	TArray<FStopSplinePoint> StopSplinePoints;
 
 
 	//  Getter functions
@@ -174,6 +195,6 @@ struct FAutomaticTranslationDatas
 	UCurveFloat* GetEndCurve();
 
 	EStopBehavior GetStopBehavior();
-	float GetStopDuration();
-	TArray<int> GetStopSplineIndex();
+	float GetGlobalStopDuration();
+	TArray<FStopSplinePoint> GetStopSplinePoints();
 };

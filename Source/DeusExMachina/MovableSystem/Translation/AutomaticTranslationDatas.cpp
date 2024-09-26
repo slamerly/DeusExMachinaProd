@@ -59,12 +59,12 @@ EStopBehavior FAutomaticTranslationDatas::GetStopBehavior()
 	return bOverrideAutomaticStop ? StopBehavior : AutomaticTranslationDatas->StopBehavior;
 }
 
-float FAutomaticTranslationDatas::GetStopDuration()
+float FAutomaticTranslationDatas::GetGlobalStopDuration()
 {
-	return bOverrideAutomaticStop ? StopDuration : AutomaticTranslationDatas->StopDuration;
+	return bOverrideAutomaticStop ? GlobalStopDuration : AutomaticTranslationDatas->GlobalStopDuration;
 }
 
-TArray<int> FAutomaticTranslationDatas::GetStopSplineIndex()
+TArray<FStopSplinePoint> FAutomaticTranslationDatas::GetStopSplinePoints()
 {
-	return bOverrideAutomaticStop ? StopSplineIndex : AutomaticTranslationDatas->StopSplineIndex;
+	return bOverrideAutomaticStop ? StopSplinePoints : AutomaticTranslationDatas->StopSplinePoints;
 }
