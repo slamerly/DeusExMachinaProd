@@ -150,6 +150,7 @@ void UTranslationBehaviorAutomatic::StartAutomaticTranslationWithStop()
 	const bool StopSuccess = ComputeNextStopPoint();
 	if (!StopSuccess)
 	{
+		kPRINT_ERROR("Automatic Translation couldn't retrieve a valid stop point!");
 		CancelAutomaticTranslation();
 		return;
 	}
@@ -296,8 +297,7 @@ bool UTranslationBehaviorAutomatic::IsAutomaticStopValid()
 	switch (AutomaticTranslationValues.GetStopBehavior())
 	{
 	case EStopBehavior::StopEveryPoint:
-		if (AutomaticTranslationValues.GetGlobalStopDuration() <= 0.0f) return false;
-		return true;
+		return AutomaticTranslationValues.GetGlobalStopDuration() > 0.0f;
 
 	case EStopBehavior::StopSpecifedPoint:
 		//  check if at least one index of the stop specified is a valid index on the owner support spline
@@ -352,7 +352,6 @@ bool UTranslationBehaviorAutomatic::ComputeNextStopPoint()
 			}
 			else
 			{
-				kPRINT_ERROR("Automatic Translation couldn't retrieve a valid stop point!");
 				return false;
 			}
 		}

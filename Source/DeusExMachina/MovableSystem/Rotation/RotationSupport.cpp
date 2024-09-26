@@ -134,7 +134,7 @@ bool ARotationSupport::AddInnerRotation(float InnerRotAdd, bool TestClamp)
 	return TriggerClamp;
 }
 
-void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
+void ARotationSupport::ForceInnerRotation(int InnerRot, bool AbsoluteRotation)
 {
 	if (AbsoluteRotation)
 	{
@@ -144,17 +144,17 @@ void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
 	{
 		//  compute the nearest rotation angle of current InnerRotation that is a modulo of inputed InnerRot
 
-		const float CurrentInnerMod = UAnglesUtils::ModuloAngle(InnerRotation);
-		const float CurrentInnerDiff = InnerRotation - CurrentInnerMod;
-		float InputRotMod = UAnglesUtils::ModuloAngle(InnerRot);
+		const int CurrentInnerMod = UAnglesUtils::ModuloAngleInt(InnerRotation);
+		const int CurrentInnerDiff = InnerRotation - CurrentInnerMod;
+		int InputRotMod = UAnglesUtils::ModuloAngleInt(InnerRot);
 
-		if (CurrentInnerMod - InputRotMod > 180.0f)
+		if (CurrentInnerMod - InputRotMod > 180)
 		{
-			InputRotMod += 360.0f;
+			InputRotMod += 360;
 		}
-		else if (CurrentInnerMod - InputRotMod < -180.0f)
+		else if (CurrentInnerMod - InputRotMod < -180)
 		{
-			InputRotMod -= 360.0f;
+			InputRotMod -= 360;
 		}
 
 		InnerRotation = InputRotMod + CurrentInnerDiff;

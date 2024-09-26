@@ -79,11 +79,11 @@ public:
 	bool AddInnerRotation(float InnerRotAdd, bool TestClamp);
 
 	/**
-	* Set the inner rotation value of this Rotation Support to a specific value.
+	* Set the inner rotation value of this Rotation Support to a specific value. (value in int cause it allows to remove float lack of precision, and because setting an exact float angle value is useless)
 	* @param	InnerRot			The value you want to set.
 	* @param	AbsoluteRotation	True = will set inner rotation to this exact value. | False = will search for the nearest angle corresponding to the value (default).
 	*/
-	void ForceInnerRotation(float InnerRot, bool AbsoluteRotation = false);
+	void ForceInnerRotation(int InnerRot, bool AbsoluteRotation = false);
 
 protected:
 	void ComputeInnerTransform();

@@ -10,9 +10,13 @@ UENUM()
 enum class EAutoRotationState : uint8
 {
 	Inactive = 0,
+
 	AutomaticRotation = 1,
 	StartPhase = 2,
-	EndPhase = 3
+	EndPhase = 3,
+
+	AutomaticRotationWithStop = 4,
+	StopOnAngle = 5
 };
 
 
@@ -37,6 +41,10 @@ public:
 // ======================================================
 //              Control Automatic Rotation
 // ======================================================
+protected:
+	void LaunchAutomaticRotationBeginPlay();
+	void StartAutomaticRotationWithStop();
+
 public:
 	void StartAutomaticRotation(bool bForceNoStartPhase = false);
 	void StopAutomaticRotation(bool bForceNoEndPhase = false);
@@ -54,8 +62,14 @@ public:
 //                   Helper Functions
 // ======================================================
 protected:
+	bool IsAutomaticStopValid();
 	bool IsStartPhaseValid();
 	bool IsEndPhaseValid();
+
+	/** Unsafe function. Please make sure 'IsAutomaticStopValid()' is called before this function to prevent potential crashes. */
+	bool ComputeNextStopAngle();
+
+	bool GetReverse();
 
 
 // ======================================================
@@ -73,9 +87,22 @@ protected:
 	EAutoRotationState CurrentState{ EAutoRotationState::Inactive };
 
 	float AutomaticRotationSpeed{ 0.0f };
-	bool bRunningReverse{ false };
+
+	bool bExteriorReverse{ false };
+	bool bAutomaticSpeedReverse{ false };
 
 	float PhaseTime{ 0.0f };
 	float PhaseTimer{ 0.0f };
 	UCurveFloat* PhaseCurve{ nullptr };
+
+	float AutomaticRotationDuration{ 0.0f };
+	float AutomaticRotationTimer{ 0.0f };
+	UCurveFloat* AutomaticRotationCurve{ nullptr };
+	float AutomaticRotationAngle{ 0.0f };
+	float AutomaticRotationAngleDone{ 0.0f };
+
+	int AutomaticStopDestAngle{ 0 };
+	float AutomaticStopDuration{ 0.0f };
+	float AutomaticStopTimer{ 0.0f };
+	bool bAutomaticStopReverse{ false };
 };
