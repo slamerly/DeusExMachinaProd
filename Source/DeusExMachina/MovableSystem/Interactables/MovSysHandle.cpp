@@ -143,7 +143,7 @@ void AMovSysHandle::Interaction_Implementation()
 
 //          Update Interaction
 // -------------------------------------------
-void AMovSysHandle::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
+void AMovSysHandle::InteractionHeavyUpdate_Implementation(FVector2D ControlValue, bool KeyboardInput)
 {
 	//  check in control
 	if (!bInControl) return;

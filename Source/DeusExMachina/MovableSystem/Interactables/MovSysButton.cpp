@@ -177,7 +177,7 @@ bool AMovSysButton::IsInteractionHeavy_Implementation()
 	return false;
 }
 
-void AMovSysButton::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
+void AMovSysButton::InteractionHeavyUpdate_Implementation(FVector2D ControlValue, bool KeyboardInput)
 {
 }
 

@@ -103,7 +103,7 @@ public:
 	bool CanInteract_Implementation() override;
 
 	bool IsInteractionHeavy_Implementation() override;
-	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue) override;
+	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue, bool KeyboardInput) override;
 	void InteractionHeavyFinished_Implementation() override;
 
 	bool IsInteractableBothSides_Implementation() override;

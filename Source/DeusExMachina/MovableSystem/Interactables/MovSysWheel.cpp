@@ -115,14 +115,14 @@ void AMovSysWheel::Interaction_Implementation()
 
 //          Update Interaction
 // -------------------------------------------
-void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
+void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue, bool KeyboardInput)
 {
 	//  check in control
 	if (!bInControl) return;
 
 	//  compute control value depending of the mode
 	float ComputedControlValue = 0.0f;
-	if (bActivateAdvancedJoystickControl)
+	if (bActivateAdvancedJoystickControl && !KeyboardInput)
 	{
 		ComputedControlValue = GetAdvancedJoystickControl(ControlValue);
 	}

@@ -32,7 +32,7 @@ public:
 	bool IsInteractionHeavy();
 
 	UFUNCTION(BlueprintNativeEvent)
-	void InteractionHeavyUpdate(FVector2D ControlValue);
+	void InteractionHeavyUpdate(FVector2D ControlValue, bool KeyboardInput);
 
 	UFUNCTION(BlueprintNativeEvent)
 	void InteractionHeavyFinished();

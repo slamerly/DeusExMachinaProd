@@ -28,7 +28,7 @@ public:
 // ======================================================
 public:
 	void Interaction_Implementation() override;
-	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue) override;
+	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue, bool KeyboardInput) override;
 	void InteractionHeavyFinished_Implementation() override;
 
 	bool CanInteract_Implementation() override;

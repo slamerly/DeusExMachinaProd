@@ -54,7 +54,10 @@ protected:
 	UInputAction* InteractInputAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
-	UInputAction* InteractControlInputAction;
+	UInputAction* InteractControlInputActionController;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
+	UInputAction* InteractControlInputActionKeyboard;
 
 
 	// ====================
@@ -82,7 +85,8 @@ protected:
 	void Move(const struct FInputActionValue& value);
 	void Look(const struct FInputActionValue& value);
 	void Interact(const struct FInputActionValue& value);
-	void InteractControl(const struct FInputActionValue& value);
+	void InteractControlController(const struct FInputActionValue& value);
+	void InteractControlKeyboard(const struct FInputActionValue& value);
 	void InteractControlRelease(const struct FInputActionValue& value);
 	void InteractRelease(const struct FInputActionValue& value);
 

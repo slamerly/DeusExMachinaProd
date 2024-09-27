@@ -183,7 +183,7 @@ void APlayerControllerDeusEx::InteractRelease(const FInputActionValue& value)
 // ======================================================
 //             Interaction control (input)
 // ======================================================
-void APlayerControllerDeusEx::InteractControl(const FInputActionValue& value)
+void APlayerControllerDeusEx::InteractControlController(const FInputActionValue& value)
 {
 	//  checks
 	if (bPlayerBlocked) return;
@@ -196,7 +196,23 @@ void APlayerControllerDeusEx::InteractControl(const FInputActionValue& value)
 
 	//  actual function
 	const FVector2D ControlValue = value.Get<FVector2D>();
-	IInteractable::Execute_InteractionHeavyUpdate(CurrentInteractable, ControlValue);
+	IInteractable::Execute_InteractionHeavyUpdate(CurrentInteractable, ControlValue, false);
+}
+
+void APlayerControllerDeusEx::InteractControlKeyboard(const FInputActionValue& value)
+{
+	//  checks
+	if (bPlayerBlocked) return;
+
+	if (PlayerInputMode != EPlayerInputMode::InteractionHeavy) return;
+
+	if (!IsValid(CurrentInteractable)) return;
+
+	if (!IInteractable::Execute_IsInteractionHeavy(CurrentInteractable)) return;
+
+	//  actual function
+	const FVector2D ControlValue = value.Get<FVector2D>();
+	IInteractable::Execute_InteractionHeavyUpdate(CurrentInteractable, ControlValue, true);
 }
 
 void APlayerControllerDeusEx::InteractControlRelease(const FInputActionValue& value)
@@ -211,7 +227,7 @@ void APlayerControllerDeusEx::InteractControlRelease(const FInputActionValue& va
 	if (!IInteractable::Execute_IsInteractionHeavy(CurrentInteractable)) return;
 
 	//  actual function
-	IInteractable::Execute_InteractionHeavyUpdate(CurrentInteractable, FVector2D::ZeroVector);
+	IInteractable::Execute_InteractionHeavyUpdate(CurrentInteractable, FVector2D::ZeroVector, false);
 }
 
 
@@ -235,9 +251,13 @@ void APlayerControllerDeusEx::SetupInputComponent()
 	enhanced_input->BindAction(InteractInputAction, ETriggerEvent::Completed, this, &APlayerControllerDeusEx::InteractRelease);
 	enhanced_input->BindAction(InteractInputAction, ETriggerEvent::Canceled, this, &APlayerControllerDeusEx::InteractRelease);
 
-	enhanced_input->BindAction(InteractControlInputAction, ETriggerEvent::Triggered, this, &APlayerControllerDeusEx::InteractControl);
-	enhanced_input->BindAction(InteractControlInputAction, ETriggerEvent::Completed, this, &APlayerControllerDeusEx::InteractControlRelease);
-	enhanced_input->BindAction(InteractControlInputAction, ETriggerEvent::Canceled, this, &APlayerControllerDeusEx::InteractControlRelease);
+	enhanced_input->BindAction(InteractControlInputActionController, ETriggerEvent::Triggered, this, &APlayerControllerDeusEx::InteractControlController);
+	enhanced_input->BindAction(InteractControlInputActionController, ETriggerEvent::Completed, this, &APlayerControllerDeusEx::InteractControlRelease);
+	enhanced_input->BindAction(InteractControlInputActionController, ETriggerEvent::Canceled, this, &APlayerControllerDeusEx::InteractControlRelease);
+
+	enhanced_input->BindAction(InteractControlInputActionKeyboard, ETriggerEvent::Triggered, this, &APlayerControllerDeusEx::InteractControlKeyboard);
+	enhanced_input->BindAction(InteractControlInputActionKeyboard, ETriggerEvent::Completed, this, &APlayerControllerDeusEx::InteractControlRelease);
+	enhanced_input->BindAction(InteractControlInputActionKeyboard, ETriggerEvent::Canceled, this, &APlayerControllerDeusEx::InteractControlRelease);
 }
 
 
