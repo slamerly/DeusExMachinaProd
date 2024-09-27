@@ -22,6 +22,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	/**
+	* Call this function to update the puzzle status in save file.
+	*/
 	UFUNCTION(BlueprintCallable)
 	void PuzzleDone();
 

@@ -18,6 +18,7 @@ void USaveProgressComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Search the game instance and verrify the type
 	GameInstance = Cast<UGameInstanceDeusEx>(UGameplayStatics::GetGameInstance(this));
 
 	if (!GameInstance)
@@ -25,12 +26,14 @@ void USaveProgressComponent::BeginPlay()
 		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("The game instance isn't of type GameInstanceDeusEx."));
 	}
 	
-	GameInstance->SetRefProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), false);
+	// First save to say the player is safely arrived in the scene but not complete the puzzle.
+	GameInstance->SetSaveProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), false);
 	
 }
 
 void USaveProgressComponent::PuzzleDone()
 {
-	GameInstance->SetRefProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), true);
+	// Save call when the puzzle is done.
+	GameInstance->SetSaveProgress(GetOwner()->GetLevel()->GetOuter()->GetName(), true);
 }
 

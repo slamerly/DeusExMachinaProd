@@ -25,21 +25,25 @@ void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& Property
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	// Update the ScenesNames when change Scenes
+	// Update the ScenesNames when change Scenes.
 	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UGameInstanceDeusEx, MainLevelsList))
 	{
 		if (!MainLevelsList.IsEmpty())
 		{
 			for (int i = 0; i < MainLevelsList.Num(); i++)
 			{
+				// Verify if an element in the MainLevelList is not valid.
 				if (MainLevelsList[i] != nullptr) {
-					TArray<ULevelStreaming*> subLevels = MainLevelsList[i]->GetStreamingLevels();
+					TArray<ULevelStreaming*> SubLevels = MainLevelsList[i]->GetStreamingLevels();
 
-					for (int j = 0; j < subLevels.Num(); j++)
+					for (int j = 0; j < SubLevels.Num(); j++)
 					{
+						// To have the right name of the scene we should pass by the package name and
+						// split the path to only have the scene name.
 						FString RightName, LeftName;
-						subLevels[j]->GetWorldAssetPackageName().Split(TEXT("/"), &RightName, &LeftName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+						SubLevels[j]->GetWorldAssetPackageName().Split(TEXT("/"), &RightName, &LeftName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 
+						// Add in the list the scene name with the level where it is.
 						ScenesList.Add(*LeftName, MainLevelsList[i]);
 					}
 				}
@@ -48,33 +52,39 @@ void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& Property
 	}
 }
 
-USaveGame* UGameInstanceDeusEx::GetSaveProgressRef()
+void UGameInstanceDeusEx::SetSaveProgress(FString pSceneName, bool bIsDone)
 {
-	return SaveRef;
+	if(!DebugMode)
+	{
+		USaveProgress* SaveProgress = Cast<USaveProgress>(SaveRef);
+
+		// Add the modification in save reference
+		SaveProgress->SetProgress(pSceneName, bIsDone);
+
+		// Debug to display what we recieved here
+		//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Blue, FString::Printf(TEXT("Scene: %s, puzzle done %d"), *pSceneName, bIsDone));
+
+		// Debug to display all elements there are in the array of the save reference
+		//DisplayScenesSaved();
+
+		// Save the reference in the savefile
+		if (UGameplayStatics::SaveGameToSlot(SaveProgress, "DEMSave", 0))
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Green, TEXT("Progress Saved."));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Progress Not Saved."));
+		}
+	}
 }
 
-void UGameInstanceDeusEx::SetRefProgress(FString pSceneName, bool bIsDone)
-{
-	USaveProgress* SaveProgress = Cast<USaveProgress>(SaveRef);
-	SaveProgress->SetSaveProgress(pSceneName, bIsDone);
-	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Blue, FString::Printf(TEXT("Scene: %s, puzzle done %d"), *pSceneName, bIsDone));
-	GetSaveMap();
-
-	if (UGameplayStatics::SaveGameToSlot(SaveProgress, "DEMSave", 0))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Yellow, TEXT("Progress Saved."));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Progress Not Saved."));
-	}
-}
-
-void UGameInstanceDeusEx::GetSaveMap()
+void UGameInstanceDeusEx::DisplayScenesSaved()
 {
 	USaveProgress* SaveProgress = Cast<USaveProgress>(SaveRef);
 	if (!SaveProgress->GetScenesProgress().IsEmpty())
 	{
+		// for each elements in the reference, we display the scene's name and its puzzle status 
 		for (auto& scene : SaveProgress->GetScenesProgress())
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Green, FString::Printf(TEXT("Scene: %s, puzzle done %d"), *scene.SceneName, scene.bPuzzleDone));
@@ -88,15 +98,29 @@ void UGameInstanceDeusEx::GetSaveMap()
 
 void UGameInstanceDeusEx::LoadProgress(FString pLevelName, FString pSceneName)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Scene : %s"), *pSceneName));
-	// Load level if this is another then a current
+	// Load level if this is another then the current
 	if (GetWorld()->GetName() != pLevelName)
 	{
 		UGameplayStatics::OpenLevel(this, FName(*pLevelName));
 	}
 
+	// Find the 
 	AActor* ActorSceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
-	ASceneManager* SceneManager = Cast<ASceneManager>(ActorSceneManager);
-	
-	SceneManager->ChangeSceneByFName(FName(*pSceneName), false);
+	if(ActorSceneManager != nullptr)
+	{
+		ASceneManager* SceneManager = Cast<ASceneManager>(ActorSceneManager);
+		SceneManager->ChangeSceneByFName(FName(*pSceneName), false);
+	}
+	else
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("No SceneManager find in the level: %s"), *pLevelName));
+}
+
+void UGameInstanceDeusEx::SetDebugMode(bool NewStatus)
+{
+	DebugMode = NewStatus;
+}
+
+bool UGameInstanceDeusEx::GetDebugMode()
+{
+	return DebugMode;
 }
