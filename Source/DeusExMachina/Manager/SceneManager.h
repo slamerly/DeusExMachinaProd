@@ -90,7 +90,7 @@ protected:
 	bool bLightsBeginPlay = true;
 	// Transition
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
-	UWorld* NextLevel;
+	TSoftObjectPtr<UWorld> NextLevel;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
 	float DelayAfterAnimation = 2.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
