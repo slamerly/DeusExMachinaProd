@@ -13,7 +13,9 @@
 // ======================================================
 ARotationSupport::ARotationSupport()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	//  create default components
 
 	SceneRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SceneRootComponent->SetupAttachment(GetRootComponent());
@@ -30,11 +32,8 @@ ARotationSupport::ARotationSupport()
 
 	ClampVisualHigh = CreateDefaultSubobject<UArrowComponent>(TEXT("Clamp High"));
 	ClampVisualHigh->SetupAttachment(SceneRootComponent);
-
-
-	//UpdateClampVisual();
-	//UpdateSnapVisual();
 }
+
 
 
 // ======================================================
@@ -42,6 +41,9 @@ ARotationSupport::ARotationSupport()
 // ======================================================
 void ARotationSupport::BeginPlay()
 {
+	//  call parent begin play to compute self movable
+	Super::BeginPlay();
+
 	//  'EditorAngle' serve as a begin play angle, initialize 'InnerRotation' with it
 	InnerRotation = UAnglesUtils::ModuloAngle(EditorAngle);
 
@@ -49,16 +51,10 @@ void ARotationSupport::BeginPlay()
 	const FVector RotationBaseScale3D = RotationBase->GetRelativeScale3D();
 	RotationBase->SetRelativeTransform(FTransform{ FRotator{0.0f, InnerRotation, 0.0f}, FVector::ZeroVector, RotationBaseScale3D });
 
-	//  call parent begin play after reseting the rotation base so that the computation of StartTransform is correct
-	Super::BeginPlay();
-
-
 	//  hide support and remove collision (if necessary)
 	RotationBase->SetHiddenInGame(bDisableSupportVisibility);
 	Arrow->SetHiddenInGame(bHideAngleArrowVisual);
 	RotationBase->SetCollisionEnabled(bDisableSupportCollision ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
-
-
 
 	//  update clamp & snap visual
 	UpdateClampVisual();
@@ -66,67 +62,24 @@ void ARotationSupport::BeginPlay()
 }
 
 
-// ======================================================
-//                        Tick
-// ======================================================
-void ARotationSupport::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 
 // ======================================================
-//              Auto update Clamp & Snap
+//               Inner Rotation Functions
 // ======================================================
-void ARotationSupport::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	const FString PropertyChangedName = PropertyChangedEvent.GetPropertyName().ToString();
-	
-	if (PropertyChangedName.Contains("Clamp"))
-	{
-		UpdateClampVisual();
-	}
-
-	//UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
-	//  called from blueprint construction script
-}
-
-void ARotationSupport::PostEditMove(bool bFinished)
-{
-	Super::PostEditMove(bFinished);
-
-	//UpdateSnapVisual(); //  need to reupdate everytime cause unreal kills the arrows component each time the actor has a modification
-	//  called from blueprint construction script
-}
-
-
-// ======================================================
-//                  Inner Rotation
-// ======================================================
-float ARotationSupport::GetInnerRotation()
-{
-	return InnerRotation;
-}
-
-float ARotationSupport::GetInnerRotationBase360()
-{
-	return UAnglesUtils::ModuloAngle(InnerRotation);
-}
-
 bool ARotationSupport::AddInnerRotation(float InnerRotAdd, bool TestClamp)
 {
 	bool TriggerClamp = false;
 
 	if (TestClamp)
 	{
+		//  simulate the add rotation with the clamp to add a clamped rotation
 		float InnerRotAddClamped = InnerRotAdd;
 		TriggerClamp = SimulateRotationWithClamp(InnerRotAdd, InnerRotAddClamped);
 		InnerRotation += InnerRotAddClamped;
 	}
 	else
 	{
+		//  simply add the rotation
 		InnerRotation += InnerRotAdd;
 	}
 
@@ -138,35 +91,66 @@ void ARotationSupport::ForceInnerRotation(int InnerRot, bool AbsoluteRotation)
 {
 	if (AbsoluteRotation)
 	{
+		//  simply set the inner rotation to the inputed one
 		InnerRotation = InnerRot;
 	}
 	else
 	{
 		//  compute the nearest rotation angle of current InnerRotation that is a modulo of inputed InnerRot
 
-		const int CurrentInnerMod = UAnglesUtils::ModuloAngleInt(InnerRotation);
-		const int CurrentInnerDiff = InnerRotation - CurrentInnerMod;
-		int InputRotMod = UAnglesUtils::ModuloAngleInt(InnerRot);
+		const int InnerRotInt = FMath::RoundToInt(InnerRotation);
+		const int CurrentInnerMod = UAnglesUtils::ModuloAngleInt(InnerRotInt); //  retrieve the inner rotation in base 360
+		const int CurrentInnerDiff = InnerRotInt - CurrentInnerMod; //  compute the offset between base 360 inner rot and real inner rot
+		int InputRotMod = UAnglesUtils::ModuloAngleInt(InnerRot); //  retrieve the inputed inner rot in base 360
 
 		if (CurrentInnerMod - InputRotMod > 180)
 		{
+			//  the closest angle of input rot from current innner rot is superior to current inner rot
 			InputRotMod += 360;
 		}
 		else if (CurrentInnerMod - InputRotMod < -180)
 		{
+			//  the closest angle of input rot from current inner rot is inferior to current inner rot
 			InputRotMod -= 360;
 		}
 
-		InnerRotation = InputRotMod + CurrentInnerDiff;
+		InnerRotation = InputRotMod + CurrentInnerDiff; //  return the computed inputed inner rot with the offset to go back to the range of the inner rot at the beginnning of this function
 	}
 
 	ComputeInnerTransform();
 }
 
+
+
+// ======================================================
+//             Compute Inner Rotation Helper
+// ======================================================
 void ARotationSupport::ComputeInnerTransform()
 {
+	//  simply set the relative rotation to the current inner rotation
 	RotationBase->SetRelativeRotation(FRotator{ 0.0f, InnerRotation, 0.0f });
 }
+
+
+
+// ======================================================
+//                Inner Rotation Getters
+// ======================================================
+float ARotationSupport::GetInnerRotation() const
+{
+	return InnerRotation;
+}
+
+float ARotationSupport::GetInnerRotationBase360() const
+{
+	return UAnglesUtils::ModuloAngle(InnerRotation);
+}
+
+const FRotSupportValues ARotationSupport::GetSupportValues() const
+{
+	return RotSupportValues;
+}
+
 
 
 // ======================================================
@@ -174,8 +158,8 @@ void ARotationSupport::ComputeInnerTransform()
 // ======================================================
 bool ARotationSupport::UseValidClamp()
 {
+	//  check if clamp values are valid
 	if (!RotSupportValues.IsDataValid()) return false;
-
 	if (!RotSupportValues.GetUseClamp()) return false;
 
 	return RotSupportValues.GetClampHighValue() > RotSupportValues.GetClampLowValue();
@@ -197,32 +181,35 @@ bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle,
 {
 	if (!UseValidClamp())
 	{
+		//  clamp invalid = no clamp
 		ClampedRotationAngle = InputRotationAngle;
 		return false;
 	}
 
-	if (InputRotationAngle >= 0.0f)
+	if (InputRotationAngle >= 0.0f) //  check clamp high
 	{
 		const int ClampHigh = RotSupportValues.GetClampHighValue();
-		if (InnerRotation + InputRotationAngle >= ClampHigh)
+		if (InnerRotation + InputRotationAngle >= ClampHigh) //  check trigger clamp high
 		{
 			ClampedRotationAngle = ClampHigh - InnerRotation;
 			return true;
 		}
 	}
-	else
+	else //  check clamp low
 	{
 		const int ClampLow = RotSupportValues.GetClampLowValue();
-		if (InnerRotation + InputRotationAngle <= ClampLow)
+		if (InnerRotation + InputRotationAngle <= ClampLow) //  check trigger clamp low
 		{
 			ClampedRotationAngle = ClampLow - InnerRotation;
 			return true;
 		}
 	}
 
+	//  clamp was not triggered
 	ClampedRotationAngle = InputRotationAngle;
 	return false;
 }
+
 
 
 // ======================================================
@@ -230,12 +217,11 @@ bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle,
 // ======================================================
 bool ARotationSupport::UseValidSnap()
 {
+	//  check if snap values are valid
 	if (!RotSupportValues.IsDataValid()) return false;
-
 	if (!RotSupportValues.GetUseSnap()) return false;
 
 	if (!IsValid(RotSupportValues.GetSnapCurveContinue()) || !IsValid(RotSupportValues.GetSnapCurveNeutralReverse())) return false;
-
 	return RotSupportValues.GetSnapValues().Num() > 0;
 }
 
@@ -243,6 +229,7 @@ bool ARotationSupport::SearchSnapAngle(const float InputRotationAngle, float& Sn
 {
 	if (!UseValidSnap())
 	{
+		//  invalid snap = no snap
 		SnapAngle = InputRotationAngle;
 		return false;
 	}
@@ -349,6 +336,7 @@ bool ARotationSupport::SearchSnapAngle(const float InputRotationAngle, float& Sn
 	//  both higher and lower snap values are valid
 	if (NearestHigherSnap < 1000 && NearestLowerSnap < 1000)
 	{
+		//  compute snap search advantage
 		const float SearchAdvantage = FMath::Clamp(SnapSearchAdvantage, -1.0f, 1.0f);
 		if (SearchAdvantage == -1.0f)
 		{
@@ -361,6 +349,7 @@ bool ARotationSupport::SearchSnapAngle(const float InputRotationAngle, float& Sn
 			return true;
 		}
 
+		//  compute query results with snap search advantage
 		const float LowerAdvantaged = FMath::Abs(NearestLowerSnap * (-1.0f - SearchAdvantage));
 		const float HigherAdvantaged = FMath::Abs(NearestHigherSnap * (1.0f - SearchAdvantage));
 
@@ -384,44 +373,28 @@ bool ARotationSupport::SearchSnapAngle(const float InputRotationAngle, float& Sn
 }
 
 
+
 // ======================================================
-//                   Get Transforms
+//             Moving Support Base Functions
 // ======================================================
 FTransform ARotationSupport::GetObjectTransform()
 {
 	return RotationBase->GetComponentTransform();
 }
 
-// ======================================================
-//                      Utility
-// ======================================================
 bool ARotationSupport::IsCurrentlyMoving()
 {
 	return CurrentRotationState != ERotationState::NotRotating;
 }
 
-bool ARotationSupport::GetPlayerInRange(FVector PlayerPosition)
-{
-	return false;
-}
 
 
 // ======================================================
-//                     Level Editor
+//             Clamp & Snap Visual Functions
 // ======================================================
-void ARotationSupport::ApplyEditorValues()
-{
-	EditorAngle = UAnglesUtils::ModuloAngle(EditorAngle);
-
-	ComputeChildrensOffsetEditor();
-
-	RotationBase->SetRelativeRotation(FRotator{ 0.0f, EditorAngle, 0.0f });
-
-	ApplyChildLevelEditor();
-}
-
 void ARotationSupport::UpdateClampVisual()
 {
+	//  check if show clamp visual is needed
 	if (!RotSupportValues.IsDataValid() || bHideClampVisual || !RotSupportValues.GetUseClamp())
 	{
 		ClampVisualLow->SetVisibility(false);
@@ -432,14 +405,17 @@ void ARotationSupport::UpdateClampVisual()
 		ClampVisualLow->SetVisibility(true);
 		ClampVisualHigh->SetVisibility(true);
 
+		
 		const FVector BaseScale = RotationBase->GetComponentScale();
 
+		//  set clamp low arrow values
 		const float LowClamp = RotSupportValues.GetClampLowValue();
 		const float LowClampRad = FMath::DegreesToRadians(LowClamp);
 		ClampVisualLow->SetWorldScale3D(BaseScale * 0.5f);
 		ClampVisualLow->SetRelativeRotation(FRotator{ 0.0f, UAnglesUtils::ModuloAngle(LowClamp + 180.0f), 0.0f });
-		ClampVisualLow->SetRelativeLocation(FVector{FMath::Cos(LowClampRad) * 140.0f, FMath::Sin(LowClampRad) * 140.0f, BaseScale.Z + 2.0f});
+		ClampVisualLow->SetRelativeLocation(FVector{ FMath::Cos(LowClampRad) * 140.0f, FMath::Sin(LowClampRad) * 140.0f, BaseScale.Z + 2.0f });
 
+		//  set clamp high arrow values
 		const float HighClamp = RotSupportValues.GetClampHighValue();
 		const float HighClampRad = FMath::DegreesToRadians(HighClamp);
 		ClampVisualHigh->SetWorldScale3D(BaseScale * 0.5f);
@@ -475,16 +451,34 @@ void ARotationSupport::UpdateSnapVisual()
 	{
 		const float SnapAngleRad = FMath::DegreesToRadians(SnapValues[i].SnapAngle);
 
+		//  construct new arrow component
 		SnapArrows.Add(Cast<UArrowComponent>(AddComponentByClass(UArrowComponent::StaticClass(), false, FTransform::Identity, false)));
 		UArrowComponent* SnapArrowComp = SnapArrows[i];
 		SnapArrowComp->SetupAttachment(SceneRootComponent);
 		SnapArrowComp->SetHiddenInGame(false);
 
+		//  set constructed arrow values
 		SnapArrowComp->SetArrowColor(FLinearColor{ 0.89f, 0.09, 1.0f });
 		SnapArrowComp->SetWorldScale3D(BaseScale * 0.2f);
-		SnapArrowComp->SetRelativeRotation(FRotator{0.0f, UAnglesUtils::ModuloAngle(SnapValues[i].SnapAngle + 180.0f), 0.0f});
+		SnapArrowComp->SetRelativeRotation(FRotator{ 0.0f, UAnglesUtils::ModuloAngle(SnapValues[i].SnapAngle + 180.0f), 0.0f });
 		SnapArrowComp->SetRelativeLocation(FVector{ FMath::Cos(SnapAngleRad) * 150.0f, FMath::Sin(SnapAngleRad) * 150.0f, BaseScale.Z + 2.5f });
 	}
+}
+
+
+
+// ======================================================
+//                     Level Editor
+// ======================================================
+void ARotationSupport::ApplyEditorValues()
+{
+	EditorAngle = UAnglesUtils::ModuloAngle(EditorAngle);
+
+	ComputeChildrensOffsetEditor();
+
+	RotationBase->SetRelativeRotation(FRotator{ 0.0f, EditorAngle, 0.0f });
+
+	ApplyChildLevelEditor();
 }
 
 
@@ -498,6 +492,7 @@ void ARotationSupport::OnRotationBaseMovedEditor()
 
 	if (RotationBase->GetRelativeLocation() != FVector::ZeroVector)
 	{
+		//  check rotation base location
 		RotationBase->SetRelativeLocation(FVector::ZeroVector);
 		ComponentReset = true;
 	}
@@ -505,12 +500,14 @@ void ARotationSupport::OnRotationBaseMovedEditor()
 	const FRotator CompLocalRot = RotationBase->GetRelativeRotation();
 	if (CompLocalRot.Pitch != 0.0f || CompLocalRot.Roll != 0.0f)
 	{
+		//  check rotation base rotation
 		RotationBase->SetRelativeRotation(FRotator{ 0.0f, EditorAngle, 0.0f });
 		ComponentReset = true;
 	}
 
 	if (ComponentReset)
 	{
+		//  print warning if detected a location or rotation change on rotation base
 		const FName PrintKey = "Editor_RotationSupport_RotationBaseMoved_Warning";
 		GEngine->AddOnScreenDebugMessage((int32)GetTypeHash(PrintKey), 5.0f, FColor::Orange, "Do NOT move the RotationBase component! Move the entire RotationSupport object instead.");
 	}

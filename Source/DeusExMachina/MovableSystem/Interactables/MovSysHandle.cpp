@@ -15,6 +15,8 @@ AMovSysHandle::AMovSysHandle()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	//  initialize default components
+
 	SceneRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Root"));
 	SceneRootComponent->SetupAttachment(GetRootComponent());
 
@@ -34,7 +36,8 @@ void AMovSysHandle::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//  check link
+	//  check validity of support linked and their controlled behavior components
+
 	switch (HandleMode)
 	{
 	case EHandleMode::ControlRotation:
@@ -76,6 +79,9 @@ void AMovSysHandle::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	//  check if the property changed is the rotation support or the translation support in a link
 	if (!(PropertyChangedEvent.GetPropertyName() == FName("RotationSupport") || PropertyChangedEvent.GetPropertyName() == FName("TranslationSupport"))) return;
 
+
+	//  check if support linked have a controlled behavior component
+
 	switch (HandleMode)
 	{
 	case EHandleMode::ControlRotation:
@@ -103,20 +109,25 @@ void AMovSysHandle::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 
 
 // ======================================================
-//                Interaction Interface
+//          Interaction Interface (Interaction)
 // ======================================================
+
+//          Start Interaction
+// -------------------------------------------
 void AMovSysHandle::Interaction_Implementation()
 {
+	//  check already in control
 	if (bInControl) return;
 	bInControl = true;
 
+	//  visual feedback on blueprint
 	HandleStartFeedback();
 
-	Camera = UGameplayStatics::GetPlayerCameraManager(this, 0); //  assume that the camera won't change during an interaction with a handle
+	//  retrieve the camera used (assume that the camera won't change during an interaction with a handle)
+	Camera = UGameplayStatics::GetPlayerCameraManager(this, 0);
 
-
+	//  start controlled behavior on linked support
 	if (!bLinkValid) return;
-
 	switch (HandleMode)
 	{
 	case EHandleMode::ControlRotation:
@@ -129,32 +140,29 @@ void AMovSysHandle::Interaction_Implementation()
 	}
 }
 
-bool AMovSysHandle::CanInteract_Implementation()
-{
-	return !IsInteractableDisabled();
-}
 
-bool AMovSysHandle::IsInteractionHeavy_Implementation()
-{
-	return true;
-}
-
+//          Update Interaction
+// -------------------------------------------
 void AMovSysHandle::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
 {
+	//  check in control
 	if (!bInControl) return;
 
+	//  compute control direction with the camera
 	const FVector2D ControlDirection = UKismetMathLibrary::Conv_VectorToVector2D(
 		FRotator{ 0.0f, Camera->GetCameraRotation().Yaw, 0.0f }
 		.RotateVector(FVector{ ControlValue.Y, ControlValue.X, 0.0f })
 	);
 
+	//  compute control value with the handle push direction
 	const FVector2D PushDirection = UKismetMathLibrary::Conv_VectorToVector2D(PushDirArrow->GetForwardVector());
 	const float ComputedControlValue = UKismetMathLibrary::DotProduct2D(ControlDirection, PushDirection);
 
+	//  visual feedback in blueprint
 	HandleControlFeedback(ComputedControlValue);
 
+	//  update controlled behavior on linked support
 	if (!bLinkValid) return;
-
 	switch (HandleMode)
 	{
 	case EHandleMode::ControlRotation:
@@ -167,16 +175,20 @@ void AMovSysHandle::InteractionHeavyUpdate_Implementation(FVector2D ControlValue
 	}
 }
 
+
+//          Finish Interaction
+// -------------------------------------------
 void AMovSysHandle::InteractionHeavyFinished_Implementation()
 {
+	//  check in control
 	if (!bInControl) return;
 	bInControl = false;
 
+	//  visual feedback in blueprint
 	HandleStopFeedback();
 
-
+	//  finish controlled behavior on linked support
 	if (!bLinkValid) return;
-
 	switch (HandleMode)
 	{
 	case EHandleMode::ControlRotation:
@@ -189,11 +201,31 @@ void AMovSysHandle::InteractionHeavyFinished_Implementation()
 	}
 }
 
+
+
+// ======================================================
+//            Interaction Interface (Getters)
+// ======================================================
+bool AMovSysHandle::CanInteract_Implementation()
+{
+	return !IsInteractableDisabled();
+}
+
+bool AMovSysHandle::IsInteractionHeavy_Implementation()
+{
+	return true;
+}
+
 bool AMovSysHandle::IsInteractableBothSides_Implementation()
 {
 	return true;
 }
 
+
+
+// ======================================================
+//          Mov Sys Interactable Base (override)
+// ======================================================
 void AMovSysHandle::ForceReleaseInteractable()
 {
 	InteractionHeavyFinished_Implementation();

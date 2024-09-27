@@ -28,26 +28,30 @@ public:
 // ======================================================
 public:
 	void Interaction_Implementation() override;
-	bool CanInteract_Implementation() override;
-
-	bool IsInteractionHeavy_Implementation() override;
 	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue) override;
 	void InteractionHeavyFinished_Implementation() override;
 
+	bool CanInteract_Implementation() override;
+	bool IsInteractionHeavy_Implementation() override;
 	bool IsInteractableBothSides_Implementation() override;
 
+
+// ======================================================
+//              Mov Sys Interactable Base
+// ======================================================
 	virtual void ForceReleaseInteractable() override;
 
 
 // ======================================================
-//          Wheel Visual Feedback (blueprint)
+//               Advanced Joystick Control
 // ======================================================
 protected:
 	float GetAdvancedJoystickControl(const FVector2D JoystickValue);
 
 
+
 // ======================================================
-//          Wheel Visual Feedback (blueprint)
+//           Wheel Visual Feedback (blueprint)
 // ======================================================
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Wheel Feedback")
@@ -74,6 +78,9 @@ public:
 protected:
 	bool bInControl{ false };
 
+	// ===========================
+	//  Advanced Joystick Control
+	// ===========================
 	float JoystickAngle{ 0.0f };
 	float JoystickForgotTime{ 0.0f };
 	float JoystickLastControl{ 0.0f };

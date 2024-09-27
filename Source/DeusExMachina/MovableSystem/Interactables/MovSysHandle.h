@@ -40,15 +40,19 @@ public:
 // ======================================================
 public:
 	void Interaction_Implementation() override;
-	bool CanInteract_Implementation() override;
-
-	bool IsInteractionHeavy_Implementation() override;
 	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue) override;
 	void InteractionHeavyFinished_Implementation() override;
 
+	bool CanInteract_Implementation() override;
+	bool IsInteractionHeavy_Implementation() override;
 	bool IsInteractableBothSides_Implementation() override;
 
+
+// ======================================================
+//              Mov Sys Interactable Base
+// ======================================================
 	virtual void ForceReleaseInteractable() override;
+
 
 
 // ======================================================
@@ -101,6 +105,7 @@ public:
 
 protected:
 	bool bLinkValid{ false };
+
 
 
 // ======================================================

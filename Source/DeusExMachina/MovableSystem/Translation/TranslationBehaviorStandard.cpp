@@ -15,7 +15,7 @@ void UTranslationBehaviorStandard::BeginPlay()
 
 	SetComponentTickEnabled(false);
 
-	InitializeOwner();
+	InitializeOwner(); //  TranslationBehaviorBase
 }
 
 
@@ -29,14 +29,19 @@ void UTranslationBehaviorStandard::TickComponent(float DeltaTime, ELevelTick Tic
 	if (!bOwnerTransSupportValid) return;
 	if (!bCurrentlyMoving) return;
 
+	//  standard translation
 	TranslationTimer += DeltaTime;
 	if (TranslationTimer >= TranslationDuration)
 	{
-		CancelStandardTranslation();
+		//  if a destination spline point is defined, reposition support to it (security)
 		if(ForceSplinePoint != -1) OwnerTransSupport->ForcePositionOnSpline(ForceSplinePoint, 0.0f);
+
+		//  timer finished, stop translation
+		CancelStandardTranslation();
 		return;
 	}
 
+	//  apply standard translation
 	const float DistanceDone = TranslationDistance * TranslationCurve->GetFloatValue(TranslationTimer / TranslationDuration);
 	OwnerTransSupport->AddTranslationAlongSpline(DistanceDone - LastFrameDistanceDone);
 
@@ -61,7 +66,7 @@ void UTranslationBehaviorStandard::StartStandardTranslation(FStandardTranslation
 	TranslationTimer = 0.0f;
 	LastFrameDistanceDone = 0.0f;
 
-	//  compute standard translation distance to do
+	//  compute standard translation distance to do depending of the mode
 	ForceSplinePoint = -1;
 	switch (Datas.GetStandardTranslationMode())
 	{
@@ -74,7 +79,7 @@ void UTranslationBehaviorStandard::StartStandardTranslation(FStandardTranslation
 		break;
 	}
 
-	//  compute standard translation duration
+	//  compute standard translation duration depending of the mode
 	switch (Datas.GetStandardTranslationSpeedMode())
 	{
 	case EStandardTranslationSpeedMode::TranslationDuration:
@@ -114,6 +119,7 @@ void UTranslationBehaviorStandard::CancelStandardTranslation()
 // ======================================================
 bool UTranslationBehaviorStandard::IsStandardTransValid(FStandardTranslationDatas Datas)
 {
+	//  check validity of standard translation values, depending of modes
 	if (!Datas.IsDataValid()) return false;
 
 	if (!IsValid(Datas.GetTranslationCurve())) return false;
@@ -149,36 +155,41 @@ float UTranslationBehaviorStandard::ConvertSplinePointsToSplineDistance(FStandar
 
 	if (Datas.GetTranslationSplinePoints() == 0) return 0.0f;
 
-	const int DistanceSign = FMath::Sign<int>(Datas.GetTranslationSplinePoints());
+	const int DistanceSign = FMath::Sign<int>(Datas.GetTranslationSplinePoints()); //  retrieve if the translation goes in the spline direction (positive) or the opposite (negative)
 
-	const int AbsSplinePoints = FMath::Abs<int>(Datas.GetTranslationSplinePoints());
-	const int ModulatedSplinePoints = AbsSplinePoints % OwnerTransSupport->GetNumberOfSplinePoints();
-	const int NumberFullSpline = (AbsSplinePoints - ModulatedSplinePoints) / OwnerTransSupport->GetNumberOfSplinePoints();
+	const int AbsSplinePoints = FMath::Abs<int>(Datas.GetTranslationSplinePoints()); //  number of spline points to go through
+	const int ModulatedSplinePoints = AbsSplinePoints % OwnerTransSupport->GetNumberOfSplinePoints(); //  same, but without having to loop on the spline
+	const int NumberFullSpline = (AbsSplinePoints - ModulatedSplinePoints) / OwnerTransSupport->GetNumberOfSplinePoints(); //  how many loop of the spline do we need
 
-	float SplineDistance = NumberFullSpline * OwnerTransSupport->GetFullSplineLength();
+	float SplineDistance = NumberFullSpline * OwnerTransSupport->GetFullSplineLength(); //  compute the distance of all needed loops
 
 
 	int TargetSplinePoint = OwnerTransSupport->GetInnerSplineIndex();
-	if (DistanceSign < 0)
+	if (DistanceSign < 0) //  going in reverse spline direction
 	{
-		if (OwnerTransSupport->GetProgressToNextIndex() > 0.0f) TargetSplinePoint++;
+		if (OwnerTransSupport->GetProgressToNextIndex() > 0.0f) TargetSplinePoint++; //  increment the starting index if the support is between two points
+
+		//  retrieve the destination index
 		TargetSplinePoint -= ModulatedSplinePoints;
 		TargetSplinePoint %= OwnerTransSupport->GetNumberOfSplinePoints();
 		if (TargetSplinePoint < 0) TargetSplinePoint += OwnerTransSupport->GetNumberOfSplinePoints();
 
+		//  add the distance to found destination point
 		SplineDistance += OwnerTransSupport->GetSplineDistanceToPointReversed(TargetSplinePoint);
 	}
-	else
+	else //  going in spline direction
 	{
+		//  retrieve the destination index
 		TargetSplinePoint += ModulatedSplinePoints;
 		TargetSplinePoint %= OwnerTransSupport->GetNumberOfSplinePoints();
 
+		//  add the distance to found destination point
 		SplineDistance += OwnerTransSupport->GetSplineDistanceToPoint(TargetSplinePoint);
 	}
 
-	DestSplinePoint = TargetSplinePoint;
+	DestSplinePoint = TargetSplinePoint; //  set the out destination index found
 
-	SplineDistance *= DistanceSign;
+	SplineDistance *= DistanceSign; //  negate the distance if going reverse
 	return SplineDistance;
 }
 

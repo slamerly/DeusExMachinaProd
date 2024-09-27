@@ -43,11 +43,28 @@ public:
 // ======================================================
 protected:
 	void LaunchAutomaticRotationBeginPlay();
-	void StartAutomaticRotationWithStop();
 
 public:
+	/**
+	* Function to call to start the automatic rotation with stop on this component. Also used to restart the rotation after the auto stop.
+	*/
+	void StartAutomaticRotationWithStop();
+
+	/**
+	* Function to call to start the automatic rotation on this component.
+	* @param	bForceNoStartPhase		Skip the smooth start (start instantly at full speed)
+	*/
 	void StartAutomaticRotation(bool bForceNoStartPhase = false);
+
+	/**
+	* Function to call to stop the automatic rotation on this component.
+	* @param	bForceNoEndPhase		Skip the smooth end (stop instantly)
+	*/
 	void StopAutomaticRotation(bool bForceNoEndPhase = false);
+
+	/**
+	* Function to call to stop every movement of this component.
+	*/
 	void CancelAutomaticRotation();
 
 
@@ -55,6 +72,10 @@ public:
 //                     Interaction
 // ======================================================
 public:
+	/**
+	* Function to call to trigger an interaction by a button on this behavior.
+	* @param	Datas	The interaction datas.
+	*/
 	void TriggerAutoRotInteraction(struct FAutoRotInteractionDatas Datas);
 
 
@@ -86,21 +107,38 @@ public:
 protected:
 	EAutoRotationState CurrentState{ EAutoRotationState::Inactive };
 
+	// =====================
+	//  Automatic Speed
+	// =====================
 	float AutomaticRotationSpeed{ 0.0f };
 
+	// =====================
+	//  Reverses
+	// =====================
 	bool bExteriorReverse{ false };
 	bool bAutomaticSpeedReverse{ false };
 
+
+	// =====================
+	//  Start and End phases
+	// =====================
 	float PhaseTime{ 0.0f };
 	float PhaseTimer{ 0.0f };
 	UCurveFloat* PhaseCurve{ nullptr };
 
+
+	// =====================
+	//  Auto rot with stop
+	// =====================
 	float AutomaticRotationDuration{ 0.0f };
 	float AutomaticRotationTimer{ 0.0f };
 	UCurveFloat* AutomaticRotationCurve{ nullptr };
 	float AutomaticRotationAngle{ 0.0f };
 	float AutomaticRotationAngleDone{ 0.0f };
 
+	// =====================
+	//  Auto stop
+	// =====================
 	int AutomaticStopDestAngle{ 0 };
 	float AutomaticStopDuration{ 0.0f };
 	float AutomaticStopTimer{ 0.0f };

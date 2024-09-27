@@ -32,7 +32,6 @@ public:
 
 
 
-
 // ======================================================
 //              Control Controlled Rotation
 // ======================================================
@@ -46,7 +45,7 @@ public:
 	
 	/**
 	* Function to call when an interactable linked to this behavior has lost control from the player.
-	* @param	DontTriggerSnap		Optionnal param to force this behavior to not trigger the snap on release, even if the support has snap enabled.
+	* @param	DontTriggerSnap		(optionnal) Force this behavior to not trigger the snap on release, even if the support has snap enabled.
 	*/
 	void StopControlledRotation(bool DontTriggerSnap = false);
 	
@@ -71,20 +70,32 @@ protected:
 // ======================================================
 protected:
 	EControlledRotationState CurrentState{ EControlledRotationState::Inactive };
-
 	FControlledRotationDatas CurrentDatas;
 
+	// =====================
+	//  Controlled Speed
+	// =====================
 	float RotationSpeed{ 0.0f };
 
+	// =====================
+	//  Last input direction
+	// =====================
 	int LastInputedDirection{ 0 };
 	float LastInputedDirectionTimer{ 0.0f };
 
 
+	// =====================
+	//  Startup
+	// =====================
 	bool bUseStartup{ false };
 	float StartupDuration{ 0.0f };
 	float StartupTimer{ 0.0f };
 	UCurveFloat* StartupCurve{ nullptr };
 
+
+	// =====================
+	//  Snap
+	// =====================
 	float SnapAngleStart{ 0.0f };
 	float SnapAngleDest{ 0.0f };
 	float SnapDuration{ 0.0f };

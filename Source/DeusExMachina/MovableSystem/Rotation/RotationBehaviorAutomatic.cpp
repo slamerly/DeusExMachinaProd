@@ -22,16 +22,18 @@ void URotationBehaviorAutomatic::BeginPlay()
 
 	SetComponentTickEnabled(false);
 
-	InitializeOwner();
+	InitializeOwner(); //  RotationBehaviorBase
 
 	if (AutomaticRotationValues.IsDataValid())
 	{
+		//  compute if the automatic speed is negative (will reverse every rotation)
 		bAutomaticSpeedReverse = AutomaticRotationValues.GetRotationSpeed() < 0.0f;
 	}
 }
 
 void URotationBehaviorAutomatic::LateBeginPlay()
 {
+	//  start automatic rotation if required
 	if (!bOwnerRotSupportValid) return;
 	if (!AutomaticRotationValues.IsDataValid()) return;
 
@@ -67,6 +69,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 		PhaseTimer += DeltaTime;
 		if (PhaseTimer >= PhaseTime)
 		{
+			//  finished start phase, switch to classic automatic rotation
 			PhaseTimer = PhaseTime;
 			CurrentState = EAutoRotationState::AutomaticRotation;
 		}
@@ -79,6 +82,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 		PhaseTimer += DeltaTime;
 		if (PhaseTimer >= PhaseTime)
 		{
+			//  finished end phase, stop automatic rotation
 			CancelAutomaticRotation();
 			break;
 		}
@@ -91,10 +95,12 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 		AutomaticRotationTimer += DeltaTime;
 		if (AutomaticRotationTimer >= AutomaticRotationDuration)
 		{
+			//  finished timer = arrived to stop angle destination
+			//  switch state and start stop timer
 			CurrentState = EAutoRotationState::StopOnAngle;
 			AutomaticStopTimer = 0.0f;
 
-			OwnerRotSupport->ForceInnerRotation(AutomaticStopDestAngle, true);
+			OwnerRotSupport->ForceInnerRotation(AutomaticStopDestAngle, true); //  reposition support to stop angle (security)
 			break;
 		}
 
@@ -108,13 +114,14 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 		AutomaticStopTimer += DeltaTime;
 		if (AutomaticStopTimer >= AutomaticStopDuration)
 		{
+			//  auto stop finished, restart
 			StartAutomaticRotationWithStop();
 		}
 		break;
 	}
 
-	if (GetReverse()) RotationAdd *= -1.0f;
-	OwnerRotSupport->AddInnerRotation(RotationAdd, false);
+	if (GetReverse()) RotationAdd *= -1.0f; //  reverse the desired rotation add if needed
+	OwnerRotSupport->AddInnerRotation(RotationAdd, false); //  apply rotation add
 }
 
 
@@ -124,6 +131,7 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 // ======================================================
 void URotationBehaviorAutomatic::LaunchAutomaticRotationBeginPlay()
 {
+	//  select auto rotation mode for begin play
 	if (IsAutomaticStopValid())
 	{
 		StartAutomaticRotationWithStop();
@@ -152,7 +160,7 @@ void URotationBehaviorAutomatic::StartAutomaticRotationWithStop()
 	if (!StopSuccess)
 	{
 		kPRINT_ERROR("Automatic Rotation couldn't retrieve a valid stop point!");
-		CancelAutomaticRotation();
+		CancelAutomaticRotation(); //  stop everything if a stop angle couldn't be computed
 		return;
 	}
 
@@ -226,6 +234,7 @@ void URotationBehaviorAutomatic::StopAutomaticRotation(bool bForceNoEndPhase)
 
 void URotationBehaviorAutomatic::CancelAutomaticRotation()
 {
+	//  stop everything
 	SetComponentTickEnabled(false);
 	CurrentState = EAutoRotationState::Inactive;
 
@@ -240,9 +249,17 @@ void URotationBehaviorAutomatic::CancelAutomaticRotation()
 // ======================================================
 void URotationBehaviorAutomatic::TriggerAutoRotInteraction(FAutoRotInteractionDatas Datas)
 {
+	//  check if button interaction is possible
 	if (!bOwnerRotSupportValid) return;
 	if (!Datas.IsDataValid()) return;
 
+	if (CurrentState == EAutoRotationState::AutomaticRotationWithStop || CurrentState == EAutoRotationState::StopOnAngle)
+	{
+		kPRINT_WARNING("You can't trigger a automatic rotation interaction with a MovSys Button on an automatic Rotation Support in automatic stop mode. If you need it to be a thing, please ask Cyril.");
+		return;
+	}
+
+	//  select wether to start, stop and apply reverse depending of the current state of automatic rotation and interaction datas
 	if (Datas.GetStartStop())
 	{
 		if (CurrentState == EAutoRotationState::AutomaticRotation || CurrentState == EAutoRotationState::StartPhase)
@@ -278,24 +295,19 @@ void URotationBehaviorAutomatic::TriggerAutoRotInteraction(FAutoRotInteractionDa
 // ======================================================
 bool URotationBehaviorAutomatic::IsAutomaticStopValid()
 {
+	//  check automatic rotation type is automatic stop
 	if (!AutomaticRotationValues.IsDataValid()) return false;
-
 	if (AutomaticRotationValues.GetAutomaticRotationType() != EAutomaticRotationType::StopOnAngles) return false;
-	if (!IsValid(AutomaticRotationValues.GetRotationCurve())) return false;
 
+	//  check validities of automatic stop values
+	if (!IsValid(AutomaticRotationValues.GetRotationCurve())) return false;
 	switch (AutomaticRotationValues.GetStopBehavior())
 	{
 	case ERotStopBehavior::StopAngleInterval:
-		return AutomaticRotationValues.GetGlobalStopDuration() > 0.0f && AutomaticRotationValues.GetStopIntervalAngle() > 0;
+		return AutomaticRotationValues.GetStopIntervalAngle() > 0;
 
 	case ERotStopBehavior::StopSpecifedAngles:
-		if (AutomaticRotationValues.GetStopDefinedAngles().Num() <= 0) return false;
-		for (FStopDefinedAngle StopAngle : AutomaticRotationValues.GetStopDefinedAngles())
-		{
-			if (StopAngle.StopAngleDuration <= 0.0f) return false;
-		}
-
-		return true;  //  if this line is reached, every stop defined angle is valid, so return true
+		return AutomaticRotationValues.GetStopDefinedAngles().Num() > 0;
 
 	default:
 		return false; //  this can't be reached but the compiler need that
@@ -304,6 +316,7 @@ bool URotationBehaviorAutomatic::IsAutomaticStopValid()
 
 bool URotationBehaviorAutomatic::IsStartPhaseValid()
 {
+	//  check validity of starting phase
 	if (!AutomaticRotationValues.IsDataValid()) return false;
 
 	return AutomaticRotationValues.GetStartDuration() > 0.0f && IsValid(AutomaticRotationValues.GetStartCurve());
@@ -311,6 +324,7 @@ bool URotationBehaviorAutomatic::IsStartPhaseValid()
 
 bool URotationBehaviorAutomatic::IsEndPhaseValid()
 {
+	//  check validity of endinf phase
 	if (!AutomaticRotationValues.IsDataValid()) return false;
 
 	return AutomaticRotationValues.GetEndDuration() > 0.0f && IsValid(AutomaticRotationValues.GetEndCurve());
@@ -319,25 +333,29 @@ bool URotationBehaviorAutomatic::IsEndPhaseValid()
 bool URotationBehaviorAutomatic::ComputeNextStopAngle()
 {
 	const int CurrentInnerRot = FMath::RoundToInt(OwnerRotSupport->GetInnerRotationBase360());
-	int SmallestDeltaAngle = 500; //  for the stop specified angles search (500 is arbitrary value greater than any delta angle possible)
+
+	//  for the stop specified angles search
+	int SmallestDeltaAngle = 500; //  (500 is arbitrary value greater than any delta angle possible)
 	FStopDefinedAngle NearestStopAngle;
 
 	switch (AutomaticRotationValues.GetStopBehavior())
 	{
 	case ERotStopBehavior::StopAngleInterval:
+		//  simply set automatic rotation angle to the angle interval
 		AutomaticRotationAngle = AutomaticRotationValues.GetStopIntervalAngle();
 		AutomaticStopDuration = AutomaticRotationValues.GetGlobalStopDuration();
 		bAutomaticStopReverse = false;
 		break;
 
 	case ERotStopBehavior::StopSpecifedAngles:
+		//  search the nearest stop angle in the list
 		for (FStopDefinedAngle StopAngle : AutomaticRotationValues.GetStopDefinedAngles())
 		{
 			int DeltaAngle = UAnglesUtils::SignedDeltaAngleInt(CurrentInnerRot, StopAngle.StopAngle);
 			if (FMath::Abs(DeltaAngle) < 1) continue; //  avoid to return a stop angle that is equal or nearly equal to the current inner angle
 
-			if (GetReverse() && DeltaAngle > 0) DeltaAngle -= 360;
-			if (!GetReverse() && DeltaAngle < 0) DeltaAngle += 360;
+			if (GetReverse() && DeltaAngle > 0) DeltaAngle -= 360; //  delta angle must be negative if going reverse (go in the opposite circle direction)
+			if (!GetReverse() && DeltaAngle < 0) DeltaAngle += 360; //  delta angle must be positive if not going reverse (go in the opposite circle direction)
 
 			DeltaAngle = FMath::Abs(DeltaAngle);
 			if (DeltaAngle < SmallestDeltaAngle)
@@ -347,9 +365,10 @@ bool URotationBehaviorAutomatic::ComputeNextStopAngle()
 			}
 		}
 
-		if (SmallestDeltaAngle >= 500) return false;
+		if (SmallestDeltaAngle >= 500) return false; //  the search found nothing
 		else
 		{
+			//  set automatic rotation angle to the smallest found
 			AutomaticRotationAngle = SmallestDeltaAngle;
 			AutomaticStopDuration = NearestStopAngle.StopAngleDuration;
 			bAutomaticStopReverse = NearestStopAngle.bStopAngleReverse;
@@ -373,5 +392,5 @@ bool URotationBehaviorAutomatic::ComputeNextStopAngle()
 
 bool URotationBehaviorAutomatic::GetReverse()
 {
-	return bExteriorReverse ^ bAutomaticSpeedReverse;
+	return bExteriorReverse ^ bAutomaticSpeedReverse; // XOR
 }

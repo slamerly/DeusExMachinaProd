@@ -32,13 +32,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:
-	virtual void Tick(float DeltaTime) override;
-
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	virtual void PostEditMove(bool bFinished) override;
-#endif // WITH_EDITOR
 
 
 // ======================================================
@@ -66,9 +59,6 @@ protected:
 //               Inner Rotation Functions
 // ======================================================
 public:
-	float GetInnerRotation();
-	float GetInnerRotationBase360();
-
 	/**
 	* Add an inner rotation value to this Rotation Support. Allows clamp testing.
 	* Note that if you test clamp and if the inner rotation of this support is already outside of the clamp range, it will go back to the nearest clamp.
@@ -85,16 +75,24 @@ public:
 	*/
 	void ForceInnerRotation(int InnerRot, bool AbsoluteRotation = false);
 
+
+
+// ======================================================
+//             Compute Inner Rotation Helper
+// ======================================================
 protected:
 	void ComputeInnerTransform();
 
 
 
 // ======================================================
-//                Utility Get Functions
+//               Inner Rotation Getters
 // ======================================================
 public:
-	const FRotSupportValues GetSupportValues() { return RotSupportValues; }
+	float GetInnerRotation() const;
+	float GetInnerRotationBase360() const;
+
+	const FRotSupportValues GetSupportValues() const;
 
 
 
@@ -135,25 +133,24 @@ public:
 
 
 
-
 // ======================================================
-//                 Overrided Functions
+//            Moving Support Base Functions
 // ======================================================
 public:
-	// ====================
-	//      Transform
-	// ====================
 	FTransform GetObjectTransform() override;
-
-	// ====================
-	//   Support Movement
-	// ====================
 	bool IsCurrentlyMoving() override;
 
-	// ====================
-	//    Debug Movement
-	// ====================
-	bool GetPlayerInRange(FVector PlayerPosition) override;
+
+
+// ======================================================
+//             Clamp & Snap Visual Functions
+// ======================================================
+protected:
+	UFUNCTION(BlueprintCallable)
+	void UpdateClampVisual(); //  Callable from blueprint to be able to call this function on the "Construction Script"
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateSnapVisual(); //  Callable from blueprint to be able to call this function on the "Construction Script"
 
 
 
@@ -191,12 +188,6 @@ protected:
 // ======================================================
 protected:
 	void ApplyEditorValues() override;
-
-	void UpdateClampVisual();
-
-	UFUNCTION(BlueprintCallable)
-	void UpdateSnapVisual(); //  Callable from blueprint to be able to call this function on the "Construction Script"
-
 
 
 

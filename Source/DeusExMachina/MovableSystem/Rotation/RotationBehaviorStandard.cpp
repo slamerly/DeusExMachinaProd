@@ -15,7 +15,7 @@ void URotationBehaviorStandard::BeginPlay()
 
 	SetComponentTickEnabled(false);
 
-	InitializeOwner();
+	InitializeOwner(); //  RotationBehaviorBase
 }
 
 
@@ -29,13 +29,18 @@ void URotationBehaviorStandard::TickComponent(float DeltaTime, ELevelTick TickTy
 	if (!bOwnerRotSupportValid) return;
 	if (!bCurrentlyRotating) return;
 
+	//  standard rotation
 	RotationTimer += DeltaTime;
 	if (RotationTimer >= RotationDuration)
 	{
-		RotationTimer = RotationDuration;
+		OwnerRotSupport->ForceInnerRotation(DestinationAngle, true); //  reposition support to destination angle (security)
+
+		//  timer finished, stop rotation
 		CancelStandardRotation();
+		return;
 	}
 
+	//  apply standard rotation
 	const float DesiredAngle = RotationAngle * RotationCurve->GetFloatValue(RotationTimer / RotationDuration);
 	OwnerRotSupport->AddInnerRotation(DesiredAngle - LastFrameRotAngle, true);
 	
@@ -70,6 +75,9 @@ void URotationBehaviorStandard::StartStandardRotation(FStandardRotationDatas Dat
 		RotationDuration *= (RotationAngleClamped / RotationAngle); //  reduce the duration of the standard rotation proportionnaly to the reduction of angle rotated so the rotation keeps the same speed
 	}
 
+	//  compute destination angle
+	DestinationAngle = OwnerRotSupport->GetInnerRotation() + RotationAngle;
+
 	//  set rotating and tick for this component
 	bCurrentlyRotating = true;
 	SetComponentTickEnabled(true);
@@ -98,6 +106,7 @@ void URotationBehaviorStandard::CancelStandardRotation()
 // ======================================================
 bool URotationBehaviorStandard::IsStandardRotValid(FStandardRotationDatas Datas)
 {
+	//  check validity of standard rotation values
 	if (!Datas.IsDataValid()) return false;
 
 	return Datas.GetRotationDuration() > 0.0f && IsValid(Datas.GetRotationCurve());

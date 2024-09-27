@@ -42,11 +42,28 @@ public:
 // ======================================================
 protected:
 	void LaunchAutomaticTranslationBeginPlay();
-	void StartAutomaticTranslationWithStop();
 
 public:
+	/**
+	* Function to call to start the automatic translation with stop on this component. Also used to restart the translation after the auto stop.
+	*/
+	void StartAutomaticTranslationWithStop();
+
+	/**
+	* Function to call to start the automatic translation on this component.
+	* @param	bForceNoStartPhase		Skip the smooth start (start instantly at full speed)
+	*/
 	void StartAutomaticTranslation(bool bForceNoStartPhase = false);
+
+	/**
+	* Function to call to stop the automatic translation on this component.
+	* @param	bForceNoEndPhase		Skip the smooth end (stop instantly)
+	*/
 	void StopAutomaticTranslation(bool bForceNoEndPhase = false);
+
+	/**
+	* Function to call to stop every movement of this component.
+	*/
 	void CancelAutomaticTranslation();
 
 
@@ -54,6 +71,10 @@ public:
 //                     Interaction
 // ======================================================
 public:
+	/**
+	* Function to call to trigger an interaction by a button on this behavior.
+	* @param	Datas	The interaction datas.
+	*/
 	void TriggerAutoTransInteraction(struct FAutoTransInteractionDatas Datas);
 
 
@@ -85,21 +106,38 @@ public:
 protected:
 	EAutoTranslationState CurrentState{ EAutoTranslationState::Inactive };
 
+	// =====================
+	//  Automatic Speed
+	// =====================
 	float AutomaticTranslationSpeed{ 0.0f };
 
+	// =====================
+	//  Reverses
+	// =====================
 	bool bExteriorReverse{ false };
 	bool bAutomaticSpeedReverse{ false };
 
+
+	// =====================
+	//  Start and End phases
+	// =====================
 	float PhaseTime{ 0.0f };
 	float PhaseTimer{ 0.0f };
 	UCurveFloat* PhaseCurve{ nullptr };
 
+
+	// =====================
+	//  Auto trans with stop
+	// =====================
 	float AutomaticTranslationDuration{ 0.0f };
 	float AutomaticTranslationTimer{ 0.0f };
 	UCurveFloat* AutomaticTranslationCurve{ nullptr };
 	float AutomaticTranslationDistance{ 0.0f };
 	float AutomaticTranslationDistanceDone{ 0.0f };
 
+	// =====================
+	//  Auto stop
+	// =====================
 	int AutomaticStopDestIndex{ 0 };
 	float AutomaticStopDuration{ 0.0f };
 	float AutomaticStopTimer{ 0.0f };

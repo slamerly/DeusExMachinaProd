@@ -25,7 +25,16 @@ public:
 //              Control Standard Translation
 // ======================================================
 public:
+	/**
+	* Function to call to start the standard translation of this component.
+	* @param	Datas			The standard translation datas
+	* @param	bForceStart		(optionnal) Force the standard translation to start even if the component is already performing a standard translation
+	*/
 	void StartStandardTranslation(struct FStandardTranslationDatas Datas, bool bForceStart = false);
+
+	/**
+	* Function to call to stop every movement of this component.
+	*/
 	void CancelStandardTranslation();
 
 

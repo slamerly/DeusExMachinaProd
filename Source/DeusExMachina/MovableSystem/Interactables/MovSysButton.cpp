@@ -10,20 +10,21 @@
 
 AMovSysButton::AMovSysButton()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true; //  blueprint need tick for visual
 }
 
 
 
 // ======================================================
-//               Begin Play & Tick
+//                     Begin Play
 // ======================================================
-
 void AMovSysButton::BeginPlay()
 {
 	Super::BeginPlay();
 
 	SetActorTickEnabled(false);
+
+	//  check validity of supports linked and their standard or automatic behavior component
 
 	for (auto& LinkAutoR : LinkedRotSupportsAutomatic)
 	{
@@ -66,23 +67,19 @@ void AMovSysButton::BeginPlay()
 	}
 }
 
-void AMovSysButton::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 
 
 // ======================================================
 //             Check links validity (editor)
 // ======================================================
-
 void AMovSysButton::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 
 	//  check if the property changed is the rotation support or the translation support in a link
 	if (!(PropertyChangedEvent.GetPropertyName() == FName("RotationSupport") || PropertyChangedEvent.GetPropertyName() == FName("TranslationSupport"))) return;
+
+	//  check if supports linked have a standard or automatic behavior component
 
 	for (auto& LinkAutoR : LinkedRotSupportsAutomatic)
 	{
@@ -132,16 +129,18 @@ void AMovSysButton::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 
 
 // ======================================================
-//                Interaction Interface
+//           Interaction Interface (Interaction)
 // ======================================================
-
 void AMovSysButton::Interaction_Implementation()
 {
+	//  check already pressed
 	if (bPressed) return;
 
+	//  visual feedback in blueprint
 	ButtonInteractFeedback();
 
 
+	//  trigger standard or automatic behavior on linked supports
 	for (auto& LinkAutoR : LinkedRotSupportsAutomaticVerified)
 	{
 		LinkAutoR.RotationAutomaticComponent->TriggerAutoRotInteraction(LinkAutoR.InteractionDatas);
@@ -170,8 +169,9 @@ bool AMovSysButton::CanInteract_Implementation()
 
 
 
-//  button is not a heavy interactable
-
+// ======================================================
+//        Interaction Interface (Heavy and other)
+// ======================================================
 bool AMovSysButton::IsInteractionHeavy_Implementation()
 {
 	return false;
@@ -183,4 +183,9 @@ void AMovSysButton::InteractionHeavyUpdate_Implementation(FVector2D ControlValue
 
 void AMovSysButton::InteractionHeavyFinished_Implementation()
 {
+}
+
+bool AMovSysButton::IsInteractableBothSides_Implementation()
+{
+	return false;
 }

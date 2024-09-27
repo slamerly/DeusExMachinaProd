@@ -22,6 +22,8 @@ void AMovSysWheel::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//  check validity of supports linked and their controlled behavior components
+
 	for (auto& LinkCtrlR : LinkedRotSupportsControlled)
 	{
 		if (!IsValid(LinkCtrlR.RotationSupport)) continue; //  do not check if there is no rotation support linked
@@ -55,6 +57,9 @@ void AMovSysWheel::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 	//  check if the property changed is the rotation support or the translation support in a link
 	if (!(PropertyChangedEvent.GetPropertyName() == FName("RotationSupport") || PropertyChangedEvent.GetPropertyName() == FName("TranslationSupport"))) return;
 
+
+	//  check if supports linked have a controlled behavior component
+
 	for (auto& LinkCtrlR : LinkedRotSupportsControlled)
 	{
 		if (!IsValid(LinkCtrlR.RotationSupport)) continue; //  do not check if there is no rotation support linked
@@ -81,14 +86,18 @@ void AMovSysWheel::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 
 
 // ======================================================
-//                Interaction Interface
+//          Interaction Interface (Interaction)
 // ======================================================
+
+//          Start Interaction
+// -------------------------------------------
 void AMovSysWheel::Interaction_Implementation()
 {
+	//  check already in control
 	if (bInControl) return;
-
 	bInControl = true;
 
+	//  start controlled behavior on linked supports
 	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
 		LinkCtrlR.RotationControlledComponent->StartControlledRotation(LinkCtrlR.ControlDatas);
@@ -99,26 +108,20 @@ void AMovSysWheel::Interaction_Implementation()
 		LinkCtrlT.TranslationControlledComponent->StartControlledTranslation(LinkCtrlT.ControlDatas);
 	}
 
+	//  visual feedback in blueprint
 	WheelStartFeedback();
 }
 
-bool AMovSysWheel::CanInteract_Implementation()
-{
-	return !IsInteractableDisabled();
-}
 
-bool AMovSysWheel::IsInteractionHeavy_Implementation()
-{
-	return true;
-}
-
+//          Update Interaction
+// -------------------------------------------
 void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
 {
+	//  check in control
 	if (!bInControl) return;
 
+	//  compute control value depending of the mode
 	float ComputedControlValue = 0.0f;
-	bool ControlClamp = true;
-
 	if (bActivateAdvancedJoystickControl)
 	{
 		ComputedControlValue = GetAdvancedJoystickControl(ControlValue);
@@ -128,6 +131,8 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
 		ComputedControlValue = ControlValue.X;
 	}
 
+	//  update controlled behavior on linked supports and check if this control cause clamp
+	bool ControlClamp = true;
 	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
 		ControlClamp = ControlClamp && LinkCtrlR.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
@@ -139,18 +144,23 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue)
 	}
 
 
-	if (!ControlClamp)
+	if (!ControlClamp) //  has the wheel been clamped in its control this frame
 	{
+		//  visual feedback in blueprint
 		WheelControlFeedback(ComputedControlValue);
 	}
 }
 
+
+//          Finish Interaction
+// -------------------------------------------
 void AMovSysWheel::InteractionHeavyFinished_Implementation()
 {
+	//  check in control
 	if (!bInControl) return;
-
 	bInControl = false;
 
+	//  finish controlled behavior on linked supports
 	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
 		LinkCtrlR.RotationControlledComponent->StopControlledRotation();
@@ -161,27 +171,56 @@ void AMovSysWheel::InteractionHeavyFinished_Implementation()
 		LinkCtrlT.TranslationControlledComponent->StopControlledTranslation();
 	}
 
+	//  visual feedback in blueprint
 	WheelStopFeedback();
 }
 
+
+
+// ======================================================
+//            Interaction Interface (Getters)
+// ======================================================
+bool AMovSysWheel::CanInteract_Implementation()
+{
+	return !IsInteractableDisabled();
+}
+
+bool AMovSysWheel::IsInteractionHeavy_Implementation()
+{
+	return true;
+}
 bool AMovSysWheel::IsInteractableBothSides_Implementation()
 {
 	return false;
 }
 
+
+
+// ======================================================
+//          Mov Sys Interactable Base (override)
+// ======================================================
 void AMovSysWheel::ForceReleaseInteractable()
 {
 	InteractionHeavyFinished_Implementation();
 }
 
+
+
+// ======================================================
+//               Advanced Joystick Control
+// ======================================================
 float AMovSysWheel::GetAdvancedJoystickControl(const FVector2D JoystickValue)
 {
 	if (JoystickValue.IsZero()) return 0.0f;
 
+	//  compute the joystick angle
 	const float NewJoystickAngle = UKismetMathLibrary::DegAcos(UKismetMathLibrary::DotProduct2D(JoystickValue, FVector2D::UnitY())) * 
 		(JoystickValue.X < 0.0f ? -1.0f : 1.0f);
 
+	//  compute the delta between the last joystick angle and the new one
 	const float JoystickDelta = UAnglesUtils::SignedDeltaAngle(JoystickAngle, NewJoystickAngle);
+	
+	//  set control value if the delta is in the correct range
 	float JoystickControl = 0.0f;
 	if (FMath::Abs(JoystickDelta) > 5.0f && FMath::Abs(JoystickDelta) < 45.0f)
 	{
@@ -191,6 +230,7 @@ float AMovSysWheel::GetAdvancedJoystickControl(const FVector2D JoystickValue)
 	JoystickAngle = NewJoystickAngle;
 	if (JoystickControl != 0.0f)
 	{
+		//  if the control is valid this frame, replace last control and reset the forgot timer
 		JoystickLastControl = JoystickControl;
 		JoystickForgotTime = UKismetSystemLibrary::GetGameTimeInSeconds(this);
 
@@ -198,6 +238,7 @@ float AMovSysWheel::GetAdvancedJoystickControl(const FVector2D JoystickValue)
 	}
 	else
 	{
+		//  if the control is invalid this frame, return the last control if the forgot timer is low, else return 0
 		if (UKismetSystemLibrary::GetGameTimeInSeconds(this) - JoystickForgotTime < 0.2f)
 		{
 			return JoystickLastControl;

@@ -11,10 +11,11 @@
 // ======================================================
 //                    Constructor
 // ======================================================
-
 ATranslationSupport::ATranslationSupport()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+
+	//  create default components
 
 	SceneRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SceneRootComponent->SetupAttachment(GetRootComponent());
@@ -33,16 +34,16 @@ ATranslationSupport::ATranslationSupport()
 // ======================================================
 void ATranslationSupport::BeginPlay()
 {
+	//  call parent begin play to compute self movable
+	Super::BeginPlay();
+
 	//  'EditorSplineIndex' serve as a begin play spline index, initialize 'InnerSplineIndex' with it
 	InnerSplineIndex = EditorSplineIndex % TranslationSpline->GetNumberOfSplinePoints();
 	ProgressToNextIndex = 0.0f;
 	ComputeDistanceFromSplineOrigin();
 
-	//  reset the relative location of rotation base to prevent unexpeced behavior in game
+	//  reset the relative location of rotation base to prevent unexpected behavior in game
 	TranslationBase->SetRelativeLocation(TranslationSpline->GetLocationAtSplinePoint(EditorSplineIndex, ESplineCoordinateSpace::Local));
-
-	//  call parent begin play after reseting the translation base so that the computation of StartTransform is correct
-	Super::BeginPlay();
 
 	//  hide support and remove collision (if necessary)
 	TranslationBase->SetHiddenInGame(bDisableSupportVisibility);
@@ -53,33 +54,10 @@ void ATranslationSupport::BeginPlay()
 }
 
 
-// ======================================================
-//                        Tick
-// ======================================================
-void ATranslationSupport::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 
 // ======================================================
-//                  Inner Translation
+//             Inner Translation Functions
 // ======================================================
-float ATranslationSupport::GetDistanceFromSplineOrigin() const
-{
-	return DistanceFromSplineOrigin;
-}
-
-int ATranslationSupport::GetInnerSplineIndex() const
-{
-	return InnerSplineIndex;
-}
-
-float ATranslationSupport::GetProgressToNextIndex() const
-{
-	return ProgressToNextIndex;
-}
-
 void ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd)
 {
 	//  compute the distance on the spline from the spline origin
@@ -159,10 +137,60 @@ void ATranslationSupport::ForcePositionOnSpline(const int SplineIndex, const flo
 	ComputeInnerTransform();
 }
 
+
+
+// ======================================================
+//           Compute Inner Translation Helpers
+// ======================================================
 void ATranslationSupport::ComputeInnerTransform()
 {
+	//  simply set the relative location to the current location on the spline
 	TranslationBase->SetRelativeLocation(TranslationSpline->GetLocationAtDistanceAlongSpline(DistanceFromSplineOrigin, ESplineCoordinateSpace::Local));
 }
+
+void ATranslationSupport::ComputeDistanceFromSplineOrigin()
+{
+	//  compute distance from spline origin from inner spline index and progress to next index
+	const float DistanceOriginToInner = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(InnerSplineIndex);
+	const float DistanceInnerToNext = GetSplineDistanceAToB(InnerSplineIndex, GetNextSplineIndex(InnerSplineIndex));
+	DistanceFromSplineOrigin = DistanceOriginToInner + (DistanceInnerToNext * ProgressToNextIndex);
+}
+
+void ATranslationSupport::ComputeInnerIndexAndProgress()
+{
+	//  compute inner spline index and progress to next index with distance from spline origin
+	float EvaluateIndex = 0;
+	while (DistanceFromSplineOrigin >= TranslationSpline->GetDistanceAlongSplineAtSplinePoint(EvaluateIndex))
+	{
+		EvaluateIndex++;
+	}
+	InnerSplineIndex = EvaluateIndex - 1;
+
+	const float DistanceInnerToNext = GetSplineDistanceAToB(InnerSplineIndex, GetNextSplineIndex(InnerSplineIndex)); //  distance between the spline point at 'InnerSplineIndex' and the next spline point
+	const float DistanceInnerToCurr = DistanceFromSplineOrigin - TranslationSpline->GetDistanceAlongSplineAtSplinePoint(InnerSplineIndex); //  distance between the spline point at 'InnerSplineIndex' and the real position of the support on the spline
+	ProgressToNextIndex = DistanceInnerToCurr / DistanceInnerToNext;
+}
+
+
+
+// ======================================================
+//               Inner Translation Getters
+// ======================================================
+float ATranslationSupport::GetDistanceFromSplineOrigin() const
+{
+	return DistanceFromSplineOrigin;
+}
+
+int ATranslationSupport::GetInnerSplineIndex() const
+{
+	return InnerSplineIndex;
+}
+
+float ATranslationSupport::GetProgressToNextIndex() const
+{
+	return ProgressToNextIndex;
+}
+
 
 
 // ======================================================
@@ -212,8 +240,9 @@ float ATranslationSupport::ClampMovementBetweenSplinePoints(const float Movement
 		return Movement;
 	}
 
-	return Movement;
+	return Movement; //  for the compiler
 }
+
 
 
 // ======================================================
@@ -226,10 +255,14 @@ int ATranslationSupport::SearchNearestSplinePointToSnap(const float InputDistanc
 	while (InputDistanceOnSpline >= TranslationSpline->GetDistanceAlongSplineAtSplinePoint(EvaluateIndex))
 	{
 		EvaluateIndex++;
+		if (EvaluateIndex >= TranslationSpline->GetNumberOfSplinePoints()) return 0; //  security
 	}
-	const float LowerSnap = EvaluateIndex - 1;
+
+	//  retrieve snap points that are around the 'InputDistanceOnSpline'
+	const float LowerSnap = GetPrevSplineIndex(EvaluateIndex);
 	const float HigherSnap = GetNextSplineIndex(LowerSnap);
 
+	//  compute the progress of 'InputDistanceOnSpline' between found snap points 
 	const float DistanceLowerToHigher = GetSplineDistanceAToB(LowerSnap, HigherSnap); //  distance between the lower snap point and the higher snap point
 	const float DistanceLowerToInputDist = InputDistanceOnSpline - TranslationSpline->GetDistanceAlongSplineAtSplinePoint(LowerSnap); //  distance between the lower spline point and the inputed distance on spline
 	const float SnapProgress = DistanceLowerToInputDist / DistanceLowerToHigher;
@@ -252,8 +285,9 @@ int ATranslationSupport::SearchNearestSplinePointToSnap(const float InputDistanc
 }
 
 
+
 // ======================================================
-//                   Utility Functions
+//                Spline Distance Functions
 // ======================================================
 float ATranslationSupport::GetSplineDistanceToNextSplinePoint()
 {
@@ -262,35 +296,44 @@ float ATranslationSupport::GetSplineDistanceToNextSplinePoint()
 
 float ATranslationSupport::GetSplineDistanceToPoint(const int SplineIndexA)
 {
+	//  compute distance from inner spline position to spline index A
 	const float DistanceOA = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(SplineIndexA);
-
 	float DistanceIA = DistanceOA - DistanceFromSplineOrigin; //  I for inner
-	if (DistanceIA < 0.0f) DistanceIA += TranslationSpline->GetSplineLength();
 
+	//  if spline index A was before inner spline position in the spline direction, return the distance including the loop of the spline
+	if (DistanceIA < 0.0f) DistanceIA += TranslationSpline->GetSplineLength();
 	return DistanceIA;
 }
 
 float ATranslationSupport::GetSplineDistanceToPointReversed(const int SplineIndexA)
 {
+	//  compute distance from spline index A to inner spline position 
+	//  (gives the distance from inner spline pos to index A but going in the reverse direction of the spline)
 	const float DistanceOA = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(SplineIndexA);
-
 	float DistanceAI = DistanceFromSplineOrigin - DistanceOA; //  I for inner
-	if (DistanceAI < 0.0f) DistanceAI += TranslationSpline->GetSplineLength();
 
+	//  if inner spline position was before spline index A in the spline direction, return the distance including the loop of the spline
+	if (DistanceAI < 0.0f) DistanceAI += TranslationSpline->GetSplineLength();
 	return DistanceAI;
 }
 
 float ATranslationSupport::GetSplineDistanceAToB(const int SplineIndexA, const int SplineIndexB)
 {
+	//  compute distance from spline index A to spline index B
 	const float DistanceOA = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(SplineIndexA);
 	const float DistanceOB = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(SplineIndexB);
-
 	float DistanceAB = DistanceOB - DistanceOA;
-	if (DistanceAB < 0.0f) DistanceAB += TranslationSpline->GetSplineLength();
 
+	//  if spline index B was before spline index A in the spline direction, return the distance including the loop of the spline
+	if (DistanceAB < 0.0f) DistanceAB += TranslationSpline->GetSplineLength();
 	return DistanceAB;
 }
 
+
+
+// ======================================================
+//                     Spline Getters
+// ======================================================
 int ATranslationSupport::GetNextSplineIndex(const int SplineIndex)
 {
 	return (SplineIndex + 1) % TranslationSpline->GetNumberOfSplinePoints();
@@ -299,7 +342,7 @@ int ATranslationSupport::GetNextSplineIndex(const int SplineIndex)
 int ATranslationSupport::GetPrevSplineIndex(const int SplineIndex)
 {
 	int PrevSplinePoint = (SplineIndex - 1) % TranslationSpline->GetNumberOfSplinePoints();
-	if (PrevSplinePoint < 0) PrevSplinePoint += TranslationSpline->GetNumberOfSplinePoints();
+	if (PrevSplinePoint < 0) PrevSplinePoint += TranslationSpline->GetNumberOfSplinePoints(); //  modulo does not goes back above 0
 	return PrevSplinePoint;
 }
 
@@ -313,67 +356,26 @@ float ATranslationSupport::GetFullSplineLength()
 	return TranslationSpline->GetSplineLength();
 }
 
-void ATranslationSupport::ComputeDistanceFromSplineOrigin()
-{
-	//  compute distance from spline origin from inner spline index and progress to next index
-	const float DistanceOriginToInner = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(InnerSplineIndex);
-	const float DistanceInnerToNext = GetSplineDistanceAToB(InnerSplineIndex, GetNextSplineIndex(InnerSplineIndex));
-	DistanceFromSplineOrigin = DistanceOriginToInner + (DistanceInnerToNext * ProgressToNextIndex);
-}
-
-void ATranslationSupport::ComputeInnerIndexAndProgress()
-{
-	//  compute inner spline index and progress to next index with distance from spline origin
-	float EvaluateIndex = 0;
-	while (DistanceFromSplineOrigin >= TranslationSpline->GetDistanceAlongSplineAtSplinePoint(EvaluateIndex))
-	{
-		EvaluateIndex++;
-	}
-	InnerSplineIndex = EvaluateIndex - 1;
-
-	const float DistanceInnerToNext = GetSplineDistanceAToB(InnerSplineIndex, GetNextSplineIndex(InnerSplineIndex)); //  distance between the spline point at 'InnerSplineIndex' and the next spline point
-	const float DistanceInnerToCurr = DistanceFromSplineOrigin - TranslationSpline->GetDistanceAlongSplineAtSplinePoint(InnerSplineIndex); //  distance between the spline point at 'InnerSplineIndex' and the real position of the support on the spline
-	ProgressToNextIndex = DistanceInnerToCurr / DistanceInnerToNext;
-}
 
 
 // ======================================================
-//                   Get Transform
+//            Moving Support Base Functions
 // ======================================================
 FTransform ATranslationSupport::GetObjectTransform()
 {
 	return TranslationBase->GetComponentTransform();
 }
 
-// ======================================================
-//                  Utility (Moving Base)
-// ======================================================
 bool ATranslationSupport::IsCurrentlyMoving()
 {
 	return CurrentTranslationState != ETranslationState::NotMoving;
 }
 
-bool ATranslationSupport::GetPlayerInRange(FVector PlayerPosition)
-{
-	return false;
-}
-
 
 
 // ======================================================
-//                     Level Editor
+//                     Spline Visual
 // ======================================================
-void ATranslationSupport::ApplyEditorValues()
-{
-	EditorSplineIndex = EditorSplineIndex % TranslationSpline->GetNumberOfSplinePoints();
-
-	ComputeChildrensOffsetEditor();
-
-	TranslationBase->SetRelativeLocation(TranslationSpline->GetLocationAtSplinePoint(EditorSplineIndex, ESplineCoordinateSpace::Local));
-
-	ApplyChildLevelEditor();
-}
-
 void ATranslationSupport::UpdateSplinePointsVisual()
 {
 	//  reset the spline point visual arrows array
@@ -402,4 +404,20 @@ void ATranslationSupport::UpdateSplinePointsVisual()
 		SplineArrowComp->SetWorldRotation(FRotator{ -90.0f, 0.0f, 0.0f });
 		SplineArrowComp->SetWorldLocation(TranslationSpline->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World) + (FVector::UpVector * 30.0f));
 	}
+}
+
+
+
+// ======================================================
+//                     Level Editor
+// ======================================================
+void ATranslationSupport::ApplyEditorValues()
+{
+	EditorSplineIndex = EditorSplineIndex % TranslationSpline->GetNumberOfSplinePoints();
+
+	ComputeChildrensOffsetEditor();
+
+	TranslationBase->SetRelativeLocation(TranslationSpline->GetLocationAtSplinePoint(EditorSplineIndex, ESplineCoordinateSpace::Local));
+
+	ApplyChildLevelEditor();
 }

@@ -15,7 +15,7 @@ void URotationBehaviorControlled::BeginPlay()
 
 	SetComponentTickEnabled(false);
 
-	InitializeOwner();
+	InitializeOwner(); //  RotationBehaviorBase
 }
 
 
@@ -39,13 +39,15 @@ void URotationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick Tick
 	SnapTimer += DeltaTime;
 	if (SnapTimer >= SnapDuration)
 	{
-		SnapTimer = SnapDuration;
+		//  snap timer finished, stop movement
+		OwnerRotSupport->ForceInnerRotation(SnapAngleDest, true); //  reposition support to snap angle (security)
 
 		SetComponentTickEnabled(false);
 		CurrentState = EControlledRotationState::Inactive;
 
 		OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
 		OwnerRotSupport->StopMovementOnChildrens();
+		return;
 	}
 	
 	const float DesiredSnapAngle = FMath::Lerp<float, float>(SnapAngleDest, SnapAngleStart, SnapCurve->GetFloatValue(SnapTimer / SnapDuration));
@@ -134,6 +136,7 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 	//  check validity
 	if (!bOwnerRotSupportValid) return false;
 
+	//  preparation
 	const float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
 	bool TriggeredClamp = false;
 	float DesiredAngleAdd = 0.0f;
@@ -141,9 +144,11 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 	switch (CurrentState)
 	{
 	case EControlledRotationState::ControlStartup:
+		//  startup phase, interpolate movement with the curve
 		StartupTimer += DeltaTime;
 		if (StartupTimer >= StartupDuration)
 		{
+			//  startup finished, switch to normal control
 			StartupTimer = StartupDuration;
 			CurrentState = EControlledRotationState::Control;
 		}
@@ -152,24 +157,39 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 		break;
 
 	case EControlledRotationState::Control:
+		//  normal control
 		DesiredAngleAdd = ControlValue * RotationSpeed * DeltaTime;
 		break;
 	}
 
+	//  apply controlled rotation with checking clamp
 	TriggeredClamp = OwnerRotSupport->AddInnerRotation(DesiredAngleAdd, true);
 
 
-	if (ControlValue == 0.0f) //  The player stopped the rotation (joystick) but kept the control (interaction button)
-	{
-		if (bUseStartup) //  reset the startup (if using startup)
+	//  manage startup and last inputed direction depending of wether or not the player used the joystick this frame
+	if (ControlValue == 0.0f)
+	{ 
+		//  the player stopped the rotation (joystick) but kept the control (interaction button)
+		if (bUseStartup)
 		{
+			//  reset the startup (if using startup)
 			StartupTimer = 0.0f;
 			CurrentState = EControlledRotationState::ControlStartup;
 		}
 	}
 	else
 	{
-		LastInputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(RotationSpeed);
+		//  player used joystick, set last inputed direction values
+		const int InputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(RotationSpeed);
+
+		if ((InputedDirection != LastInputedDirection) && bUseStartup)
+		{
+			//  the player reversed its direction, so reset the startup (if using startup)
+			StartupTimer = 0.0f;
+			CurrentState = EControlledRotationState::ControlStartup;
+		}
+
+		LastInputedDirection = InputedDirection;
 		LastInputedDirectionTimer = Cast<IPlayerControllerInterface>(UGameplayStatics::GetPlayerController(OwnerRotSupport, 0))->GetControlDirectionDelay();
 	}
 
@@ -182,6 +202,7 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 // ======================================================
 bool URotationBehaviorControlled::IsControlledRotValid(FControlledRotationDatas Datas)
 {
+	//  check validity of the controlled rotation values
 	if (!Datas.IsDataValid()) return false;
 
 	return Datas.GetRotationSpeed() != 0.0f;
@@ -189,6 +210,7 @@ bool URotationBehaviorControlled::IsControlledRotValid(FControlledRotationDatas 
 
 bool URotationBehaviorControlled::IsStartupValid(FControlledRotationDatas Datas)
 {
+	//  check validity of the startup values
 	if (!Datas.IsDataValid()) return false;
 
 	return Datas.GetStartupDuration() > 0.0f && IsValid(Datas.GetStartupCurve());

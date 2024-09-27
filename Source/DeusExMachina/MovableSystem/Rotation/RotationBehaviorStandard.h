@@ -25,7 +25,16 @@ public:
 //              Control Standard Rotation
 // ======================================================
 public:
+	/**
+	* Function to call to start the standard rotation of this component.
+	* @param	Datas			The standard rotation datas
+	* @param	bForceStart		(optionnal) Force the standard rotation to start even if the component is already performing a standard rotation
+	*/
 	void StartStandardRotation(struct FStandardRotationDatas Datas, bool bForceStart = false);
+
+	/**
+	* Function to call to stop every movement of this component.
+	*/
 	void CancelStandardRotation();
 
 
@@ -46,6 +55,7 @@ protected:
 	float RotationTimer{ 0.0f };
 	float RotationAngle{ 0.0f };
 	UCurveFloat* RotationCurve{ nullptr };
+	int DestinationAngle{ 0 };
 
 	float LastFrameRotAngle{ 0.0f };
 };

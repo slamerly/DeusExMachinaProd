@@ -31,6 +31,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 
+
 // ======================================================
 //             Control Controlled Translation
 // ======================================================
@@ -70,21 +71,35 @@ protected:
 // ======================================================
 protected:
 	EControlledTranslationState CurrentState{ EControlledTranslationState::Inactive };
-
 	FControlledTranslationDatas CurrentDatas;
 
+	// =====================
+	//  Controlled Speed
+	// =====================
 	float TranslationSpeed{ 0.0f };
 
+	// =====================
+	//  Last input direction
+	// =====================
 	int LastInputedDirection{ 0 };
 	float LastInputedDirectionTimer{ 0.0f };
 
+
+	// =====================
+	//  Startup
+	// =====================
 	bool bUseStartup{ false };
 	float StartupDuration{ 0.0f };
 	float StartupTimer{ 0.0f };
 	UCurveFloat* StartupCurve{ nullptr };
 
+
+	// =====================
+	//  Snap
+	// =====================
 	float SnapDistance{ 0.0f };
 	float SnapDistanceDone{ 0.0f };
+	int SnapPointDest{ 0 };
 	float SnapDuration{ 0.0f };
 	float SnapTimer{ 0.0f };
 	UCurveFloat* SnapCurve{ nullptr };

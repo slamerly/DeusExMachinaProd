@@ -11,6 +11,10 @@ void AMovSysInteractableBase::BeginPlay()
 }
 
 
+
+// ======================================================
+//              Interactable Disable
+// ======================================================
 void AMovSysInteractableBase::DisableInteractable()
 {
 	bDisabled = true;
@@ -26,7 +30,10 @@ bool AMovSysInteractableBase::IsInteractableDisabled()
 	return bDisabled;
 }
 
+
+// ======================================================
+//                 Made to be overriden
+// ======================================================
 void AMovSysInteractableBase::ForceReleaseInteractable()
 {
-	//  made to be overriden
 }

@@ -10,6 +10,7 @@ class UStaticMeshComponent;
 class USplineComponentPlus;
 class UArrowComponent;
 
+
 UENUM()
 enum class ETranslationState : uint8
 {
@@ -31,9 +32,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
-
 
 
 // ======================================================
@@ -52,13 +50,9 @@ protected:
 
 
 // ======================================================
-//               Inner Rotation Functions
+//              Inner Translation Functions
 // ======================================================
 public:
-	float GetDistanceFromSplineOrigin() const;
-	int GetInnerSplineIndex() const;
-	float GetProgressToNextIndex() const;
-
 	/**
 	* Add a translation distance to this Translation Support along its spline.
 	* @param	TranslationAdd				The translation value you want to add.
@@ -78,8 +72,25 @@ public:
 	*/
 	void ForcePositionOnSpline(const int SplineIndex, const float ProgressToNextPoint = 0.0f);
 
+
+
+// ======================================================
+//            Compute Inner Translation Helpers
+// ======================================================
 protected:
 	void ComputeInnerTransform();
+	void ComputeDistanceFromSplineOrigin();
+	void ComputeInnerIndexAndProgress();
+
+
+
+// ======================================================
+//              Inner Translation Getters
+// ======================================================
+public:
+	float GetDistanceFromSplineOrigin() const;
+	int GetInnerSplineIndex() const;
+	float GetProgressToNextIndex() const;
 
 
 
@@ -115,7 +126,7 @@ public:
 
 
 // ======================================================
-//                   Utility Functions
+//              Spline Distance Functions
 // ======================================================
 public:
 	/** Get the distance along spline from the support actual position to the next point on its spline. */
@@ -131,36 +142,33 @@ public:
 	float GetSplineDistanceAToB(const int SplineIndexA, const int SplineIndexB);
 
 
+
+// ======================================================
+//                   Spline Getters
+// ======================================================
+public:
 	int GetNextSplineIndex(const int SplineIndex);
 	int GetPrevSplineIndex(const int SplineIndex);
 
 	int GetNumberOfSplinePoints();
 	float GetFullSplineLength();
 
-protected:
-	void ComputeDistanceFromSplineOrigin();
-	void ComputeInnerIndexAndProgress();
-
 
 
 // ======================================================
-//                 Overrided Functions
+//            Moving Support Base Functions
 // ======================================================
 public:
-	// ====================
-	//      Transform
-	// ====================
 	FTransform GetObjectTransform() override;
-
-	// ====================
-	//   Support Movement
-	// ====================
 	bool IsCurrentlyMoving() override;
 
-	// ====================
-	//    Debug Movement
-	// ====================
-	bool GetPlayerInRange(FVector PlayerPosition) override;
+
+
+// ======================================================
+//                Spline Visual Function
+// ======================================================
+protected:
+	void UpdateSplinePointsVisual();
 
 
 
@@ -178,7 +186,7 @@ public:
 
 
 // ======================================================
-//            Editable Rot Support Variables
+//           Editable Trans Support Variables
 // ======================================================
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Translation Support", meta = (Tooltip = "Hide the translation base mesh component in game."))
@@ -199,8 +207,6 @@ protected:
 // ======================================================
 protected:
 	void ApplyEditorValues() override;
-
-	void UpdateSplinePointsVisual();
 
 
 

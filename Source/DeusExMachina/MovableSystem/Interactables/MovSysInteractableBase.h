@@ -16,14 +16,29 @@ protected:
 	virtual void BeginPlay() override;
 
 
+
+// ======================================================
+//               Non-overridable Functions
+// ======================================================
 public:
+	// ======================
+	//  Disable Interactable
+	// ======================
 	void DisableInteractable();
 	void EnableInteractable();
 	bool IsInteractableDisabled();
 
+
+// ======================================================
+//                Overridable Functions
+// ======================================================
+public:
 	virtual void ForceReleaseInteractable();
 
-	
+
+// ======================================================
+//                      Variables
+// ======================================================
 protected:
 	bool bDisabled{ false };
 };

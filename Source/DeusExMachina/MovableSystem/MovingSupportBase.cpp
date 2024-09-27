@@ -27,6 +27,7 @@ void AMovingSupportBase::BeginPlay()
 
 void AMovingSupportBase::Tick(float DeltaTime)
 {
+	//  manage stop movement pending
 	if (StopMovementPending <= 0) return;
 	StopMovementPending--;
 	if (StopMovementPending > 0) return;

@@ -91,8 +91,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
-
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 
@@ -107,6 +105,8 @@ public:
 	bool IsInteractionHeavy_Implementation() override;
 	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue) override;
 	void InteractionHeavyFinished_Implementation() override;
+
+	bool IsInteractableBothSides_Implementation() override;
 
 
 // ======================================================

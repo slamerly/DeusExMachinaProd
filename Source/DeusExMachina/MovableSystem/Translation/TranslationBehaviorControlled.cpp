@@ -16,7 +16,7 @@ void UTranslationBehaviorControlled::BeginPlay()
 
 	SetComponentTickEnabled(false);
 
-	InitializeOwner();
+	InitializeOwner(); //  TranslationBehaviorBase
 }
 
 
@@ -40,13 +40,15 @@ void UTranslationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick T
 	SnapTimer += DeltaTime;
 	if (SnapTimer >= SnapDuration)
 	{
-		SnapTimer = SnapDuration;
+		//  snap timer finished, stop movement
+		OwnerTransSupport->ForcePositionOnSpline(SnapPointDest, 0.0f); //  reposition support to snap point (security)
 
 		SetComponentTickEnabled(false);
 		CurrentState = EControlledTranslationState::Inactive;
 
 		OwnerTransSupport->CurrentTranslationState = ETranslationState::NotMoving;
 		OwnerTransSupport->StopMovementOnChildrens();
+		return;
 	}
 
 	const float DistanceDone = FMath::Lerp<float, float>(SnapDistance, 0.0f, SnapCurve->GetFloatValue(SnapTimer / SnapDuration));
@@ -108,14 +110,14 @@ void UTranslationBehaviorControlled::StopControlledTranslation(bool DontTriggerS
 	if (!DontTriggerSnap && IsSnapValid(CurrentDatas))
 	{
 		//  compute and set snap values
-		const int SnapIndex = OwnerTransSupport->SearchNearestSplinePointToSnap(OwnerTransSupport->GetDistanceFromSplineOrigin(), CurrentDatas.GetSnapPreference());
-		if (SnapIndex == OwnerTransSupport->GetInnerSplineIndex()) //  snap going in the opposite of spline direction
+		SnapPointDest = OwnerTransSupport->SearchNearestSplinePointToSnap(OwnerTransSupport->GetDistanceFromSplineOrigin(), CurrentDatas.GetSnapPreference());
+		if (SnapPointDest == OwnerTransSupport->GetInnerSplineIndex()) //  snap going in the opposite of spline direction
 		{
-			SnapDistance = OwnerTransSupport->GetSplineDistanceToPointReversed(SnapIndex) * -1.0f; //  need to store a negatve distance so the snap will go in the correct direction
+			SnapDistance = OwnerTransSupport->GetSplineDistanceToPointReversed(SnapPointDest) * -1.0f; //  need to store a negatve distance so the snap will go in the correct direction
 		}
 		else //  snap going in the spline direction
 		{
-			SnapDistance = OwnerTransSupport->GetSplineDistanceToPoint(SnapIndex);
+			SnapDistance = OwnerTransSupport->GetSplineDistanceToPoint(SnapPointDest);
 		}
 		SnapDistanceDone = 0.0f;
 		SnapDuration = FMath::Abs(SnapDistance) / CurrentDatas.GetSnapSpeed();
@@ -143,6 +145,7 @@ bool UTranslationBehaviorControlled::UpdateControlledTranslation(float ControlVa
 	//  check validity
 	if (!bOwnerTransSupportValid) return false;
 
+	//  preparation
 	const float DeltaTime = UGameplayStatics::GetWorldDeltaSeconds(this);
 	bool TriggeredClamp = false;
 	float DesiredDistAdd = 0.0f;
@@ -150,9 +153,11 @@ bool UTranslationBehaviorControlled::UpdateControlledTranslation(float ControlVa
 	switch (CurrentState)
 	{
 	case EControlledTranslationState::ControlStartup:
+		//  startup phase, interpolate movement with curve
 		StartupTimer += DeltaTime;
 		if (StartupTimer >= StartupDuration)
 		{
+			//  startup finished, switch to normal control
 			StartupTimer = StartupDuration;
 			CurrentState = EControlledTranslationState::Control;
 		}
@@ -161,30 +166,43 @@ bool UTranslationBehaviorControlled::UpdateControlledTranslation(float ControlVa
 		break;
 
 	case EControlledTranslationState::Control:
+		//  normal control
 		DesiredDistAdd = ControlValue * TranslationSpeed * DeltaTime;
 		break;
 	}
 
 	//  clamp 'DesiredDistAdd' between spline points 0 and 1
 	DesiredDistAdd = OwnerTransSupport->ClampMovementBetweenSplinePoints(DesiredDistAdd, 0, 1);
+	if (FMath::IsNearlyZero(DesiredDistAdd)) TriggeredClamp = true; //  if the clamped 'DesiredDistAdd' is nearly zero, it means that clamped have taken effect
 
-	if (FMath::IsNearlyZero(DesiredDistAdd)) TriggeredClamp = true;
-
-
+	//  apply controled translation
 	OwnerTransSupport->AddTranslationAlongSpline(DesiredDistAdd);
 
-
-	if (ControlValue == 0.0f) //  The player stopped the rotation (joystick) but kept the control (interaction button)
+	
+	//  manage startup and last inputed direction depending of wether or not the player used the joystick this frame
+	if (ControlValue == 0.0f) 
 	{
-		if (bUseStartup) //  reset the startup (if using startup)
+		//  the player stopped the rotation (joystick) but kept the control (interaction button)
+		if (bUseStartup) 
 		{
+			//  reset the startup (if using startup)
 			StartupTimer = 0.0f;
 			CurrentState = EControlledTranslationState::ControlStartup;
 		}
 	}
 	else
 	{
-		LastInputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(TranslationSpeed);
+		//  player used joystick, set last inputed direction values
+		const int InputedDirection = FMath::Sign<float>(ControlValue) * FMath::Sign<float>(TranslationSpeed);
+
+		if ((InputedDirection != LastInputedDirection) && bUseStartup)
+		{
+			//  the player reversed its direction, so reset the startup (if using startup)
+			StartupTimer = 0.0f;
+			CurrentState = EControlledTranslationState::ControlStartup;
+		}
+
+		LastInputedDirection = InputedDirection;
 		LastInputedDirectionTimer = Cast<IPlayerControllerInterface>(UGameplayStatics::GetPlayerController(OwnerTransSupport, 0))->GetControlDirectionDelay();
 	}
 
@@ -197,6 +215,7 @@ bool UTranslationBehaviorControlled::UpdateControlledTranslation(float ControlVa
 // ======================================================
 bool UTranslationBehaviorControlled::IsControlledTransValid(FControlledTranslationDatas Datas)
 {
+	//  check validity of the controlled translation values
 	if (!Datas.IsDataValid()) return false;
 
 	return Datas.GetTranslationSpeed() != 0.0f;
@@ -204,6 +223,7 @@ bool UTranslationBehaviorControlled::IsControlledTransValid(FControlledTranslati
 
 bool UTranslationBehaviorControlled::IsStartupValid(FControlledTranslationDatas Datas)
 {
+	//  check validity of the startup values
 	if (!Datas.IsDataValid()) return false;
 
 	return Datas.GetStartupDuration() > 0.0f && IsValid(Datas.GetStartupCurve());
@@ -211,6 +231,7 @@ bool UTranslationBehaviorControlled::IsStartupValid(FControlledTranslationDatas 
 
 bool UTranslationBehaviorControlled::IsSnapValid(FControlledTranslationDatas Datas)
 {
+	//  check validity of the snap values
 	if (!Datas.IsDataValid()) return false;
 	if (!Datas.GetUseSnap()) return false;
 	
