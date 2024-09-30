@@ -30,11 +30,13 @@ public:
 	* @param	Datas			The standard rotation datas
 	* @param	bForceStart		(optionnal) Force the standard rotation to start even if the component is already performing a standard rotation
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Standard Rotation")
 	void StartStandardRotation(struct FStandardRotationDatas Datas, bool bForceStart = false);
 
 	/**
 	* Function to call to stop every movement of this component.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Standard Rotation")
 	void CancelStandardRotation();
 
 

@@ -293,6 +293,12 @@ void URotationBehaviorAutomatic::TriggerAutoRotInteraction(FAutoRotInteractionDa
 // ======================================================
 //                   Helper Functions
 // ======================================================
+EAutomaticRotationType URotationBehaviorAutomatic::GetAutoRotationType()
+{
+	if (IsAutomaticStopValid()) return EAutomaticRotationType::StopOnAngles;
+	return EAutomaticRotationType::AutomaticRotation;
+}
+
 bool URotationBehaviorAutomatic::IsAutomaticStopValid()
 {
 	//  check automatic rotation type is automatic stop

@@ -47,24 +47,30 @@ protected:
 public:
 	/**
 	* Function to call to start the automatic rotation with stop on this component. Also used to restart the rotation after the auto stop.
+	* Only works if the automatic rotation with stop mode is used.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Rotation")
 	void StartAutomaticRotationWithStop();
 
 	/**
 	* Function to call to start the automatic rotation on this component.
+	* Only works if the classic automatic rotation mode is used.
 	* @param	bForceNoStartPhase		Skip the smooth start (start instantly at full speed)
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Rotation")
 	void StartAutomaticRotation(bool bForceNoStartPhase = false);
 
 	/**
 	* Function to call to stop the automatic rotation on this component.
 	* @param	bForceNoEndPhase		Skip the smooth end (stop instantly)
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Rotation")
 	void StopAutomaticRotation(bool bForceNoEndPhase = false);
 
 	/**
 	* Function to call to stop every movement of this component.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Rotation")
 	void CancelAutomaticRotation();
 
 
@@ -76,12 +82,19 @@ public:
 	* Function to call to trigger an interaction by a button on this behavior.
 	* @param	Datas	The interaction datas.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Rotation")
 	void TriggerAutoRotInteraction(struct FAutoRotInteractionDatas Datas);
 
 
 // ======================================================
 //                   Helper Functions
 // ======================================================
+public:
+	/** Get the automatic rotation mode used. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation")
+	EAutomaticRotationType GetAutoRotationType();
+
+
 protected:
 	bool IsAutomaticStopValid();
 	bool IsStartPhaseValid();

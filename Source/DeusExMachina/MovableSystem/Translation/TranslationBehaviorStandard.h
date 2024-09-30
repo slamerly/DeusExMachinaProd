@@ -30,11 +30,13 @@ public:
 	* @param	Datas			The standard translation datas
 	* @param	bForceStart		(optionnal) Force the standard translation to start even if the component is already performing a standard translation
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Standard Translation")
 	void StartStandardTranslation(struct FStandardTranslationDatas Datas, bool bForceStart = false);
 
 	/**
 	* Function to call to stop every movement of this component.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Standard Translation")
 	void CancelStandardTranslation();
 
 

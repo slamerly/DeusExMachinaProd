@@ -57,6 +57,7 @@ public:
 	* Add a translation distance to this Translation Support along its spline.
 	* @param	TranslationAdd				The translation value you want to add.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Translation Support")
 	void AddTranslationAlongSpline(const float TranslationAdd);
 
 	/**
@@ -70,6 +71,7 @@ public:
 	* @param	SplineIndex				The spline index you want to put this support on (will be modulated if superior to max spline index).
 	* @param	ProgressToNextPoint		(optionnal) The progress of the support between the specified spline point and the next one.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Translation Support")
 	void ForcePositionOnSpline(const int SplineIndex, const float ProgressToNextPoint = 0.0f);
 
 
@@ -88,8 +90,16 @@ protected:
 //              Inner Translation Getters
 // ======================================================
 public:
+	/** Get the support distance from the spline origin. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	float GetDistanceFromSplineOrigin() const;
+
+	/** Get the support inner spline index. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	int GetInnerSplineIndex() const;
+
+	/** Get the support progress to next index. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	float GetProgressToNextIndex() const;
 
 
@@ -107,6 +117,7 @@ public:
 	* @param	SplineIndexB		The high bound of the clamp range.
 	* @return						The clamped movement.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Translation Support")
 	float ClampMovementBetweenSplinePoints(const float Movement, const int SplineIndexA, const int SplineIndexB);
 
 
@@ -121,6 +132,7 @@ public:
 	* @param	SnapSearchAdvantage		(optionnal) Adantage for searching points with a lower or a higher distance on spline than input. 0.5f is no advantage. (Between 0 and 1)
 	* @return							The found snap point index.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Translation Support")
 	int SearchNearestSplinePointToSnap(const float InputDistanceOnSpline, const float SnapSearchAdvantage = 0.5f);
 
 
@@ -130,15 +142,19 @@ public:
 // ======================================================
 public:
 	/** Get the distance along spline from the support actual position to the next point on its spline. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	float GetSplineDistanceToNextSplinePoint();
 
 	/** Get the distance along spline from the support actual position to the spline point A. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	float GetSplineDistanceToPoint(const int SplineIndexA);
 
-	/** Get the distance along spline from the spline point A to the support actual position. */
+	/** Get the distance along spline from the support actual position to the spline point A, going in the reverse direction of the spline. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	float GetSplineDistanceToPointReversed(const int SplineIndexA);
 
 	/** Get the distance on the spline from the spline point A to B. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	float GetSplineDistanceAToB(const int SplineIndexA, const int SplineIndexB);
 
 
@@ -147,10 +163,29 @@ public:
 //                   Spline Getters
 // ======================================================
 public:
+	/**
+	* Get the next index in the spline. (Going in the spline direction.)
+	* @param	SplineIndex		The index from which you want to compute.
+	* @return					The next index of the spline.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	int GetNextSplineIndex(const int SplineIndex);
+
+	/**
+	* Get the previous index in the spline. (Going in reverse spline direction.)
+	* @param	SplineIndex		The index from which you want to compute.
+	* @return					The previous index of the spline.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	int GetPrevSplineIndex(const int SplineIndex);
 
+
+	/** Get the number of point in the translation spline. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	int GetNumberOfSplinePoints();
+
+	/** Get the length of the translation spline. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Translation Support")
 	float GetFullSplineLength();
 
 

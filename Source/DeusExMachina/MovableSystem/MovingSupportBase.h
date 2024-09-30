@@ -31,6 +31,11 @@ public:
 	// ====================
 	//  Movable Childrens
 	// ====================
+	/** 
+	* Add a new movable child to this support.
+	* @param	MovableChild	The movable child to add.
+	*/
+	UFUNCTION(BlueprintCallable)
 	void AddMovableChild(UMovableObjectComponent* MovableChild);
 	void StartMovementOnChildrens();
 	void StopMovementOnChildrens(bool Delay = true);
@@ -53,6 +58,8 @@ public:
 	// ====================
 	//   Support Movement
 	// ====================
+	/** Return true if the support is currently performing a movement. */
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	virtual bool IsCurrentlyMoving();
 
 

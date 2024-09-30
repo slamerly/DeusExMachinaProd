@@ -66,6 +66,7 @@ public:
 	* @param	TestClamp		Do you want this rotation add to test the clamp?
 	* @return					True if the rotation was added successfully, False if clamp was reached.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
 	bool AddInnerRotation(float InnerRotAdd, bool TestClamp);
 
 	/**
@@ -73,6 +74,7 @@ public:
 	* @param	InnerRot			The value you want to set.
 	* @param	AbsoluteRotation	True = will set inner rotation to this exact value. | False = will search for the nearest angle corresponding to the value (default).
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
 	void ForceInnerRotation(int InnerRot, bool AbsoluteRotation = false);
 
 
@@ -89,7 +91,12 @@ protected:
 //               Inner Rotation Getters
 // ======================================================
 public:
+	/** Get the support real inner rotation. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rotation Support")
 	float GetInnerRotation() const;
+
+	/** Get the support inner rotation between 0 and 360. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rotation Support")
 	float GetInnerRotationBase360() const;
 
 	const FRotSupportValues GetSupportValues() const;
@@ -100,7 +107,12 @@ public:
 //                   Clamp Functions
 // ======================================================
 public:
+	/** Does the support uses clamp and is it valid. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rotation Support", meta = (DisplayName = "Use Clamp"))
 	bool UseValidClamp();
+
+	/** Return clamp low and high of this support. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rotation Support")
 	void GetClampValues(int& ClampLow, int& ClampHigh);
 	
 	/**
@@ -109,6 +121,7 @@ public:
 	* @param	ClampedRotationAngle	[OUT] The rotation angle needed to reach clamp on this support.
 	* @return							True if the simulation triggers clamp.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
 	bool SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle);
 
 
@@ -117,6 +130,8 @@ public:
 //                   Snap Functions
 // ======================================================
 public:
+	/** Does the support uses snap and is it valid. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rotation Support", meta = (DisplayName = "Use Snap"))
 	bool UseValidSnap();
 
 	/**
@@ -129,6 +144,7 @@ public:
 	* @param	IgnoreSnapRanges		(optionnal) Force the snap search to ignore the range of every snap values.
 	* @return							True if the search was successful. False if the search couldn't find a suitable snap angle (the support doesn't uses snap, it was blocked by clamp, the input was outside any snap range). 
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
 	bool SearchSnapAngle(const float InputRotationAngle, float& SnapAngle, const float SnapSearchAdvantage = 0.0f, const bool IgnoreClamp = false, const bool IgnoreSnapRanges = false);
 
 
@@ -146,10 +162,10 @@ public:
 //             Clamp & Snap Visual Functions
 // ======================================================
 protected:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
 	void UpdateClampVisual(); //  Callable from blueprint to be able to call this function on the "Construction Script"
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
 	void UpdateSnapVisual(); //  Callable from blueprint to be able to call this function on the "Construction Script"
 
 

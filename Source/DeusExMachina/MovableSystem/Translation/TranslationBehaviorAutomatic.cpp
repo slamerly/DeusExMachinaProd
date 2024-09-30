@@ -292,6 +292,12 @@ void UTranslationBehaviorAutomatic::TriggerAutoTransInteraction(FAutoTransIntera
 // ======================================================
 //                   Helper Functions
 // ======================================================
+EAutomaticTranslationType UTranslationBehaviorAutomatic::GetAutoTranslationType()
+{
+	if (IsAutomaticStopValid()) return EAutomaticTranslationType::StopOnSplinePoints;
+	return EAutomaticTranslationType::AutomaticTranslation;
+}
+
 bool UTranslationBehaviorAutomatic::IsAutomaticStopValid()
 {
 	//  check automatic translation type is automatic stop

@@ -46,24 +46,30 @@ protected:
 public:
 	/**
 	* Function to call to start the automatic translation with stop on this component. Also used to restart the translation after the auto stop.
+	* Only works if the automatic translation with stop mode is used.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Translation")
 	void StartAutomaticTranslationWithStop();
 
 	/**
 	* Function to call to start the automatic translation on this component.
+	* Only works if the classic automatic translation mode is used.
 	* @param	bForceNoStartPhase		Skip the smooth start (start instantly at full speed)
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Translation")
 	void StartAutomaticTranslation(bool bForceNoStartPhase = false);
 
 	/**
-	* Function to call to stop the automatic translation on this component.
+	* Function to call to stop the automatic translation on this component.²
 	* @param	bForceNoEndPhase		Skip the smooth end (stop instantly)
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Translation")
 	void StopAutomaticTranslation(bool bForceNoEndPhase = false);
 
 	/**
 	* Function to call to stop every movement of this component.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Translation")
 	void CancelAutomaticTranslation();
 
 
@@ -75,12 +81,19 @@ public:
 	* Function to call to trigger an interaction by a button on this behavior.
 	* @param	Datas	The interaction datas.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Translation")
 	void TriggerAutoTransInteraction(struct FAutoTransInteractionDatas Datas);
 
 
 // ======================================================
 //                   Helper Functions
 // ======================================================
+public:
+	/** Get the automatic translation mode used. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Translation")
+	EAutomaticTranslationType GetAutoTranslationType();
+
+
 protected:
 	bool IsAutomaticStopValid();
 	bool IsStartPhaseValid();

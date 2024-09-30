@@ -41,12 +41,14 @@ public:
 	* @param	Datas	The control datas.
 	* @return			True if the control was successfully gained.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Controlled Translation")
 	bool StartControlledTranslation(struct FControlledTranslationDatas Datas);
 
 	/**
 	* Function to call when an interactable linked to this behavior has lost control from the player.
 	* @param	DontTriggerSnap		Optionnal param to force this behavior to not trigger the snap on release, even if the component has snap enabled.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Controlled Translation")
 	void StopControlledTranslation(bool DontTriggerSnap = false);
 
 	/**
@@ -54,6 +56,7 @@ public:
 	* @param	ControlValue	The control value for this update frame.
 	* @return					True if this behavior encountered clamp on this update frame.
 	*/
+	UFUNCTION(BlueprintCallable, Category = "Controlled Translation")
 	bool UpdateControlledTranslation(float ControlValue);
 
 
