@@ -15,8 +15,8 @@ class DEUSEXMACHINA_API UStaticMeshComponentPlus : public UStaticMeshComponent
 	GENERATED_BODY()
 
 
-public:
 #if WITH_EDITOR
+public:
 	/** Called when this component is moved in the editor */
 	virtual void PostEditComponentMove(bool bFinished) override;
 

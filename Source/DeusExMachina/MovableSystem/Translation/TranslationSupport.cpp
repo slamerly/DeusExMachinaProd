@@ -25,7 +25,6 @@ ATranslationSupport::ATranslationSupport()
 
 	TranslationSpline = CreateDefaultSubobject<USplineComponentPlus>(TEXT("Translation Spline"));
 	TranslationSpline->SetupAttachment(SceneRootComponent);
-	TranslationSpline->bAllowDiscontinuousSpline = true;
 }
 
 

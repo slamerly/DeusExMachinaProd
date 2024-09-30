@@ -69,6 +69,7 @@ void AMovSysButton::BeginPlay()
 
 
 
+#if WITH_EDITOR
 // ======================================================
 //             Check links validity (editor)
 // ======================================================
@@ -125,6 +126,7 @@ void AMovSysButton::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		LinkStandT.TranslationSupport = nullptr;
 	}
 }
+#endif // WITH_EDITOR
 
 
 

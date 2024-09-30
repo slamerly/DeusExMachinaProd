@@ -90,8 +90,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+#if WITH_EDITOR
 public:
+	/** Called when a value is changed on this actor in the editor */
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif // WITH_EDITOR
 
 
 

@@ -69,6 +69,7 @@ void AMovSysHandle::BeginPlay()
 
 
 
+#if WITH_EDITOR
 // ======================================================
 //             Check links validity (editor)
 // ======================================================
@@ -105,6 +106,7 @@ void AMovSysHandle::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		break;
 	}
 }
+#endif // WITH_EDITOR
 
 
 

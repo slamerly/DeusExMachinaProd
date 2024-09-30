@@ -47,6 +47,7 @@ void AMovSysWheel::BeginPlay()
 
 
 
+#if WITH_EDITOR
 // ======================================================
 //             Check links validity (editor)
 // ======================================================
@@ -82,6 +83,7 @@ void AMovSysWheel::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
 		LinkCtrlT.TranslationSupport = nullptr;
 	}
 }
+#endif // WITH_EDITOR
 
 
 

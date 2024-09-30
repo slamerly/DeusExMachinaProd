@@ -9,8 +9,6 @@ void USplineComponentPlus::UpdateSpline()
 		return;
 	}
 
-	bAllowDiscontinuousSpline = true;
-
 	for (int Index = 0; Index < GetNumberOfSplinePoints(); Index++)
 	{
 		const FVector CurrIndexLocation = GetLocationAtSplinePoint(Index, ESplineCoordinateSpace::Local);
