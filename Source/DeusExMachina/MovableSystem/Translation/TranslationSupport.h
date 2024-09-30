@@ -21,6 +21,11 @@ enum class ETranslationState : uint8
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FTransSupportMove, ATranslationSupport, OnTranslationSupportMoved, int, SplineIndex, float, ProgressToNextIndex);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FTransSupportClamp, ATranslationSupport, OnTranslationSupportClamped, int, ClampSplineIndex);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FTransSupportSnap, ATranslationSupport, OnTranslationSupportSnapped, int, SnapSplineIndex);
+
+
 UCLASS()
 class DEUSEXMACHINA_API ATranslationSupport : public AMovingSupportBase
 {
@@ -84,6 +89,9 @@ protected:
 	void ComputeDistanceFromSplineOrigin();
 	void ComputeInnerIndexAndProgress();
 
+public:
+	void ComputeInnerIndexAndProgress(const float DistanceFromOrigin, int& OutIndex, float& OutProgress);
+
 
 
 // ======================================================
@@ -115,10 +123,11 @@ public:
 	* @param	Movement			The movement you want to clamp.
 	* @param	SplineIndexA		The low bound of the clamp range.
 	* @param	SplineIndexB		The high bound of the clamp range.
+	* @param	ClampIndex			[OUT] The spline index chosen for clamp. Will be equal to the inner spline index if no clamp.
 	* @return						The clamped movement.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Translation Support")
-	float ClampMovementBetweenSplinePoints(const float Movement, const int SplineIndexA, const int SplineIndexB);
+	float ClampMovementBetweenSplinePoints(const float Movement, const int SplineIndexA, const int SplineIndexB, int& ClampIndex);
 
 
 
@@ -204,6 +213,24 @@ public:
 // ======================================================
 protected:
 	void UpdateSplinePointsVisual();
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when this translation support move. */
+	UPROPERTY(BlueprintAssignable, Category = "Translation Support|Events")
+	FTransSupportMove OnTranslationSupportMoved;
+
+	/** Called when this translation support reach a clamp. */
+	UPROPERTY(BlueprintAssignable, Category = "Translation Support|Events")
+	FTransSupportClamp OnTranslationSupportClamped;
+
+	/** Called when this translation support is snapped (called when the snap is finished). */
+	UPROPERTY(BlueprintAssignable, Category = "Translation Support|Events")
+	FTransSupportSnap OnTranslationSupportSnapped;
 
 
 

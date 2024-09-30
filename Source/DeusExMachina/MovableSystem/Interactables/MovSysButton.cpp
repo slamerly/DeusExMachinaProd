@@ -162,6 +162,9 @@ void AMovSysButton::Interaction_Implementation()
 	{
 		LinkStandT.TranslationStandardComponent->StartStandardTranslation(LinkStandT.StandardDatas);
 	}
+
+	//  broadcast OnMovSysButtonUsed event
+	OnMovSysButtonUsed.Broadcast();
 }
 
 bool AMovSysButton::CanInteract_Implementation()

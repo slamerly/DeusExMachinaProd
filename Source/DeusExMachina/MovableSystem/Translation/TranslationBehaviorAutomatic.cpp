@@ -100,6 +100,9 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 			AutomaticStopTimer = 0.0f;
 
 			OwnerTransSupport->ForcePositionOnSpline(AutomaticStopDestIndex, 0.0f); //  reposition support to stop point (security)
+
+			//  broadcast OnAutoTranslationAutoStop event
+			OnAutoTranslationAutoStop.Broadcast(AutomaticStopDestIndex);
 			break;
 		}
 
@@ -175,6 +178,9 @@ void UTranslationBehaviorAutomatic::StartAutomaticTranslationWithStop()
 	//  set state on support and start movement on childrens
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::AutomaticTranslation;
 	OwnerTransSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoTranslationStart event
+	OnAutoTranslationAutoResume.Broadcast(AutomaticStopDestIndex);
 }
 
 void UTranslationBehaviorAutomatic::StartAutomaticTranslation(bool bForceNoStartPhase)
@@ -199,6 +205,9 @@ void UTranslationBehaviorAutomatic::StartAutomaticTranslation(bool bForceNoStart
 	//  set state on support and start movement on childrens
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::AutomaticTranslation;
 	OwnerTransSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoTranslationStart event
+	OnAutoTranslationStart.Broadcast();
 }
 
 void UTranslationBehaviorAutomatic::StopAutomaticTranslation(bool bForceNoEndPhase)
@@ -239,6 +248,9 @@ void UTranslationBehaviorAutomatic::CancelAutomaticTranslation()
 
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::NotMoving;
 	OwnerTransSupport->StopMovementOnChildrens();
+
+	//  broadcast OnAutoTranslationStop event
+	OnAutoTranslationStop.Broadcast();
 }
 
 

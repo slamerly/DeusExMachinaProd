@@ -20,6 +20,12 @@ enum class EAutoRotationState : uint8
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticRotationStart, URotationBehaviorAutomatic, OnAutoRotationStart);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticRotationStop, URotationBehaviorAutomatic, OnAutoRotationStop);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticRotationAutoStop, URotationBehaviorAutomatic, OnAutoRotationAutoStop, int, StopAngle);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticRotationAutoResume, URotationBehaviorAutomatic, OnAutoRotationAutoResume, int, NextStopAngle);
+
+
 
 UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Rotation Behavior Automatic", Tooltip = "Component to add to a Rotation Support if you want it to move automatically."))
 class DEUSEXMACHINA_API URotationBehaviorAutomatic : public URotationBehaviorBase
@@ -104,6 +110,27 @@ protected:
 	bool ComputeNextStopAngle();
 
 	bool GetReverse();
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the automatic rotation start on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Rotation|Events")
+	FAutomaticRotationStart OnAutoRotationStart;
+
+	/** Called when the automatic rotation stop on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Rotation|Events")
+	FAutomaticRotationStop OnAutoRotationStop;
+
+	/** Called when the automatic rotation automatically stop on an angle on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Rotation|Events")
+	FAutomaticRotationAutoStop OnAutoRotationAutoStop;
+
+	/** Called when the automatic rotation automatically resume after stopping on an angle on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Rotation|Events")
+	FAutomaticRotationAutoResume OnAutoRotationAutoResume;
 
 
 // ======================================================

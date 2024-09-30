@@ -20,6 +20,12 @@ enum class EAutoTranslationState : uint8
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticTranslationStart, UTranslationBehaviorAutomatic, OnAutoTranslationStart);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticTranslationStop, UTranslationBehaviorAutomatic, OnAutoTranslationStop);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationAutoStop, UTranslationBehaviorAutomatic, OnAutoTranslationAutoStop, int, StopSplineIndex);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationAutoResume, UTranslationBehaviorAutomatic, OnAutoTranslationAutoResume, int, NextStopSplineIndex);
+
+
 UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Translation Behavior Automatic", Tooltip = "Component to add to a Translation Support if you want it to move automatically."))
 class DEUSEXMACHINA_API UTranslationBehaviorAutomatic : public UTranslationBehaviorBase
 {
@@ -103,6 +109,27 @@ protected:
 	bool ComputeNextStopPoint();
 
 	bool GetReverse();
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the automatic translation start on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationStart OnAutoTranslationStart;
+
+	/** Called when the automatic translation stop on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationStop OnAutoTranslationStop;
+
+	/** Called when the automatic translation automatically stop on a spline point on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationAutoStop OnAutoTranslationAutoStop;
+
+	/** Called when the automatic translation automatically resume after stopping on a spline point on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationAutoResume OnAutoTranslationAutoResume;
 
 
 // ======================================================

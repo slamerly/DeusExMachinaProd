@@ -140,6 +140,9 @@ void AMovSysHandle::Interaction_Implementation()
 		LinkedTransSupportControlled.TranslationControlledComponent->StartControlledTranslation(LinkedTransSupportControlled.ControlDatas);
 		break;
 	}
+
+	//  broadcast OnMovSysHandleControlGained event
+	OnMovSysHandleControlGained.Broadcast();
 }
 
 
@@ -175,6 +178,9 @@ void AMovSysHandle::InteractionHeavyUpdate_Implementation(FVector2D ControlValue
 		LinkedTransSupportControlled.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
 		break;
 	}
+
+	//  broadcast OnMovSysHandleControlUpdated event
+	OnMovSysHandleControlUpdated.Broadcast(ComputedControlValue);
 }
 
 
@@ -201,6 +207,9 @@ void AMovSysHandle::InteractionHeavyFinished_Implementation()
 		LinkedTransSupportControlled.TranslationControlledComponent->StopControlledTranslation();
 		break;
 	}
+
+	//  broadcast OnMovSysHandleControlLost event
+	OnMovSysHandleControlLost.Broadcast();
 }
 
 

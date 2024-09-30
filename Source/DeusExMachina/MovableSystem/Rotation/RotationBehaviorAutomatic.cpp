@@ -101,6 +101,9 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 			AutomaticStopTimer = 0.0f;
 
 			OwnerRotSupport->ForceInnerRotation(AutomaticStopDestAngle, true); //  reposition support to stop angle (security)
+
+			//  broadcast OnAutoRotationAutoStop event
+			OnAutoRotationAutoStop.Broadcast(AutomaticStopDestAngle);
 			break;
 		}
 
@@ -176,6 +179,9 @@ void URotationBehaviorAutomatic::StartAutomaticRotationWithStop()
 	//  set state on support and start movement on childrens
 	OwnerRotSupport->CurrentRotationState = ERotationState::AutomaticRotation;
 	OwnerRotSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoRotationStart event
+	OnAutoRotationAutoResume.Broadcast(AutomaticStopDestAngle);
 }
 
 void URotationBehaviorAutomatic::StartAutomaticRotation(bool bForceNoStartPhase)
@@ -200,6 +206,9 @@ void URotationBehaviorAutomatic::StartAutomaticRotation(bool bForceNoStartPhase)
 	//  set state on support and start movement on childrens
 	OwnerRotSupport->CurrentRotationState = ERotationState::AutomaticRotation;
 	OwnerRotSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoRotationStart event
+	OnAutoRotationStart.Broadcast();
 }
 
 void URotationBehaviorAutomatic::StopAutomaticRotation(bool bForceNoEndPhase)
@@ -240,6 +249,9 @@ void URotationBehaviorAutomatic::CancelAutomaticRotation()
 
 	OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
 	OwnerRotSupport->StopMovementOnChildrens();
+
+	//  broadcast OnAutoRotationStop event
+	OnAutoRotationStop.Broadcast();
 }
 
 

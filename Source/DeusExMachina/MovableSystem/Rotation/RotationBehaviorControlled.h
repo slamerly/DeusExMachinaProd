@@ -16,6 +16,10 @@ enum class EControlledRotationState : uint8
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FControlledRotationStart, URotationBehaviorControlled, OnControlledRotationStart);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FControlledRotationStop, URotationBehaviorControlled, OnControlledRotationStop, bool, Snap);
+
+
 UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Rotation Behavior Controlled", Tooltip = "Component to add to a Rotation Support if you want it to be able to be controlled by a Wheel or a Handle."))
 class DEUSEXMACHINA_API URotationBehaviorControlled : public URotationBehaviorBase
 {
@@ -66,6 +70,19 @@ public:
 protected:
 	bool IsControlledRotValid(FControlledRotationDatas Datas);
 	bool IsStartupValid(FControlledRotationDatas Datas);
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the player start using the controlled rotation on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Controlled Rotation|Events")
+	FControlledRotationStart OnControlledRotationStart;
+
+	/** Called when the the player stop using the controlled rotation on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Controlled Rotation|Events")
+	FControlledRotationStop OnControlledRotationStop;
 
 
 // ======================================================

@@ -110,6 +110,9 @@ void AMovSysWheel::Interaction_Implementation()
 		LinkCtrlT.TranslationControlledComponent->StartControlledTranslation(LinkCtrlT.ControlDatas);
 	}
 
+	//  broadcast OnMovSysWheelControlGained event
+	OnMovSysWheelControlGained.Broadcast();
+
 	//  visual feedback in blueprint
 	WheelStartFeedback();
 }
@@ -145,6 +148,9 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue,
 		ControlClamp = ControlClamp && LinkCtrlT.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
 	}
 
+	//  broadcast OnMovSysWheelControlUpdated event
+	OnMovSysWheelControlUpdated.Broadcast(ComputedControlValue, ControlClamp);
+
 
 	if (!ControlClamp) //  has the wheel been clamped in its control this frame
 	{
@@ -172,6 +178,9 @@ void AMovSysWheel::InteractionHeavyFinished_Implementation()
 	{
 		LinkCtrlT.TranslationControlledComponent->StopControlledTranslation();
 	}
+
+	//  broadcast OnMovSysWheelControlLost event
+	OnMovSysWheelControlLost.Broadcast();
 
 	//  visual feedback in blueprint
 	WheelStopFeedback();

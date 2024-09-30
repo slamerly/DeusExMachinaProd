@@ -7,6 +7,11 @@
 #include "MovSysWheel.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlGain, AMovSysWheel, OnMovSysWheelControlGained);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlLost, AMovSysWheel, OnMovSysWheelControlLost);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FMovSysWheelControlUpdate, AMovSysWheel, OnMovSysWheelControlUpdated, float, ControlValue, bool, TriggeredClamp);
+
+
 UCLASS()
 class DEUSEXMACHINA_API AMovSysWheel : public AMovSysInteractableBase, public IInteractable
 {
@@ -50,6 +55,24 @@ public:
 // ======================================================
 protected:
 	float GetAdvancedJoystickControl(const FVector2D JoystickValue);
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when this wheel gained control by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Wheel|Events")
+	FMovSysWheelControlGain OnMovSysWheelControlGained;
+
+	/** Called when this wheel lost control by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Wheel|Events")
+	FMovSysWheelControlLost OnMovSysWheelControlLost;
+
+	/** Called when this wheel control is updated by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Wheel|Events")
+	FMovSysWheelControlUpdate OnMovSysWheelControlUpdated;
 
 
 

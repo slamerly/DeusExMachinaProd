@@ -42,6 +42,7 @@ void UTranslationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick T
 	{
 		//  snap timer finished, stop movement
 		OwnerTransSupport->ForcePositionOnSpline(SnapPointDest, 0.0f); //  reposition support to snap point (security)
+		OwnerTransSupport->OnTranslationSupportSnapped.Broadcast(SnapPointDest);
 
 		SetComponentTickEnabled(false);
 		CurrentState = EControlledTranslationState::Inactive;
@@ -52,7 +53,9 @@ void UTranslationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick T
 	}
 
 	const float DistanceDone = FMath::Lerp<float, float>(SnapDistance, 0.0f, SnapCurve->GetFloatValue(SnapTimer / SnapDuration));
-	const float SnapAdd = OwnerTransSupport->ClampMovementBetweenSplinePoints(DistanceDone - SnapDistanceDone, 0, 1);
+
+	int ClampedIndex = 0;
+	const float SnapAdd = OwnerTransSupport->ClampMovementBetweenSplinePoints(DistanceDone - SnapDistanceDone, 0, 1, ClampedIndex);
 	OwnerTransSupport->AddTranslationAlongSpline(SnapAdd); //  here, 'SnapDistanceDone' serve as a "distance done last frame"
 	SnapDistanceDone = DistanceDone;
 }
@@ -96,6 +99,9 @@ bool UTranslationBehaviorControlled::StartControlledTranslation(FControlledTrans
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::ControlledTranslation;
 	OwnerTransSupport->StartMovementOnChildrens();
 
+	//  broadcast OnControlledTranslationStart event
+	OnControlledTranslationStart.Broadcast();
+
 	return true;
 }
 
@@ -127,6 +133,9 @@ void UTranslationBehaviorControlled::StopControlledTranslation(bool DontTriggerS
 
 		//  set snap state
 		CurrentState = EControlledTranslationState::Snap;
+
+		//  broadcast OnControlledTranslationStop event
+		OnControlledTranslationStop.Broadcast(true);
 	}
 	else
 	{
@@ -137,6 +146,9 @@ void UTranslationBehaviorControlled::StopControlledTranslation(bool DontTriggerS
 		//  set state on support and stop movement on childrens
 		OwnerTransSupport->CurrentTranslationState = ETranslationState::NotMoving;
 		OwnerTransSupport->StopMovementOnChildrens();
+
+		//  broadcast OnControlledTranslationStop event
+		OnControlledTranslationStop.Broadcast(false);
 	}
 }
 
@@ -172,8 +184,14 @@ bool UTranslationBehaviorControlled::UpdateControlledTranslation(float ControlVa
 	}
 
 	//  clamp 'DesiredDistAdd' between spline points 0 and 1
-	DesiredDistAdd = OwnerTransSupport->ClampMovementBetweenSplinePoints(DesiredDistAdd, 0, 1);
-	if (FMath::IsNearlyZero(DesiredDistAdd)) TriggeredClamp = true; //  if the clamped 'DesiredDistAdd' is nearly zero, it means that clamped have taken effect
+	int ClampedIndex = 0;
+	DesiredDistAdd = OwnerTransSupport->ClampMovementBetweenSplinePoints(DesiredDistAdd, 0, 1, ClampedIndex);
+	if (FMath::IsNearlyZero(DesiredDistAdd))
+	{
+		//  if the clamped 'DesiredDistAdd' is nearly zero, it means that clamped have taken effect
+		TriggeredClamp = true;
+		OwnerTransSupport->OnTranslationSupportClamped.Broadcast(ClampedIndex);
+	}
 
 	//  apply controled translation
 	OwnerTransSupport->AddTranslationAlongSpline(DesiredDistAdd);

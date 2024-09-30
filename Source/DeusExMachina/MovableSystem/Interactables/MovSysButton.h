@@ -78,6 +78,8 @@ struct FStandardTransInteractionLink
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysButtonUse, AMovSysButton, OnMovSysButtonUsed);
+
 
 UCLASS()
 class DEUSEXMACHINA_API AMovSysButton : public AMovSysInteractableBase, public IInteractable
@@ -110,6 +112,16 @@ public:
 	void InteractionHeavyFinished_Implementation() override;
 
 	bool IsInteractableBothSides_Implementation() override;
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when this button is used by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Button|Events")
+	FMovSysButtonUse OnMovSysButtonUsed;
 
 
 // ======================================================

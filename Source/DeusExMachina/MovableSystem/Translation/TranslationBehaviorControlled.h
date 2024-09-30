@@ -16,6 +16,10 @@ enum class EControlledTranslationState : uint8
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FControlledTranslationStart, UTranslationBehaviorControlled, OnControlledTranslationStart);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FControlledTranslationStop, UTranslationBehaviorControlled, OnControlledTranslationStop, bool, Snap);
+
+
 UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Translation Behavior Controlled", Tooltip = "Component to add to a Translation Support if you want it to be able to be controlled by a Wheel or a Handle.\nNote that Translation Supports with this component will only use the two first points of their splines (index 0 & 1)."))
 class DEUSEXMACHINA_API UTranslationBehaviorControlled : public UTranslationBehaviorBase
 {
@@ -67,6 +71,19 @@ protected:
 	bool IsControlledTransValid(FControlledTranslationDatas Datas);
 	bool IsStartupValid(FControlledTranslationDatas Datas);
 	bool IsSnapValid(FControlledTranslationDatas Datas);
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the player start using the controlled translation on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Controlled Translation|Events")
+	FControlledTranslationStart OnControlledTranslationStart;
+
+	/** Called when the the player stop using the controlled translation on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Controlled Translation|Events")
+	FControlledTranslationStop OnControlledTranslationStop;
 
 
 // ======================================================

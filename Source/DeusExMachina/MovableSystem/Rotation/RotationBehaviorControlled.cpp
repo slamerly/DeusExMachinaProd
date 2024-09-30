@@ -41,6 +41,7 @@ void URotationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick Tick
 	{
 		//  snap timer finished, stop movement
 		OwnerRotSupport->ForceInnerRotation(SnapAngleDest, true); //  reposition support to snap angle (security)
+		OwnerRotSupport->OnRotationSupportSnapped.Broadcast(SnapAngleDest);
 
 		SetComponentTickEnabled(false);
 		CurrentState = EControlledRotationState::Inactive;
@@ -93,6 +94,9 @@ bool URotationBehaviorControlled::StartControlledRotation(FControlledRotationDat
 	OwnerRotSupport->CurrentRotationState = ERotationState::ControlledRotation;
 	OwnerRotSupport->StartMovementOnChildrens();
 
+	//  broadcast OnControlledRotationStart event
+	OnControlledRotationStart.Broadcast();
+
 	return true;
 }
 
@@ -118,6 +122,9 @@ void URotationBehaviorControlled::StopControlledRotation(bool DontTriggerSnap)
 		SnapCurve = FMath::RoundToInt(FMath::Sign<float>(SnapAngleDest - SnapAngleStart)) == LastInputedDirection ? OwnerValues.GetSnapCurveContinue() : OwnerValues.GetSnapCurveNeutralReverse();
 
 		CurrentState = EControlledRotationState::Snap;
+
+		//  broadcast OnControlledRotationStop event
+		OnControlledRotationStop.Broadcast(true);
 	}
 	else
 	{
@@ -128,6 +135,9 @@ void URotationBehaviorControlled::StopControlledRotation(bool DontTriggerSnap)
 		//  set state on support and stop movement on childrens
 		OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
 		OwnerRotSupport->StopMovementOnChildrens();
+
+		//  broadcast OnControlledRotationStop event
+		OnControlledRotationStop.Broadcast(false);
 	}
 }
 

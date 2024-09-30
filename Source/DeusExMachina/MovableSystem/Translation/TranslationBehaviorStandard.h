@@ -5,6 +5,10 @@
 #include "TranslationBehaviorStandard.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FStandardTranslationStart, UTranslationBehaviorStandard, OnStandardTranslationStart, int, DestinationIndex, float, DestinationProgressToNextIndex);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FStandardTranslationEnd, UTranslationBehaviorStandard, OnStandardTranslationEnd, int, DestinationIndex, float, DestinationProgressToNextIndex);
+
+
 UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Translation Behavior Standard", Tooltip = "Component to add to a Translation Support if you want it to be able to perform a standard translation."))
 class DEUSEXMACHINA_API UTranslationBehaviorStandard : public UTranslationBehaviorBase
 {
@@ -46,6 +50,20 @@ public:
 protected:
 	bool IsStandardTransValid(struct FStandardTranslationDatas Datas);
 	float ConvertSplinePointsToSplineDistance(struct FStandardTranslationDatas Datas, int& DestSplinePoint);
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the standard translation has started on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Standard Translation|Events")
+	FStandardTranslationStart OnStandardTranslationStart;
+
+	/** Called when the standard translation has finished on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Standard Translation|Events")
+	FStandardTranslationEnd OnStandardTranslationEnd;
 
 
 // ======================================================

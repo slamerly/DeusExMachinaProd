@@ -143,6 +143,8 @@ void ATranslationSupport::ForcePositionOnSpline(const int SplineIndex, const flo
 // ======================================================
 void ATranslationSupport::ComputeInnerTransform()
 {
+	OnTranslationSupportMoved.Broadcast(InnerSplineIndex, ProgressToNextIndex);
+
 	//  simply set the relative location to the current location on the spline
 	TranslationBase->SetRelativeLocation(TranslationSpline->GetLocationAtDistanceAlongSpline(DistanceFromSplineOrigin, ESplineCoordinateSpace::Local));
 }
@@ -158,16 +160,24 @@ void ATranslationSupport::ComputeDistanceFromSplineOrigin()
 void ATranslationSupport::ComputeInnerIndexAndProgress()
 {
 	//  compute inner spline index and progress to next index with distance from spline origin
+	ComputeInnerIndexAndProgress(DistanceFromSplineOrigin, InnerSplineIndex, ProgressToNextIndex);
+}
+
+void ATranslationSupport::ComputeInnerIndexAndProgress(const float DistanceFromOrigin, int& OutIndex, float& OutProgress)
+{
+	const float DistanceOrigin = UKismetMathLibrary::GenericPercent_FloatFloat(DistanceFromOrigin, TranslationSpline->GetSplineLength());
+
+	//  compute inner spline index and progress to next index with distance from spline origin, and return it
 	float EvaluateIndex = 0;
-	while (DistanceFromSplineOrigin >= TranslationSpline->GetDistanceAlongSplineAtSplinePoint(EvaluateIndex))
+	while (DistanceOrigin >= TranslationSpline->GetDistanceAlongSplineAtSplinePoint(EvaluateIndex))
 	{
 		EvaluateIndex++;
 	}
-	InnerSplineIndex = EvaluateIndex - 1;
+	OutIndex = EvaluateIndex - 1;
 
-	const float DistanceInnerToNext = GetSplineDistanceAToB(InnerSplineIndex, GetNextSplineIndex(InnerSplineIndex)); //  distance between the spline point at 'InnerSplineIndex' and the next spline point
-	const float DistanceInnerToCurr = DistanceFromSplineOrigin - TranslationSpline->GetDistanceAlongSplineAtSplinePoint(InnerSplineIndex); //  distance between the spline point at 'InnerSplineIndex' and the real position of the support on the spline
-	ProgressToNextIndex = DistanceInnerToCurr / DistanceInnerToNext;
+	const float DistanceInnerToNext = GetSplineDistanceAToB(OutIndex, GetNextSplineIndex(OutIndex)); //  distance between the spline point at 'OutIndex' and the next spline point
+	const float DistanceInnerToCurr = DistanceOrigin - TranslationSpline->GetDistanceAlongSplineAtSplinePoint(OutIndex); //  distance between the spline point at 'OutIndex' and the inputed position on the spline
+	OutProgress = DistanceInnerToCurr / DistanceInnerToNext;
 }
 
 
@@ -195,7 +205,7 @@ float ATranslationSupport::GetProgressToNextIndex() const
 // ======================================================
 //                    Clamp Functions
 // ======================================================
-float ATranslationSupport::ClampMovementBetweenSplinePoints(const float Movement, const int SplineIndexA, const int SplineIndexB)
+float ATranslationSupport::ClampMovementBetweenSplinePoints(const float Movement, const int SplineIndexA, const int SplineIndexB, int& ClampIndex)
 {
 	const float DistanceOA = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(SplineIndexA);
 	const float DistanceOB = TranslationSpline->GetDistanceAlongSplineAtSplinePoint(SplineIndexB);
@@ -204,6 +214,7 @@ float ATranslationSupport::ClampMovementBetweenSplinePoints(const float Movement
 	if (SplineIndexA == SplineIndexB)
 	{
 		//  return a movement that will put the support on point A (and on point B since they're the same in this case)
+		ClampIndex = SplineIndexA;
 		return DistanceOA - DistanceFromSplineOrigin;
 	}
 	else if (SplineIndexA < SplineIndexB)
@@ -211,14 +222,17 @@ float ATranslationSupport::ClampMovementBetweenSplinePoints(const float Movement
 		//  the simple computation, no need to get around the spline origin
 		if (PreAppliedMovement > DistanceOB)
 		{
+			ClampIndex = SplineIndexB;
 			return DistanceOB - DistanceFromSplineOrigin;
 		}
 		else if (PreAppliedMovement < DistanceOA)
 		{
+			ClampIndex = SplineIndexA;
 			return DistanceOA - DistanceFromSplineOrigin;
 		}
 
 		//  all good
+		ClampIndex = InnerSplineIndex;
 		return Movement;
 	}
 	else if (SplineIndexA > SplineIndexB) //  it's just a else in this case, but for better understandability I let the if condition visible
@@ -228,17 +242,21 @@ float ATranslationSupport::ClampMovementBetweenSplinePoints(const float Movement
 
 		if (PreAppliedMovement > DistanceOBAround)
 		{
+			ClampIndex = SplineIndexB;
 			return DistanceOBAround - DistanceFromSplineOrigin;
 		}
 		else if (PreAppliedMovement < DistanceOA)
 		{
+			ClampIndex = SplineIndexA;
 			return DistanceOA - DistanceFromSplineOrigin;
 		}
 
 		//  all good
+		ClampIndex = InnerSplineIndex;
 		return Movement;
 	}
 
+	ClampIndex = InnerSplineIndex;
 	return Movement; //  for the compiler
 }
 
