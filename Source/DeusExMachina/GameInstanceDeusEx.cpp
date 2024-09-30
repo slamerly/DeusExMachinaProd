@@ -25,7 +25,6 @@ void UGameInstanceDeusEx::Init()
 void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-
 	// Update the ScenesNames when change Scenes.
 	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(UGameInstanceDeusEx, MainLevelsList))
 	{
@@ -45,7 +44,8 @@ void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& Property
 						SubLevels[j]->GetWorldAssetPackageName().Split(TEXT("/"), &RightName, &LeftName, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
 
 						// Add in the list the scene name with the level where it is.
-						ScenesList.Add(*LeftName, MainLevelsList[i]);
+						ScenesList.Add(*LeftName, MainLevelsList[i]->GetFName());
+						MainLevelsName.Add(MainLevelsList[i]->GetFName());
 					}
 				}
 			}

@@ -31,11 +31,16 @@ protected:
 
 	// Put the main levels for the loading progress
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<UWorld*> MainLevelsList;
+	TArray<TSoftObjectPtr<UWorld>> MainLevelsList;
+	//TArray<const UWorld*> MainLevelsList;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TArray<FName> MainLevelsName;
 
 	// Normaly automaticly add the scenes (sublevels) in this array for the loading progress.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TMap<FName, UWorld*> ScenesList;
+	TMap<FName, FName> ScenesList;
+	//TMap<FName, const UWorld*> ScenesList;
 
 	bool DebugMode = false;
 
