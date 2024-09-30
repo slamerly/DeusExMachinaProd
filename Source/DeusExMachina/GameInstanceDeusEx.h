@@ -17,8 +17,9 @@ class DEUSEXMACHINA_API UGameInstanceDeusEx : public UGameInstance
 
 protected:
 	virtual void Init() override;
+#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	
+#endif
 
 // ======================================================
 //					Save System

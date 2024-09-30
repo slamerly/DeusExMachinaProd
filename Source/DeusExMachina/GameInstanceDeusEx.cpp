@@ -21,6 +21,7 @@ void UGameInstanceDeusEx::Init()
 	}
 }
 
+#if WITH_EDITOR
 void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -51,6 +52,7 @@ void UGameInstanceDeusEx::PostEditChangeProperty(FPropertyChangedEvent& Property
 		}
 	}
 }
+#endif
 
 void UGameInstanceDeusEx::SetSaveProgress(FString pSceneName, bool bIsDone)
 {

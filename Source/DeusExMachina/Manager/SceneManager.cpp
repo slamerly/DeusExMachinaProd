@@ -98,6 +98,7 @@ void ASceneManager::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.0f, false);
 }
 
+#if WITH_EDITOR
 void ASceneManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -108,6 +109,7 @@ void ASceneManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 		UpdateScenesNames();
 	}
 }
+#endif
 
 void ASceneManager::UpdateScenesNames()
 {
