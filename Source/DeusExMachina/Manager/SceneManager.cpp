@@ -427,6 +427,7 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, bool p
 
 void ASceneManager::ChangeSceneByFName(FName pNextLevelName, bool pFromNarrationScene)
 {
+	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Scene : %s"), *pNextLevelName.ToString()));
 	int IndexNextLevel = ScenesNames.Find(pNextLevelName);
 
 	if (IndexNextLevel == -1)

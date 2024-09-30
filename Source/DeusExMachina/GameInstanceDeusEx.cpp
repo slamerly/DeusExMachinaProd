@@ -100,21 +100,31 @@ void UGameInstanceDeusEx::DisplayScenesSaved()
 
 void UGameInstanceDeusEx::LoadProgress(FString pLevelName, FString pSceneName)
 {
+	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Green, FString::Printf(TEXT("Level: %s, Scene: %s"), *pLevelName, *pSceneName));
+
 	// Load level if this is another then the current
 	if (GetWorld()->GetName() != pLevelName)
 	{
 		UGameplayStatics::OpenLevel(this, FName(*pLevelName));
 	}
 
-	// Find the 
-	AActor* ActorSceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
-	if(ActorSceneManager != nullptr)
-	{
-		ASceneManager* SceneManager = Cast<ASceneManager>(ActorSceneManager);
-		SceneManager->ChangeSceneByFName(FName(*pSceneName), false);
-	}
-	else
-		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("No SceneManager find in the level: %s"), *pLevelName));
+	//Delay
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&, pSceneName]
+		{
+			// Find the SceneManager
+			AActor* ActorSceneManager = UGameplayStatics::GetActorOfClass(this, ASceneManager::StaticClass());
+			if(ActorSceneManager != nullptr)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Purple, FString::Printf(TEXT("Scene: %s"), *pSceneName));
+				ASceneManager* SceneManager = Cast<ASceneManager>(ActorSceneManager);
+				SceneManager->ChangeSceneByFName(FName(*pSceneName), false);
+			}
+			else
+				GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("No SceneManager find in the level: %s"), *pLevelName));
+		});
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
 }
 
 void UGameInstanceDeusEx::SetDebugMode(bool NewStatus)
