@@ -40,4 +40,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Pause")
 	virtual bool GetInPause() = 0;
+
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerInputsSettings")
+	virtual float GetControlDirectionDelay() = 0;
 };

@@ -20,10 +20,12 @@ class DEUSEXMACHINA_API ASceneTransition : public AActor
 public:
 	ASceneTransition(const FObjectInitializer& ObjectInitializer);
 
-
 	~ASceneTransition();
 
 protected:
+	virtual void PostActorCreated() override;
+	virtual void BeginPlay() override;
+
 	// Collision box
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Default")
 	class UBoxComponent* CollisionBox = nullptr;
@@ -32,12 +34,6 @@ protected:
 	int IdSceneTransition = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
 	TObjectPtr<ATargetPoint> SpawnRomeo;
-
-	//Light
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<ALight*> Lights;
-	UFUNCTION(CallInEditor)
-	void GetAllLightsInSubLevel();
 
 	//Target
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target")
@@ -48,6 +44,15 @@ protected:
 public:
 	UFUNCTION()
 	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	TSoftObjectPtr<UWorld> GetTargetScene();
+	UFUNCTION()
+	int GetTargetId();
+	UFUNCTION()
+	int GetIdSceneTransition();
+	UFUNCTION()
+	ATargetPoint* GetSpawnRomeo();
 
 private:
 	TObjectPtr<AActor> SceneManager;

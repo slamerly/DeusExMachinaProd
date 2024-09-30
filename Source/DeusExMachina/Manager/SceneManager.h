@@ -7,6 +7,9 @@
 #include <Engine/TargetPoint.h>
 #include "SceneManagerInterface.h"
 #include <DeusExMachina/Player/PlayerControllerDeusEx.h>
+#include "Components/TimelineComponent.h"
+#include "Components/LightComponent.h"
+#include <Engine/Light.h>
 #include "SceneManager.generated.h"
 
 
@@ -19,32 +22,14 @@ public:
 	// Sets default values for this actor's properties
 	ASceneManager();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<const TSoftObjectPtr<UWorld>> Scenes;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	const TObjectPtr<ATargetPoint> SceneCenter;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<const TObjectPtr<AActor>> Curtains;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeLevel|Curtains")
-	TArray<FVector> CurtainsInitialPositions;
-
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 
 private:
-
-	int CurrentLevelIndex = 0;
 	TObjectPtr<APlayerControllerDeusEx> PlayerCtrl;
 
 	// ==================
@@ -55,34 +40,139 @@ private:
 	void InitializeCurtains();
 
 	// ==================
-	//		Change Level
+	//		Lights
 	// ==================
-	int TargetID = 0;
-	int ComeFromSceneIndex = 0;
-	void BeforeLevelChange(int pCurrentLevelIndex);
-	void AfterLevelChange(int SaveCurrentLevelIndex, bool WithLoad);
+	UFUNCTION(BlueprintCallable)
+	void LightsAnimation(bool IsOn);
+	void GetSceneLights();
+	TArray<ALight*> Lights; //Lights of the current scene
+	TArray<float> LightsIntensity; //Ligths' intensity to manage the animations
 
-	
 	// ==================
-	//		Save System
+	//		Change Scene
 	// ==================
-	void LoadingScene();
-	void SavingScene();	
+	int CurrentSceneIndex = 0;
+	int SaveIndexSceneBefore = 0; //Save the index of the scene come from
+	float DelayAnimations = .0f; // Time to do the animations
+	// Need the 2 next bool, for the event functions OnStreamSceneLoaded, OnStreamSceneUnloaded
+	bool FromNarrationScene = false;
+	TSoftObjectPtr<UWorld> NextScene; //ref of the scene to transit
+	void BeforeSceneChange(int pCurrentSceneIndex);
+	void AfterSceneChange(int IndexSaveSceneBefore);
+
+	//Functions event scene loading
+	UFUNCTION()
+	void OnStreamSceneLoaded();
+	UFUNCTION()
+	void OnStreamSceneUnloaded();
 
 // ======================================================
 //             Events animations and sounds
 // ======================================================
-public:
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	const TObjectPtr<ATargetPoint> SceneCenter;
+
+	// =======================
+	//		Change Level
+	// =======================
 	/**
 	 *	Animation to do in the Begin Play.
 	 * For now, we block the player and have a camera fade.
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "Animation|BeginPlay")
+	UFUNCTION(BlueprintNativeEvent, Category = "LevelTransition|BeginPlay")
 	void BeginPlayAnimation();
-	UPROPERTY(EditAnywhere, Category = "Animation|BeginPlay")
-	bool bBlockPlayerBeginPlay = true;
-	UPROPERTY(EditAnywhere, Category = "Animation|BeginPlay")
+	// beginplay
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|BeginPlay")
 	bool bFadeBeginPlay = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|BeginPlay")
+	bool bCurtainsBeginPlay = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|BeginPlay")
+	bool bLightsBeginPlay = true;
+	// Transition
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
+	TSoftObjectPtr<UWorld> NextLevel;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
+	float DelayAfterAnimation = 2.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
+	bool bCurtainsAnimationTL = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
+	bool bLightsAnimationTL = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
+	bool bFadeTransition = true;
+
+	// =======================
+	//		Change Scene
+	// =======================
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
+	TArray<const TSoftObjectPtr<UWorld>> Scenes;
+	// Array of names of scenes add in Scenes, use for loading functions
+	UPROPERTY(VisibleAnywhere, Category = "Default")
+	TArray<FName> ScenesNames;
+	// Update the ScenesNames
+	UFUNCTION(CallInEditor, Category = "Default")
+	void UpdateScenesNames();
+	/**
+	* Function to call animations for curtains and lights.
+	* @param	CurtainsOpen	Know if the curtains are curently open
+	* @param	LighsAreOn	Know if the lights are on
+	*/
+	void Animations(bool CurtainsOpen, bool LightsAreOn);
+
+	// =======================
+	//		Curtains
+	// =======================
+	TArray<FVector> CurtainsInitialPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene")
+	TArray<const TObjectPtr<AActor>> Curtains;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene")
+	bool bCurtainsAnimation = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Curtains")
+	float CurtainsFinalDistancePos = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Curtains")
+	float CurtainsPlayRateAnimation = 1.0f;
+	
+	// Timeline
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTimelineComponent* TimelineCurtains;
+	// La courbe flottante
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Curtains")
+	UCurveFloat* FloatCurveCurtains;
+	UFUNCTION()
+	void OnTimelineUpdateCurtains(float Value);
+	// Fonction appelée à la fin de la timeline
+	UFUNCTION()
+	void OnTimelineFinishedCurtains();
+
+	// =======================
+	//		Lights
+	// =======================
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene")
+	bool bLightsAnimation = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Lights")
+	float DelayToPutOnLights = 0.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Lights")
+	float LightsPlayRateAnimation = 1.0f;
+
+	// Timeline
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTimelineComponent* TimelineLights;
+	// La courbe flottante
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Lights")
+	UCurveFloat* FloatCurveLights;
+	UFUNCTION()
+	void OnTimelineUpdateLights(float Value);
+	// Fonction appelée à la fin de la timeline
+	UFUNCTION()
+	void OnTimelineFinishedLights();
+
+
+// ======================================================
+//             Load Progress
+// ======================================================
+public:
+	void SetCurrentSceneIndex(FName pSceneName);
 
 // ======================================================
 //             Scene Manager Interface
@@ -96,7 +186,11 @@ public:
 
 	FTransform GetCheckpointPlayerTransform() override;
 
-	void ChangeScene(const TSoftObjectPtr<UWorld>& NextLevel, int pTargetID, bool FromNarrationScene, bool WithLoad) override;
+	void ChangeScene(const TSoftObjectPtr<UWorld>& pNextLevel, bool pFromNarrationScene) override;
+
+	void ChangeSceneByFName(FName pNextLevelName, bool pFromNarrationScene) override;
 
 	void CurtainsAnimation(bool IsOpen) override;
+
+	void LevelTransition() override;
 };
