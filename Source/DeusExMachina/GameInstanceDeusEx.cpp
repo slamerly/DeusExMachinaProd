@@ -124,7 +124,7 @@ void UGameInstanceDeusEx::LoadProgress(FString pLevelName, FString pSceneName)
 				GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("No SceneManager find in the level: %s"), *pLevelName));
 		});
 	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, .01f, false);
 }
 
 void UGameInstanceDeusEx::SetDebugMode(bool NewStatus)

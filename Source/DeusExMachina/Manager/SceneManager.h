@@ -56,6 +56,7 @@ private:
 	float DelayAnimations = .0f; // Time to do the animations
 	// Need the 2 next bool, for the event functions OnStreamSceneLoaded, OnStreamSceneUnloaded
 	bool FromNarrationScene = false;
+	bool ChangeWithAnimations = false;
 	TSoftObjectPtr<UWorld> NextScene; //ref of the scene to transit
 	void BeforeSceneChange(int pCurrentSceneIndex);
 	void AfterSceneChange(int IndexSaveSceneBefore);
@@ -186,9 +187,9 @@ public:
 
 	FTransform GetCheckpointPlayerTransform() override;
 
-	void ChangeScene(const TSoftObjectPtr<UWorld>& pNextLevel, bool pFromNarrationScene) override;
+	void ChangeScene(const TSoftObjectPtr<UWorld>& pNextLevel, bool WithAnimations) override;
 
-	void ChangeSceneByFName(FName pNextLevelName, bool pFromNarrationScene) override;
+	void ChangeSceneByFName(FName pNextLevelName, bool WithAnimations) override;
 
 	void CurtainsAnimation(bool IsOpen) override;
 

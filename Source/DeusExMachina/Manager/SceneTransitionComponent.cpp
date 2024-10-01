@@ -44,7 +44,7 @@ void USceneTransitionComponent::OnComponentBeginOverlap(UPrimitiveComponent* Ove
 	{
 		if (SceneManager)
 		{
-			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, false);
+			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, true);
 		}
 	}
 }
