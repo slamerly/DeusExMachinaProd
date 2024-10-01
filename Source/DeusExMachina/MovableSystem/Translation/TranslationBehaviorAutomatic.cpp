@@ -1,6 +1,5 @@
 #include "TranslationBehaviorAutomatic.h"
 #include "TranslationSupport.h"
-#include "DeusExMachina/MovableSystem/Interactables/AutoTransInteractionDatas.h"
 #include "Defines.h"
 
 
@@ -297,6 +296,9 @@ void UTranslationBehaviorAutomatic::TriggerAutoTransInteraction(FAutoTransIntera
 			}
 		}
 	}
+
+	//  broadcast 'OnAutoTranslationTriggered' event
+	OnAutoTranslationTriggered.Broadcast(Datas);
 }
 
 
@@ -434,4 +436,32 @@ bool UTranslationBehaviorAutomatic::ComputeNextStopPoint()
 bool UTranslationBehaviorAutomatic::GetReverse()
 {
 	return bExteriorReverse ^ bAutomaticSpeedReverse; // XOR
+}
+
+
+
+// ======================================================
+//               Automatic Translation Datas
+// ======================================================
+void UTranslationBehaviorAutomatic::ChangeAutomaticTranslationValues(FAutomaticTranslationDatas NewAutoTransValues)
+{
+	if (!NewAutoTransValues.IsDataValid())
+	{
+		kPRINT_ERROR("Tried changing values of an automatic translation with an invalid struct!");
+		return;
+	}
+
+	CancelAutomaticTranslation();
+
+	AutomaticTranslationValues = NewAutoTransValues;
+
+	//  compute if the automatic speed is negative (will reverse every translation)
+	bAutomaticSpeedReverse = AutomaticTranslationValues.GetTranslationSpeed() < 0.0f;
+
+	if (!bOwnerTransSupportValid) return;
+
+	if (AutomaticTranslationValues.GetStartAutomatic())
+	{
+		LaunchAutomaticTranslationBeginPlay();
+	}
 }

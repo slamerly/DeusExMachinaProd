@@ -1,6 +1,5 @@
 #include "RotationBehaviorStandard.h"
 #include "RotationSupport.h"
-#include "StandardRotationDatas.h"
 
 
 URotationBehaviorStandard::URotationBehaviorStandard()
@@ -91,7 +90,7 @@ void URotationBehaviorStandard::StartStandardRotation(FStandardRotationDatas Dat
 	OwnerRotSupport->StartMovementOnChildrens();
 
 	//  broadcast the OnStandardRotationStart event
-	OnStandardRotationStart.Broadcast(OwnerRotSupport->GetInnerRotation() + RotationAngle);
+	OnStandardRotationStart.Broadcast(OwnerRotSupport->GetInnerRotation() + RotationAngle, Datas);
 }
 
 void URotationBehaviorStandard::CancelStandardRotation()

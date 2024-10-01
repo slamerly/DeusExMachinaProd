@@ -100,7 +100,7 @@ bool UTranslationBehaviorControlled::StartControlledTranslation(FControlledTrans
 	OwnerTransSupport->StartMovementOnChildrens();
 
 	//  broadcast OnControlledTranslationStart event
-	OnControlledTranslationStart.Broadcast();
+	OnControlledTranslationStart.Broadcast(Datas);
 
 	return true;
 }

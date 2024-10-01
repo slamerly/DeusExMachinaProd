@@ -2,10 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "RotationBehaviorBase.h"
+#include "StandardRotationDatas.h"
 #include "RotationBehaviorStandard.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FStandardRotationStart, URotationBehaviorStandard, OnStandardRotationStart, float, DestinationAngle);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FStandardRotationStart, URotationBehaviorStandard, OnStandardRotationStart, float, DestinationAngle, const FStandardRotationDatas&, Datas);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FStandardRotationEnd, URotationBehaviorStandard, OnStandardRotationEnd, float, DestinationAngle);
 
 
@@ -35,7 +36,7 @@ public:
 	* @param	bForceStart		(optionnal) Force the standard rotation to start even if the component is already performing a standard rotation
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Standard Rotation")
-	void StartStandardRotation(struct FStandardRotationDatas Datas, bool bForceStart = false);
+	void StartStandardRotation(FStandardRotationDatas Datas, bool bForceStart = false);
 
 	/**
 	* Function to call to stop every movement of this component.
@@ -48,7 +49,7 @@ public:
 //                   Helper Functions
 // ======================================================
 protected:
-	bool IsStandardRotValid(struct FStandardRotationDatas Datas);
+	bool IsStandardRotValid(FStandardRotationDatas Datas);
 
 
 

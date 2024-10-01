@@ -16,7 +16,7 @@ enum class EControlledTranslationState : uint8
 };
 
 
-DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FControlledTranslationStart, UTranslationBehaviorControlled, OnControlledTranslationStart);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FControlledTranslationStart, UTranslationBehaviorControlled, OnControlledTranslationStart, const FControlledTranslationDatas&, Datas);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FControlledTranslationStop, UTranslationBehaviorControlled, OnControlledTranslationStop, bool, Snap);
 
 
@@ -46,7 +46,7 @@ public:
 	* @return			True if the control was successfully gained.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Controlled Translation")
-	bool StartControlledTranslation(struct FControlledTranslationDatas Datas);
+	bool StartControlledTranslation(FControlledTranslationDatas Datas);
 
 	/**
 	* Function to call when an interactable linked to this behavior has lost control from the player.

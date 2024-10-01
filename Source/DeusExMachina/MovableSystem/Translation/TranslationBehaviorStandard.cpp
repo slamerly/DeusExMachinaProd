@@ -1,6 +1,5 @@
 #include "TranslationBehaviorStandard.h"
 #include "TranslationSupport.h"
-#include "StandardTranslationDatas.h"
 #include "Defines.h"
 
 UTranslationBehaviorStandard::UTranslationBehaviorStandard()
@@ -103,7 +102,7 @@ void UTranslationBehaviorStandard::StartStandardTranslation(FStandardTranslation
 	int DestIndex = 0;
 	float DestProgress = 0.0f;
 	OwnerTransSupport->ComputeInnerIndexAndProgress(OwnerTransSupport->GetDistanceFromSplineOrigin() + TranslationDistance, DestIndex, DestProgress);
-	OnStandardTranslationStart.Broadcast(DestIndex, DestProgress);
+	OnStandardTranslationStart.Broadcast(DestIndex, DestProgress, Datas);
 }
 
 void UTranslationBehaviorStandard::CancelStandardTranslation()

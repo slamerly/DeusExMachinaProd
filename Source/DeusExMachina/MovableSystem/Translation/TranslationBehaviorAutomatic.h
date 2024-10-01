@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "TranslationBehaviorBase.h"
 #include "AutomaticTranslationDatas.h"
+#include "DeusExMachina/MovableSystem/Interactables/AutoTransInteractionDatas.h"
 #include "TranslationBehaviorAutomatic.generated.h"
 
 
@@ -22,6 +23,7 @@ enum class EAutoTranslationState : uint8
 
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticTranslationStart, UTranslationBehaviorAutomatic, OnAutoTranslationStart);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticTranslationStop, UTranslationBehaviorAutomatic, OnAutoTranslationStop);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationTrigger, UTranslationBehaviorAutomatic, OnAutoTranslationTriggered, const FAutoTransInteractionDatas&, Datas);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationAutoStop, UTranslationBehaviorAutomatic, OnAutoTranslationAutoStop, int, StopSplineIndex);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationAutoResume, UTranslationBehaviorAutomatic, OnAutoTranslationAutoResume, int, NextStopSplineIndex);
 
@@ -123,6 +125,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
 	FAutomaticTranslationStop OnAutoTranslationStop;
 
+	/** Called when the automatic translation is triggered by a button on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationTrigger OnAutoTranslationTriggered;
+
 	/** Called when the automatic translation automatically stop on a spline point on this component. */
 	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
 	FAutomaticTranslationAutoStop OnAutoTranslationAutoStop;
@@ -138,6 +144,14 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation", meta = (Tooltip = "Values of Automatic Translation for this Translation Support.\nEach data can be overriden."))
 	FAutomaticTranslationDatas AutomaticTranslationValues;
+
+	/**
+	* Set new Automatic Translation Values to this Automatic Translation Behavior.
+	* Note that this will stop the current translation and restart with the new values. (If 'Start Automatic' is off, it will not restart automatically).
+	* @param	NewAutoTransValues	The new values to set for this behavior.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Translation")
+	void ChangeAutomaticTranslationValues(FAutomaticTranslationDatas NewAutoTransValues);
 
 
 // ======================================================

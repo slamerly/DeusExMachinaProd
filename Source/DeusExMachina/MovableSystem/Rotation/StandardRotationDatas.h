@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "StandardRotationDatas.generated.h"
 
 UCLASS()
@@ -59,9 +60,42 @@ struct FStandardRotationDatas
 
 
 	//  Getter functions
-	bool IsDataValid();
+	bool IsDataValid() const;
 
-	float GetRotationAngle();
-	float GetRotationDuration();
-	UCurveFloat* GetRotationCurve();
+	float GetRotationAngle() const;
+	float GetRotationDuration() const;
+	UCurveFloat* GetRotationCurve() const;
+};
+
+
+UCLASS()
+class DEUSEXMACHINA_API UStandardRotationDatasGet : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+	/**
+	* Get the 'RotationAngle' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The angle that the complete Standard Rotation will apply to the Rotation Support.
+				A positive angle will apply a clockwise rotation and a negative angle will apply an anticlockwise rotation.
+				(In degrees)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Rotation Datas", meta = (ReturnDisplayName = "RotationAngle"))
+	static float GetRotationAngle(const FStandardRotationDatas& Datas);
+
+	/**
+	* Get the 'RotationDuration' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The time that the complete Standard Rotation will take.
+				(In seconds)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Rotation Datas", meta = (ReturnDisplayName = "RotationDuration"))
+	static float GetRotationDuration(const FStandardRotationDatas& Datas);
+
+	/**
+	* Get the 'RotationCurve' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The interpolation curve that will smooth the Standard Rotation.
+				(Must be a normalized curve)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Rotation Datas", meta = (ReturnDisplayName = "RotationCurve"))
+	static UCurveFloat* GetRotationCurve(const FStandardRotationDatas& Datas);
 };

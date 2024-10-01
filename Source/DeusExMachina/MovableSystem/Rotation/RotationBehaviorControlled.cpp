@@ -95,7 +95,7 @@ bool URotationBehaviorControlled::StartControlledRotation(FControlledRotationDat
 	OwnerRotSupport->StartMovementOnChildrens();
 
 	//  broadcast OnControlledRotationStart event
-	OnControlledRotationStart.Broadcast();
+	OnControlledRotationStart.Broadcast(Datas);
 
 	return true;
 }

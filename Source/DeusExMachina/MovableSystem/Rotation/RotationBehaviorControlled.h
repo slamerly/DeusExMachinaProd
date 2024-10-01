@@ -16,7 +16,7 @@ enum class EControlledRotationState : uint8
 };
 
 
-DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FControlledRotationStart, URotationBehaviorControlled, OnControlledRotationStart);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FControlledRotationStart, URotationBehaviorControlled, OnControlledRotationStart, const FControlledRotationDatas&, Datas);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FControlledRotationStop, URotationBehaviorControlled, OnControlledRotationStop, bool, Snap);
 
 
@@ -46,7 +46,7 @@ public:
 	* @return			True if the control was successfully gained.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Controlled Rotation")
-	bool StartControlledRotation(struct FControlledRotationDatas Datas);
+	bool StartControlledRotation(FControlledRotationDatas Datas);
 	
 	/**
 	* Function to call when an interactable linked to this behavior has lost control from the player.

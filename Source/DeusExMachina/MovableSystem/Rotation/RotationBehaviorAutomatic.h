@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "RotationBehaviorBase.h"
 #include "AutomaticRotationDatas.h"
+#include "DeusExMachina/MovableSystem/Interactables/AutoRotInteractionDatas.h"
 #include "RotationBehaviorAutomatic.generated.h"
 
 
@@ -22,6 +23,7 @@ enum class EAutoRotationState : uint8
 
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticRotationStart, URotationBehaviorAutomatic, OnAutoRotationStart);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticRotationStop, URotationBehaviorAutomatic, OnAutoRotationStop);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticRotationTrigger, URotationBehaviorAutomatic, OnAutoRotationTriggered, const FAutoRotInteractionDatas&, Datas);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticRotationAutoStop, URotationBehaviorAutomatic, OnAutoRotationAutoStop, int, StopAngle);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticRotationAutoResume, URotationBehaviorAutomatic, OnAutoRotationAutoResume, int, NextStopAngle);
 
@@ -124,6 +126,10 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Automatic Rotation|Events")
 	FAutomaticRotationStop OnAutoRotationStop;
 
+	/** Called when the automatic rotation is triggered by a button on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Rotation|Events")
+	FAutomaticRotationTrigger OnAutoRotationTriggered;
+
 	/** Called when the automatic rotation automatically stop on an angle on this component. */
 	UPROPERTY(BlueprintAssignable, Category = "Automatic Rotation|Events")
 	FAutomaticRotationAutoStop OnAutoRotationAutoStop;
@@ -139,6 +145,14 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Rotation", meta = (Tooltip = "Values of Automatic Rotation for this Rotation Support.\nEach data can be overriden."))
 	FAutomaticRotationDatas AutomaticRotationValues;
+
+	/**
+	* Set new Automatic Rotation Values to this Automatic Rotation Behavior.
+	* Note that this will stop the current rotation and restart with the new values. (If 'Start Automatic' is off, it will not restart automatically).
+	* @param	NewAutoRotValues	The new values to set for this behavior.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Rotation")
+	void ChangeAutomaticRotationValues(FAutomaticRotationDatas NewAutoRotValues);
 
 
 // ======================================================

@@ -1,6 +1,5 @@
 #include "RotationBehaviorAutomatic.h"
 #include "RotationSupport.h"
-#include "DeusExMachina/MovableSystem/Interactables/AutoRotInteractionDatas.h"
 #include "AnglesUtils.h"
 #include "Defines.h"
 
@@ -298,6 +297,9 @@ void URotationBehaviorAutomatic::TriggerAutoRotInteraction(FAutoRotInteractionDa
 			}
 		}
 	}
+
+	//  broadcast 'OnAutoRotationTriggered' event
+	OnAutoRotationTriggered.Broadcast(Datas);
 }
 
 
@@ -411,4 +413,32 @@ bool URotationBehaviorAutomatic::ComputeNextStopAngle()
 bool URotationBehaviorAutomatic::GetReverse()
 {
 	return bExteriorReverse ^ bAutomaticSpeedReverse; // XOR
+}
+
+
+
+// ======================================================
+//               Automatic Rotation Datas
+// ======================================================
+void URotationBehaviorAutomatic::ChangeAutomaticRotationValues(FAutomaticRotationDatas NewAutoRotValues)
+{
+	if (!NewAutoRotValues.IsDataValid())
+	{
+		kPRINT_ERROR("Tried changing values of an automatic rotation with an invalid struct!");
+		return;
+	}
+
+	CancelAutomaticRotation();
+
+	AutomaticRotationValues = NewAutoRotValues;
+
+	//  compute if the automatic speed is negative (will reverse every rotation)
+	bAutomaticSpeedReverse = AutomaticRotationValues.GetRotationSpeed() < 0.0f; 
+
+	if (!bOwnerRotSupportValid) return;
+
+	if (AutomaticRotationValues.GetStartAutomatic())
+	{
+		LaunchAutomaticRotationBeginPlay();
+	}
 }
