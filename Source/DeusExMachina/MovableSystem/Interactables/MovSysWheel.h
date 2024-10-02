@@ -6,6 +6,8 @@
 #include "ControlledLinkStructs.h"
 #include "MovSysWheel.generated.h"
 
+class AMovSysSelector;
+
 
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlGain, AMovSysWheel, OnMovSysWheelControlGained);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlLost, AMovSysWheel, OnMovSysWheelControlLost);
@@ -122,7 +124,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Controlled you want to link to this wheel."))
 	TArray<FControlledTransInteractionLink> LinkedTransSupportsControlled;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link With Selector", meta = (tooltip = "Link a Selector to this Wheel.\nThis Wheel will control the supports currently selected by the Selector."))
+	AMovSysSelector* LinkedSelector;
+
 protected:
 	TArray<FControlledRotInteractionLink> LinkedRotSupportsControlledVerified;
 	TArray<FControlledTransInteractionLink> LinkedTransSupportsControlledVerified;
+
+	TArray<FControlledRotInteractionLink> LinkedRotSupportsSelector;
+	TArray<FControlledTransInteractionLink> LinkedTransSupportsSelector;
 };
