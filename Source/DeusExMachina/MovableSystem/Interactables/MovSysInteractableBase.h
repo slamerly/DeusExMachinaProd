@@ -16,14 +16,40 @@ protected:
 	virtual void BeginPlay() override;
 
 
+
+// ======================================================
+//               Non-overridable Functions
+// ======================================================
 public:
+	// ======================
+	//  Disable Interactable
+	// ======================
+
+	/** Disable the interaction on this interactable. */
+	UFUNCTION(BlueprintCallable, Category = "Moving System Interactable")
 	void DisableInteractable();
+
+	/** Enable the interaction on this interactable. */
+	UFUNCTION(BlueprintCallable, Category = "Moving System Interactable")
 	void EnableInteractable();
+
+	/** Is this interactable disabled? */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Moving System Interactable")
 	bool IsInteractableDisabled();
 
+
+// ======================================================
+//                Overridable Functions
+// ======================================================
+public:
+	/** Instantly release the interaction if the player was using this interactable. */
+	UFUNCTION(BlueprintCallable, Category = "Moving System Interactable")
 	virtual void ForceReleaseInteractable();
 
-	
+
+// ======================================================
+//                      Variables
+// ======================================================
 protected:
 	bool bDisabled{ false };
 };

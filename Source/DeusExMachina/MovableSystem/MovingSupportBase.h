@@ -19,6 +19,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	virtual void Tick(float DeltaTime) override;
+
 
 
 // ======================================================
@@ -26,16 +29,16 @@ protected:
 // ======================================================
 public:
 	// ====================
-	//   Support Movement
-	// ====================
-	void ApplyInnerMovement(USceneComponent* ComponentToMove);
-
-	// ====================
 	//  Movable Childrens
 	// ====================
+	/** 
+	* Add a new movable child to this support.
+	* @param	MovableChild	The movable child to add.
+	*/
+	UFUNCTION(BlueprintCallable)
 	void AddMovableChild(UMovableObjectComponent* MovableChild);
 	void StartMovementOnChildrens();
-	void StopMovementOnChildrens();
+	void StopMovementOnChildrens(bool Delay = true);
 
 	UFUNCTION()
 	void UpdateEveryChildrens(); //  bindable
@@ -51,17 +54,20 @@ public:
 	//      Transform
 	// ====================
 	virtual FTransform GetObjectTransform();
-	virtual FTransform GetObjectTransformRelative();
 
 	// ====================
 	//   Support Movement
 	// ====================
+	/** Return true if the support is currently performing a movement. */
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	virtual bool IsCurrentlyMoving();
 
 
 	// ====================
 	//    Debug Movement
 	// ====================
+
+	/** Currently unimplemented */
 	virtual bool GetPlayerInRange(FVector PlayerPosition);
 
 
@@ -85,14 +91,8 @@ protected:
 protected:
 	TArray<UMovableObjectComponent*> MovableChildrens;
 
-	FTransform InnerTransform{ FTransform::Identity }; // Transform containing the movement created by the support since the start (begin play)
-
-	FTransform StartTransform{ FTransform::Identity }; // Transform of the support at begin play in world space
-	FTransform StartTransformRelative{ FTransform::Identity }; // Transform of the support at begin play in local space
-
-	// TODO: After finishing the core of Movable System, check if StartTransform are still relevant (it shouldn't be for rotations, maybe for translations?)
-
-
 	bool bIsSelfMovable{ false };
 	UMovableObjectComponent* SelfMovable{ nullptr };
+
+	int StopMovementPending{ 2 };
 };

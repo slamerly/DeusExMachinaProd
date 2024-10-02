@@ -3,7 +3,7 @@
 
 #include "SceneManager.h"
 #include <Kismet/GameplayStatics.h>
-#include "SceneTransition.h"
+#include "SceneEntrance.h"
 #include "Kismet/KismetMathLibrary.h" // Pour les interpolations
 #include "UObject/ConstructorHelpers.h" // Pour charger les courbes
 #include "Engine/LevelStreaming.h"
@@ -31,8 +31,7 @@ void ASceneManager::BeginPlay()
 	if (!Scenes.IsEmpty())
 	{
 		FLatentActionInfo LatentInfo;
-		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(GetWorld(), Scenes[0], true, true, LatentInfo);
-		CurrentSceneIndex = 0;
+		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(GetWorld(), Scenes[CurrentSceneIndex], true, true, LatentInfo);
 	}
 	else
 	{
@@ -45,6 +44,7 @@ void ASceneManager::BeginPlay()
 	}
 
 	CurtainsVerifications();
+	
 
 	TimelineCurtains->SetPlayRate(CurtainsPlayRateAnimation);
 	TimelineLights->SetPlayRate(LightsPlayRateAnimation);
@@ -53,29 +53,53 @@ void ASceneManager::BeginPlay()
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]
 		{
+			//Animations
 			if (bFadeBeginPlay)
 			{
 				UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(1.0f, 0.0f, 2.0f, FLinearColor::Black, false, false);
 			}
+
+			float CurtainsAnimationTime = 0, LightsAnimationTime = 0;
+			if (bCurtainsBeginPlay)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Curtain animation"));
+				CurtainsAnimation(false);
+				CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
+				DelayAnimations = CurtainsAnimationTime;
+			}
+			if (bLightsBeginPlay)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Light animation"));
+				LightsAnimation(false);
+				LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
+				DelayAnimations = LightsAnimationTime;
+			}
+			if (bCurtainsBeginPlay && bLightsBeginPlay)
+			{
+				if (CurtainsAnimationTime > LightsAnimationTime)
+					DelayAnimations = CurtainsAnimationTime;
+				else
+					DelayAnimations = LightsAnimationTime;
+			}
+			else if (!bCurtainsBeginPlay && !bLightsBeginPlay)
+			{
+				DelayAnimations = 0;
+			}
+
 			//Delay
 			FTimerDelegate TimerDelegate2;
 			TimerDelegate2.BindLambda([&]
 				{
-					if (bBlockPlayerBeginPlay)
-					{
-						PlayerCtrl->UnblockPlayerInputs(EBlockPlayerCause::SceneTransition);
-					}
+					PlayerCtrl->UnblockPlayerInputs(EBlockPlayerCause::SceneTransition);
 				});
-
 			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate2, 0.5f, false);
-			
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate2, DelayAnimations, false);
 		});
-
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 1.0f, false);
 }
 
+#if WITH_EDITOR
 void ASceneManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -83,31 +107,55 @@ void ASceneManager::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	// Update the ScenesNames when change Scenes
 	if (PropertyChangedEvent.GetPropertyName() == GET_MEMBER_NAME_CHECKED(ASceneManager, Scenes))
 	{
-		ScenesNames.Empty();
-		for (int i = 0; i < Scenes.Num(); i++)
-		{
-			if(Scenes[i] != nullptr)
-				ScenesNames.Add(Scenes[i]->GetFName());
-		}
+		UpdateScenesNames();
 	}
 }
+#endif
 
 void ASceneManager::UpdateScenesNames()
 {
 	ScenesNames.Empty();
 	for (int i = 0; i < Scenes.Num(); i++)
 	{
-		ScenesNames.Add(Scenes[i]->GetFName());
+		if (Scenes[i] != nullptr)
+			ScenesNames.Add(Scenes[i]->GetFName());
+	}
+}
+
+void ASceneManager::Animations(bool CurtainsOpen, bool LightsAreOn)
+{
+	float CurtainsAnimationTime = 0, LightsAnimationTime = 0;
+	if (bCurtainsAnimation)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Curtain animation"));
+		CurtainsAnimation(CurtainsOpen);
+		CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
+		DelayAnimations = CurtainsAnimationTime;
+	}
+	if (bLightsAnimation)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Light animation"));
+		LightsAnimation(LightsAreOn);
+		LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
+		DelayAnimations = LightsAnimationTime;
+	}
+	if (bCurtainsAnimation && bLightsAnimation)
+	{
+		if (CurtainsAnimationTime > LightsAnimationTime)
+			DelayAnimations = CurtainsAnimationTime;
+		else
+			DelayAnimations = LightsAnimationTime;
+	}
+	else if (!bCurtainsAnimation && !bLightsAnimation)
+	{
+		DelayAnimations = 0;
 	}
 }
 
 void ASceneManager::BeginPlayAnimation_Implementation()
 {
 	// When we load the scene for the first time, we block the player inputand do a camera Fade
-	if (bBlockPlayerBeginPlay)
-	{
-		PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
-	}
+	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
 	if (bFadeBeginPlay)
 	{
 		UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(1.0f, 1.0f, 1.0f, FLinearColor::Black, false, true);
@@ -123,6 +171,8 @@ void ASceneManager::CurtainsVerifications()
 {
 	if (!Curtains.IsEmpty())
 	{
+		//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Avant reverse cord: %d, %d, %d"), Curtains[0]->GetActorLocation().X, Curtains[0]->GetActorLocation().Y, Curtains[0]->GetActorLocation().Z));
+		//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, Curtains[0]->GetActorLocation().ToString());
 		float LocationCurtain = Curtains[0]->GetActorLocation().Y;
 		if (LocationCurtain > SceneCenter->GetActorLocation().Y)
 		{
@@ -136,17 +186,21 @@ void ASceneManager::CurtainsVerifications()
 		//UE_LOG(LogTemp, Log, TEXT("No curtains selected in SceneManager"));
 		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("No curtains selected in SceneManager"));
 	}
+
+	if (CurtainsFinalDistancePos == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("Warning, the Curtains Final Distance Pos is 0."));
+	}
 }
 
 // Save the curtains positions for the animations
 void ASceneManager::InitializeCurtains()
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("%d"), Curtains.Num());
 	for (int i = 0; i < Curtains.Num(); i++)
 	{
 		CurtainsInitialPosition.Add(Curtains[i]->GetActorLocation());
 	}
-	UE_LOG(LogTemp, Log, TEXT("Number of curtains: %f"), CurtainsInitialPosition[0].Y);
+	//UE_LOG(LogTemp, Log, TEXT("Number of curtains: %f"), CurtainsInitialPosition[0].Y);
 }
 
 void ASceneManager::CurtainsAnimation(bool IsOpen)
@@ -202,6 +256,7 @@ void ASceneManager::GetSceneLights()
 	LightsIntensity.Empty();
 
 	UE_LOG(LogTemp, Log, TEXT("Number of light in the scene %d"), LightsFund.Num());
+	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("Number of light in the scene: %d"), LightsFund.Num()));
 
 	for (int i = 0; i < LightsFund.Num(); i++)
 	{
@@ -226,6 +281,8 @@ void ASceneManager::LightsAnimation(bool IsOn)
 		// Create the function to update link to the timeline
 		FOnTimelineFloat TimelineProgress;
 		TimelineProgress.BindUFunction(this, FName("OnTimelineUpdateLights"));
+
+		//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("Num: %d"), Lights.Num()));
 
 		// Add the event to update
 		TimelineLights->AddInterpFloat(FloatCurveCurtains, TimelineProgress);
@@ -259,105 +316,42 @@ void ASceneManager::LightsAnimation(bool IsOn)
 }
 
 // ======================================================
-//             Change Scene Fucntions
+//             Change Scene Functions
 // ======================================================
 
 void ASceneManager::BeforeSceneChange(int pCurrentSceneIndex)
 {
-	//TODO - Saving Scene
 	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
 
 	//Animations
-	float CurtainsAnimationTime = 0, LightsAnimationTime = 0;
-	if (bCurtainsAnimation)
+	if (ChangeWithAnimations)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Curtain animation"));
-		CurtainsAnimation(true);
-		CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
-		DelayAnimations = CurtainsAnimationTime;
-	}
-	if (bLightsAnimation)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Light animation"));
-		LightsAnimation(true);
-		LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
-		DelayAnimations = LightsAnimationTime;
-	}
-	if (bCurtainsAnimation && bLightsAnimation)
-	{
-		if (CurtainsAnimationTime > LightsAnimationTime)
-			DelayAnimations = CurtainsAnimationTime;
-		else
-			DelayAnimations = LightsAnimationTime;
-	}
-	else if (!bCurtainsAnimation && !bLightsAnimation)
-	{
-		DelayAnimations = 0;
+		Animations(true, true);
 	}
 }
 
-void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore, bool pWithLoad)
+void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore)
 {
-	
-	if (pWithLoad)
+	TObjectPtr<AActor> SceneEntrance = ULevelUtilitiesFunctions::GetActorOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneEntrance::StaticClass());
+
+	if(SceneEntrance != nullptr)
 	{
-		LoadingScene();
-	}
+		UGameplayStatics::GetPlayerPawn(this, 0)->SetActorLocation(SceneEntrance->GetActorLocation());
+		UGameplayStatics::GetPlayerPawn(this, 0)->SetActorRotation(SceneEntrance->GetActorRotation());
 
-	//If the scene contains many transitions, select the good one
-	TArray<AActor*> SceneTransitions;
-	ULevelUtilitiesFunctions::GetAllActorsOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneTransition::StaticClass(), SceneTransitions);
-
-	ASceneTransition* GoodTransition = nullptr;
-
-	UE_LOG(LogTemp, Warning, TEXT("Num: %d"), SceneTransitions.Num());
-	for (int i = 0; i < SceneTransitions.Num(); i++)
-	{
-		ASceneTransition* CurrentSceneTransition = Cast<ASceneTransition>(SceneTransitions[i]);
-
-		if (CurrentSceneTransition->GetTargetScene() == Scenes[IndexSaveSceneBefore] &&
-			CurrentSceneTransition->GetIdSceneTransition() == TargetID)
+		//Animations
+		if(ChangeWithAnimations)
 		{
-			if (CurrentSceneTransition->GetSpawnRomeo() != nullptr)
-			{
-				UGameplayStatics::GetPlayerPawn(this, 0)->SetActorLocation(CurrentSceneTransition->GetSpawnRomeo()->GetActorLocation());
-
-				//Animations
-				float CurtainsAnimationTime = 0, LightsAnimationTime = 0;				
-				if (bCurtainsAnimation)
-				{
-					//UE_LOG(LogTemp, Warning, TEXT("After Loaded Curtain animation"));
-					CurtainsAnimation(false);
-					CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
-					DelayAnimations = CurtainsAnimationTime;
-				}
-				if (bLightsAnimation)
-				{
-					LightsAnimation(false);
-					LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
-					DelayAnimations = LightsAnimationTime;
-				}
-				if (bCurtainsAnimation && bLightsAnimation)
-				{
-					if (CurtainsAnimationTime > LightsAnimationTime)
-						DelayAnimations = CurtainsAnimationTime;
-					else
-						DelayAnimations = LightsAnimationTime;
-				}
-				else if(!bCurtainsAnimation && !bLightsAnimation)
-				{
-					DelayAnimations = 0;
-				}
-				return;
-			}
-			else
-			{
-				//Error
-				GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red,
-					FString::Printf(TEXT("SpawnRomeo is empty in %s"), *GoodTransition->GetName()));
-				UE_LOG(LogTemp, Warning, TEXT("SpawnRomeo is empty in %s"), *GoodTransition->GetName());
-			}
+			Animations(false, false);
+			return;
 		}
+	}
+	else
+	{
+		//Error
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red,
+			FString::Printf(TEXT("No SceneEntrance found in the next scene.")));
+		UE_LOG(LogTemp, Warning, TEXT("No SceneEntrance found in the next scene."));
 	}
 }
 
@@ -369,7 +363,7 @@ void ASceneManager::OnStreamSceneLoaded()
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindLambda([&]
 		{
-			AfterSceneChange(SaveIndexSceneBefore, WithLoad);
+			AfterSceneChange(SaveIndexSceneBefore);
 
 			//Narration
 			if (FromNarrationScene)
@@ -412,16 +406,15 @@ void ASceneManager::OnStreamSceneUnloaded()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.1f, false);
 }
 
-void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, int pTargetID, bool pFromNarrationScene, bool pWithLoad)
+void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, bool WithAnimations)
 {
-	TargetID = pTargetID;
 	if (Scenes.Contains(pNextScene))
 	{
+		ChangeWithAnimations = WithAnimations;
 		BeforeSceneChange(CurrentSceneIndex);
 		DelayAnimations += 0.25f; // add more time to finish the animation before unload scene
 		SaveIndexSceneBefore = CurrentSceneIndex;
-		FromNarrationScene = pFromNarrationScene;
-		WithLoad = pWithLoad;
+		//FromNarrationScene = pFromNarrationScene;
 		NextScene = pNextScene;
 
 		//Delay
@@ -449,18 +442,19 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, int pT
 	}
 }
 
-// ======================================================
-//             Loading Fucntions
-// ======================================================
-
-// Loading save for the scene
-void ASceneManager::LoadingScene()
+void ASceneManager::ChangeSceneByFName(FName pNextLevelName, bool WithAnimations)
 {
-}
+	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Scene : %s"), *pNextLevelName.ToString()));
+	int IndexNextLevel = ScenesNames.Find(pNextLevelName);
 
-// Saveing the current scene
-void ASceneManager::SavingScene()
-{
+	if (IndexNextLevel == -1)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Orange, FString::Printf(TEXT("Scene not find, cannot change scene.")));
+	}
+	else
+	{
+		ChangeScene(Scenes[IndexNextLevel], WithAnimations);
+	}
 }
 
 // ======================================================
@@ -493,6 +487,49 @@ void ASceneManager::OnTimelineUpdateLights(float Value)
 
 void ASceneManager::OnTimelineFinishedLights()
 {
+	Lights.Empty();
+	LightsIntensity.Empty();
+}
+
+void ASceneManager::LevelTransition()
+{
+	DelayAnimations = 0;
+
+	PlayerCtrl->BlockPlayerInputs(EBlockPlayerCause::SceneTransition);
+
+	//Remove all widgets on the screen
+	GetWorld()->GetGameViewport()->RemoveAllViewportWidgets();
+
+	//Camera Fade
+	if (bFadeTransition)
+	{
+		UGameplayStatics::GetPlayerCameraManager(this, 0)->StartCameraFade(0.0f, 1.0f, 2.0f, FLinearColor::Black, false, true);
+	}
+
+	DelayAnimations += DelayAfterAnimation;
+	//Delay
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]
+		{
+			if (NextLevel != nullptr)
+			{
+				UGameplayStatics::OpenLevelBySoftObjectPtr(this, NextLevel);
+			}
+			else
+			{
+				//Error
+				GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red,
+					TEXT("No level target for level transition."));
+				//UE_LOG(LogTemp, Warning, TEXT("SpawnRomeo is empty in %s"), *GoodTransition->GetName());
+			}
+		});
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayAnimations, false);
+}
+
+void ASceneManager::SetCurrentSceneIndex(FName pSceneName)
+{
+	CurrentSceneIndex = ScenesNames.Find(pSceneName);
 }
 
 int ASceneManager::GetCurrentIndexScene()

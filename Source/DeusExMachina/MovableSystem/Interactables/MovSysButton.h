@@ -5,12 +5,17 @@
 #include "DeusExMachina/Interaction/Interactable.h"
 #include "AutoRotInteractionDatas.h"
 #include "DeusExMachina/MovableSystem/Rotation/StandardRotationDatas.h"
+#include "DeusExMachina/MovableSystem/Translation/StandardTranslationDatas.h"
+#include "AutoTransInteractionDatas.h"
 #include "MovSysButton.generated.h"
 
 
 class ARotationSupport;
+class ATranslationSupport;
 class URotationBehaviorAutomatic;
 class URotationBehaviorStandard;
+class UTranslationBehaviorAutomatic;
+class UTranslationBehaviorStandard;
 
 
 USTRUCT(BlueprintType, meta = (Tooltip = "Link a Rotation Support with the Rotation Behavior Automatic component to a MovSys Button."))
@@ -43,6 +48,38 @@ struct FStandardRotInteractionLink
 };
 
 
+USTRUCT(BlueprintType, meta = (Tooltip = "Link a Translation Support with the Translation Behavior Automatic component to a MovSys Button."))
+struct FAutoTransInteractionLink
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The Translation Support you want to link. It must have the Translation Behavior Automatic component."))
+	ATranslationSupport* TranslationSupport{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The datas you want to link the support with. It will be used on this Translation Support when using the button."))
+	FAutoTransInteractionDatas InteractionDatas;
+
+	UTranslationBehaviorAutomatic* TranslationAutomaticComponent{ nullptr };
+};
+
+
+USTRUCT(BlueprintType, meta = (Tooltip = "Link a Translation Support with the Translation Behavior Standard component to a MovSys Button."))
+struct FStandardTransInteractionLink
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The Translation Support you want to link. It must have the Translation Behavior Standard component."))
+	ATranslationSupport* TranslationSupport{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The datas you want to link the support with. It will be used on this Translation Support when using the button."))
+	FStandardTranslationDatas StandardDatas;
+
+	UTranslationBehaviorStandard* TranslationStandardComponent{ nullptr };
+};
+
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysButtonUse, AMovSysButton, OnMovSysButtonUsed);
+
 
 UCLASS()
 class DEUSEXMACHINA_API AMovSysButton : public AMovSysInteractableBase, public IInteractable
@@ -55,54 +92,73 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+#if WITH_EDITOR
 public:
-	virtual void Tick(float DeltaTime) override;
-
+	/** Called when a value is changed on this actor in the editor */
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif // WITH_EDITOR
 
 
 
-	// ======================================================
-	//                 Interactable Interface
-	// ======================================================
+// ======================================================
+//                 Interactable Interface
+// ======================================================
 public:
 	void Interaction_Implementation() override;
 	bool CanInteract_Implementation() override;
 
 	bool IsInteractionHeavy_Implementation() override;
-	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue) override;
+	void InteractionHeavyUpdate_Implementation(FVector2D ControlValue, bool KeyboardInput) override;
 	void InteractionHeavyFinished_Implementation() override;
 
+	bool IsInteractableBothSides_Implementation() override;
 
-	// ======================================================
-	//          Button Visual Feedback (blueprint)
-	// ======================================================
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when this button is used by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Button|Events")
+	FMovSysButtonUse OnMovSysButtonUsed;
+
+
+// ======================================================
+//          Button Visual Feedback (blueprint)
+// ======================================================
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ButtonInteractFeedback();
 
 
-	// ======================================================
-	//              Button Internal Variables
-	// ======================================================
+// ======================================================
+//              Button Internal Variables
+// ======================================================
 protected:
 	UPROPERTY(BlueprintReadWrite)
 	bool bPressed{ false };
 
 
-	// ======================================================
-	//                 Interaction Links
-	// ======================================================
-
+// ======================================================
+//                 Interaction Links
+// ======================================================
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (tooltip = "Rotation Supports with the Rotation Behavior Automatic you want to link to this button."))
-	TArray<FAutoRotInteractionLink> LinkedSupportsAutomatic;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Rotation Supports", meta = (tooltip = "Rotation Supports with the Rotation Behavior Automatic you want to link to this button."))
+	TArray<FAutoRotInteractionLink> LinkedRotSupportsAutomatic;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (tooltip = "Rotation Supports with the Rotation Behavior Standard you want to link to this button."))
-	TArray<FStandardRotInteractionLink> LinkedSupportsStandard;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Rotation Supports", meta = (tooltip = "Rotation Supports with the Rotation Behavior Standard you want to link to this button."))
+	TArray<FStandardRotInteractionLink> LinkedRotSupportsStandard;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Automatic you want to link to this button."))
+	TArray<FAutoTransInteractionLink> LinkedTransSupportsAutomatic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Standard you want to link to this button."))
+	TArray<FStandardTransInteractionLink> LinkedTransSupportsStandard;
 
 protected:
-	TArray<FAutoRotInteractionLink> LinkedSupportsAutomaticVerified;
-	TArray<FStandardRotInteractionLink> LinkedSupportsStandardVerified;
-
+	TArray<FAutoRotInteractionLink> LinkedRotSupportsAutomaticVerified;
+	TArray<FStandardRotInteractionLink> LinkedRotSupportsStandardVerified;
+	TArray<FAutoTransInteractionLink> LinkedTransSupportsAutomaticVerified;
+	TArray<FStandardTransInteractionLink> LinkedTransSupportsStandardVerified;
 };

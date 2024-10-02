@@ -4,22 +4,44 @@
 // ======================================================
 //                  Getter Functions
 // ======================================================
-bool FStandardRotationDatas::IsDataValid()
+bool FStandardRotationDatas::IsDataValid() const
 {
 	return IsValid(StandardRotInteractionDatas) || (bOverrideValues && bOverrideCurveValue);
 }
 
-float FStandardRotationDatas::GetRotationAngle()
+float FStandardRotationDatas::GetRotationAngle() const
 {
 	return bOverrideValues ? RotationAngle : StandardRotInteractionDatas->RotationAngle;
 }
 
-float FStandardRotationDatas::GetRotationDuration()
+float FStandardRotationDatas::GetRotationDuration() const
 {
 	return bOverrideValues ? RotationDuration : StandardRotInteractionDatas->RotationDuration;
 }
 
-UCurveFloat* FStandardRotationDatas::GetRotationCurve()
+UCurveFloat* FStandardRotationDatas::GetRotationCurve() const
 {
 	return bOverrideCurveValue ? RotationCurve : StandardRotInteractionDatas->RotationCurve;
+}
+
+
+
+
+
+// ======================================================
+//             Getter Functions (Blueprint)
+// ======================================================
+float UStandardRotationDatasGet::GetRotationAngle(const FStandardRotationDatas& Datas)
+{
+	return Datas.GetRotationAngle();
+}
+
+float UStandardRotationDatasGet::GetRotationDuration(const FStandardRotationDatas& Datas)
+{
+	return Datas.GetRotationDuration();
+}
+
+UCurveFloat* UStandardRotationDatasGet::GetRotationCurve(const FStandardRotationDatas& Datas)
+{
+	return Datas.GetRotationCurve();
 }

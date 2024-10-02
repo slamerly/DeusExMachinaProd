@@ -2,6 +2,8 @@
 #include "DeusExMachina/MovableSystem/Rotation/RotationSupport.h"
 #include "Defines.h"
 
+
+#if WITH_EDITOR
 void UStaticMeshComponentPlus::PostEditComponentMove(bool bFinished)
 {
 	if (bUsedInRotationSupport) BroadcastRotSupport();
@@ -18,6 +20,9 @@ void UStaticMeshComponentPlus::PostEditChangeProperty(FPropertyChangedEvent& Pro
 
 	Super::PostEditChangeProperty(PropertyChangedEvent);
 }
+#endif // WITH_EDITOR
+
+
 
 bool UStaticMeshComponentPlus::CheckPropertyChangedEventTransform(FPropertyChangedEvent& PropertyChangedEvent)
 {

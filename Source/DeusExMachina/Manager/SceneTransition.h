@@ -35,14 +35,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
 	TObjectPtr<ATargetPoint> SpawnRomeo;
 
-	//Light
-	/*
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
-	TArray<ALight*> Lights;
-	UFUNCTION(CallInEditor)
-	void GetAllLightsInSubLevel();
-	*/
-
 	//Target
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Target")
 	TSoftObjectPtr<UWorld> TargetScene;

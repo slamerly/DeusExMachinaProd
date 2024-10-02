@@ -54,7 +54,10 @@ protected:
 	UInputAction* InteractInputAction;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
-	UInputAction* InteractControlInputAction;
+	UInputAction* InteractControlInputActionController;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inputs")
+	UInputAction* InteractControlInputActionKeyboard;
 
 
 	// ====================
@@ -62,6 +65,13 @@ protected:
 	// ====================
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction", meta = (Tooltip = "The distance of the interaction raycast.\nIn cm.", ClampMin = 0))
 	int InteractionRaycastDistance{ 160 };
+
+
+	// ====================
+	//    Inputs Settings
+	// ====================
+	UPROPERTY(EditDefaultsOnly, Category = "Inputs Settings", meta = (Tooltip = "The duration controlled GPE remember the last direction inputed by the player.\nIn seconds."))
+	float ControlDirectionDelay{ 0.3f };
 
 
 
@@ -75,7 +85,8 @@ protected:
 	void Move(const struct FInputActionValue& value);
 	void Look(const struct FInputActionValue& value);
 	void Interact(const struct FInputActionValue& value);
-	void InteractControl(const struct FInputActionValue& value);
+	void InteractControlController(const struct FInputActionValue& value);
+	void InteractControlKeyboard(const struct FInputActionValue& value);
 	void InteractControlRelease(const struct FInputActionValue& value);
 	void InteractRelease(const struct FInputActionValue& value);
 
@@ -83,7 +94,7 @@ protected:
 	// ====================
 	//     Interaction
 	// ====================
-	void InteractionRaycast();
+	AActor* InteractionRaycast();
 
 
 
@@ -133,4 +144,9 @@ public:
 	// ====================
 	void SetInPause(bool bInPauseValue) override;
 	bool GetInPause() override;
+
+	// ====================
+	//    Input Settings
+	// ====================
+	float GetControlDirectionDelay() override;
 };

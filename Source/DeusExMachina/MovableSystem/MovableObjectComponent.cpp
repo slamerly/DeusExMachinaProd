@@ -92,8 +92,9 @@ void UMovableObjectComponent::SetObjectMoving(bool MovingValue)
 
 void UMovableObjectComponent::RecomputeTransformOffset()
 {
-	//if (!bMovingSupportValid) return; //  prevent this to be called from the editor. need to find a solution
+	if (!IsValid(MovingSupport)) return; //  can't use 'bMovingSupportValid' cause this can is called from the editor where begin play hasn't ran yet
 
+	//  compute transform relative to owner
 	const FTransform OwnerTransform = GetOwner()->GetActorTransform();
 	const FTransform RelativeTransform = UKismetMathLibrary::MakeRelativeTransform(OwnerTransform, MovingSupport->GetObjectTransform());
 

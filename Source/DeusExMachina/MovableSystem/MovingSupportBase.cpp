@@ -23,19 +23,15 @@ void AMovingSupportBase::BeginPlay()
 		bIsSelfMovable = true;
 		SelfMovable->OnUpdateEveryChildrens.AddUniqueDynamic(this, &AMovingSupportBase::UpdateEveryChildrens);
 	}
-
-	//  retrieve transforms (will call overriden functions on derived moving support classes)
-	StartTransform = GetObjectTransform();
-	StartTransformRelative = GetObjectTransformRelative();
 }
 
-
-// ======================================================
-//           Apply Support Inner Movement
-// ======================================================
-void AMovingSupportBase::ApplyInnerMovement(USceneComponent* ComponentToMove)
+void AMovingSupportBase::Tick(float DeltaTime)
 {
-	ComponentToMove->SetRelativeTransform(InnerTransform * StartTransformRelative);
+	//  manage stop movement pending
+	if (StopMovementPending <= 0) return;
+	StopMovementPending--;
+	if (StopMovementPending > 0) return;
+	StopMovementOnChildrens(false);
 }
 
 
@@ -55,8 +51,14 @@ void AMovingSupportBase::StartMovementOnChildrens()
 	}
 }
 
-void AMovingSupportBase::StopMovementOnChildrens()
+void AMovingSupportBase::StopMovementOnChildrens(bool Delay)
 {
+	if (Delay)
+	{
+		StopMovementPending = 2;
+		return;
+	}
+
 	if (IsCurrentlyMoving()) return;
 
 	if (bIsSelfMovable && SelfMovable->IsObjectMoving()) return;
@@ -83,11 +85,6 @@ void AMovingSupportBase::UpdateEveryChildrens()
 FTransform AMovingSupportBase::GetObjectTransform()
 {
 	return GetActorTransform();
-}
-
-FTransform AMovingSupportBase::GetObjectTransformRelative()
-{
-	return GetActorTransform(); //  this function is useful when overriden
 }
 
 

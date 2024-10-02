@@ -4,22 +4,106 @@
 // ======================================================
 //                  Getter Functions
 // ======================================================
-bool FRotSupportValues::IsDataValid()
+bool FRotSupportValues::IsDataValid() const
 {
-	return IsValid(RotSupportValues) || (bOverrideClampValues /*&& bOverrideSnapValues*/);
+	return IsValid(RotSupportValues) || (ClampValuesOverride.bOverrideClampValues && SnapValuesOverride.bOverrideSnapValues && SnapCurvesOverride.bOverrideSnapCurves);
 }
 
-bool FRotSupportValues::GetUseClamp()
+bool FRotSupportValues::GetUseClamp() const
 {
-	return bOverrideClampValues ? bUseClamp : RotSupportValues->bUseClamp;
+	return ClampValuesOverride.bOverrideClampValues ? ClampValuesOverride.bUseClamp : RotSupportValues->bUseClamp;
 }
 
-float FRotSupportValues::GetClampLowValue()
+int FRotSupportValues::GetClampLowValue() const
 {
-	return bOverrideClampValues ? ClampLowValue : RotSupportValues->ClampLowValue;
+	return ClampValuesOverride.bOverrideClampValues ? ClampValuesOverride.ClampLowValue : RotSupportValues->ClampLowValue;
 }
 
-float FRotSupportValues::GetClampHighValue()
+int FRotSupportValues::GetClampHighValue() const
 {
-	return bOverrideClampValues ? ClampHighValue : RotSupportValues->ClampHighValue;
+	return ClampValuesOverride.bOverrideClampValues ? ClampValuesOverride.ClampHighValue : RotSupportValues->ClampHighValue;
+}
+
+bool FRotSupportValues::GetUseSnap() const
+{
+	return SnapValuesOverride.bOverrideSnapValues ? SnapValuesOverride.bUseSnap : RotSupportValues->bUseSnap;
+}
+
+TArray<FSnapValue> FRotSupportValues::GetSnapValues() const
+{
+	return SnapValuesOverride.bOverrideSnapValues ? SnapValuesOverride.SnapValues : RotSupportValues->SnapValues;
+}
+
+float FRotSupportValues::GetSnapDirectionAdvantage() const
+{
+	return SnapValuesOverride.bOverrideSnapValues ? SnapValuesOverride.SnapDirectionAdvantage : RotSupportValues->SnapDirectionAdvantage;
+}
+
+float FRotSupportValues::GetSnapSpeed() const
+{
+	return SnapValuesOverride.bOverrideSnapValues ? SnapValuesOverride.SnapSpeed : RotSupportValues->SnapSpeed;
+}
+
+UCurveFloat* FRotSupportValues::GetSnapCurveNeutralReverse() const
+{
+	return SnapCurvesOverride.bOverrideSnapCurves ? SnapCurvesOverride.SnapCurveNeutralReverse : RotSupportValues->SnapCurveNeutralReverse;
+}
+
+UCurveFloat* FRotSupportValues::GetSnapCurveContinue() const
+{
+	return SnapCurvesOverride.bOverrideSnapCurves ? SnapCurvesOverride.SnapCurveContinue : RotSupportValues->SnapCurveContinue;
+}
+
+
+
+
+
+// ======================================================
+//             Getter Functions (Blueprint)
+// ======================================================
+bool URotSupportValuesGet::GetUseClamp(const FRotSupportValues& Datas)
+{
+	return Datas.GetUseClamp();
+}
+
+int URotSupportValuesGet::GetClampLowValue(const FRotSupportValues& Datas)
+{
+	return Datas.GetClampLowValue();
+}
+
+int URotSupportValuesGet::GetClampHighValue(const FRotSupportValues& Datas)
+{
+	return Datas.GetClampHighValue();
+}
+
+
+bool URotSupportValuesGet::GetUseSnap(const FRotSupportValues& Datas)
+{
+	return Datas.GetUseSnap();
+}
+
+TArray<FSnapValue> URotSupportValuesGet::GetSnapValues(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapValues();
+}
+
+float URotSupportValuesGet::GetSnapDirectionAdvantage(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapDirectionAdvantage();
+}
+
+float URotSupportValuesGet::GetSnapSpeed(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapSpeed();
+}
+
+
+UCurveFloat* URotSupportValuesGet::GetSnapCurveNeutralReverse(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapCurveNeutralReverse();
+}
+
+UCurveFloat* URotSupportValuesGet::GetSnapCurveContinue(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapCurveContinue();
 }
