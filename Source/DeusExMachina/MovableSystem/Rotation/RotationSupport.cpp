@@ -74,8 +74,14 @@ bool ARotationSupport::AddInnerRotation(float InnerRotAdd, bool TestClamp)
 	{
 		//  simulate the add rotation with the clamp to add a clamped rotation
 		float InnerRotAddClamped = InnerRotAdd;
-		TriggerClamp = SimulateRotationWithClamp(InnerRotAdd, InnerRotAddClamped);
+		int AngleClamp = 0;
+		TriggerClamp = SimulateRotationWithClamp(InnerRotAdd, InnerRotAddClamped, AngleClamp);
 		InnerRotation += InnerRotAddClamped;
+
+		if (TriggerClamp)
+		{
+			OnRotationSupportClamped.Broadcast(AngleClamp);
+		}
 	}
 	else
 	{
@@ -127,6 +133,8 @@ void ARotationSupport::ForceInnerRotation(int InnerRot, bool AbsoluteRotation)
 // ======================================================
 void ARotationSupport::ComputeInnerTransform()
 {
+	OnRotationSupportRotated.Broadcast(InnerRotation);
+
 	//  simply set the relative rotation to the current inner rotation
 	RotationBase->SetRelativeRotation(FRotator{ 0.0f, InnerRotation, 0.0f });
 }
@@ -177,12 +185,13 @@ void ARotationSupport::GetClampValues(int& ClampLow, int& ClampHigh)
 	ClampHigh = RotSupportValues.GetClampHighValue();
 }
 
-bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle)
+bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle, int& ClampAngle)
 {
 	if (!UseValidClamp())
 	{
 		//  clamp invalid = no clamp
 		ClampedRotationAngle = InputRotationAngle;
+		ClampAngle = UAnglesUtils::ModuloAngleInt(FMath::RoundToInt(InnerRotation + InputRotationAngle));
 		return false;
 	}
 
@@ -192,6 +201,7 @@ bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle,
 		if (InnerRotation + InputRotationAngle >= ClampHigh) //  check trigger clamp high
 		{
 			ClampedRotationAngle = ClampHigh - InnerRotation;
+			ClampAngle = ClampHigh;
 			return true;
 		}
 	}
@@ -201,12 +211,14 @@ bool ARotationSupport::SimulateRotationWithClamp(const float InputRotationAngle,
 		if (InnerRotation + InputRotationAngle <= ClampLow) //  check trigger clamp low
 		{
 			ClampedRotationAngle = ClampLow - InnerRotation;
+			ClampAngle = ClampLow;
 			return true;
 		}
 	}
 
 	//  clamp was not triggered
 	ClampedRotationAngle = InputRotationAngle;
+	ClampAngle = UAnglesUtils::ModuloAngleInt(FMath::RoundToInt(InnerRotation + InputRotationAngle));
 	return false;
 }
 

@@ -1,6 +1,5 @@
 #include "TranslationBehaviorAutomatic.h"
 #include "TranslationSupport.h"
-#include "DeusExMachina/MovableSystem/Interactables/AutoTransInteractionDatas.h"
 #include "Defines.h"
 
 
@@ -100,6 +99,9 @@ void UTranslationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick Ti
 			AutomaticStopTimer = 0.0f;
 
 			OwnerTransSupport->ForcePositionOnSpline(AutomaticStopDestIndex, 0.0f); //  reposition support to stop point (security)
+
+			//  broadcast OnAutoTranslationAutoStop event
+			OnAutoTranslationAutoStop.Broadcast(AutomaticStopDestIndex);
 			break;
 		}
 
@@ -175,6 +177,9 @@ void UTranslationBehaviorAutomatic::StartAutomaticTranslationWithStop()
 	//  set state on support and start movement on childrens
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::AutomaticTranslation;
 	OwnerTransSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoTranslationStart event
+	OnAutoTranslationAutoResume.Broadcast(AutomaticStopDestIndex);
 }
 
 void UTranslationBehaviorAutomatic::StartAutomaticTranslation(bool bForceNoStartPhase)
@@ -199,6 +204,9 @@ void UTranslationBehaviorAutomatic::StartAutomaticTranslation(bool bForceNoStart
 	//  set state on support and start movement on childrens
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::AutomaticTranslation;
 	OwnerTransSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoTranslationStart event
+	OnAutoTranslationStart.Broadcast();
 }
 
 void UTranslationBehaviorAutomatic::StopAutomaticTranslation(bool bForceNoEndPhase)
@@ -239,6 +247,9 @@ void UTranslationBehaviorAutomatic::CancelAutomaticTranslation()
 
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::NotMoving;
 	OwnerTransSupport->StopMovementOnChildrens();
+
+	//  broadcast OnAutoTranslationStop event
+	OnAutoTranslationStop.Broadcast();
 }
 
 
@@ -285,6 +296,9 @@ void UTranslationBehaviorAutomatic::TriggerAutoTransInteraction(FAutoTransIntera
 			}
 		}
 	}
+
+	//  broadcast 'OnAutoTranslationTriggered' event
+	OnAutoTranslationTriggered.Broadcast(Datas);
 }
 
 
@@ -422,4 +436,32 @@ bool UTranslationBehaviorAutomatic::ComputeNextStopPoint()
 bool UTranslationBehaviorAutomatic::GetReverse()
 {
 	return bExteriorReverse ^ bAutomaticSpeedReverse; // XOR
+}
+
+
+
+// ======================================================
+//               Automatic Translation Datas
+// ======================================================
+void UTranslationBehaviorAutomatic::ChangeAutomaticTranslationValues(FAutomaticTranslationDatas NewAutoTransValues)
+{
+	if (!NewAutoTransValues.IsDataValid())
+	{
+		kPRINT_ERROR("Tried changing values of an automatic translation with an invalid struct!");
+		return;
+	}
+
+	CancelAutomaticTranslation();
+
+	AutomaticTranslationValues = NewAutoTransValues;
+
+	//  compute if the automatic speed is negative (will reverse every translation)
+	bAutomaticSpeedReverse = AutomaticTranslationValues.GetTranslationSpeed() < 0.0f;
+
+	if (!bOwnerTransSupportValid) return;
+
+	if (AutomaticTranslationValues.GetStartAutomatic())
+	{
+		LaunchAutomaticTranslationBeginPlay();
+	}
 }

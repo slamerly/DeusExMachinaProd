@@ -2,7 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "TranslationBehaviorBase.h"
+#include "StandardTranslationDatas.h"
 #include "TranslationBehaviorStandard.generated.h"
+
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_ThreeParams(FStandardTranslationStart, UTranslationBehaviorStandard, OnStandardTranslationStart, int, DestinationIndex, float, DestinationProgressToNextIndex, const FStandardTranslationDatas&, Datas);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FStandardTranslationEnd, UTranslationBehaviorStandard, OnStandardTranslationEnd, int, DestinationIndex, float, DestinationProgressToNextIndex);
 
 
 UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Translation Behavior Standard", Tooltip = "Component to add to a Translation Support if you want it to be able to perform a standard translation."))
@@ -31,7 +36,7 @@ public:
 	* @param	bForceStart		(optionnal) Force the standard translation to start even if the component is already performing a standard translation
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Standard Translation")
-	void StartStandardTranslation(struct FStandardTranslationDatas Datas, bool bForceStart = false);
+	void StartStandardTranslation(FStandardTranslationDatas Datas, bool bForceStart = false);
 
 	/**
 	* Function to call to stop every movement of this component.
@@ -44,8 +49,22 @@ public:
 //                   Helper Functions
 // ======================================================
 protected:
-	bool IsStandardTransValid(struct FStandardTranslationDatas Datas);
-	float ConvertSplinePointsToSplineDistance(struct FStandardTranslationDatas Datas, int& DestSplinePoint);
+	bool IsStandardTransValid(FStandardTranslationDatas Datas);
+	float ConvertSplinePointsToSplineDistance(FStandardTranslationDatas Datas, int& DestSplinePoint);
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the standard translation has started on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Standard Translation|Events")
+	FStandardTranslationStart OnStandardTranslationStart;
+
+	/** Called when the standard translation has finished on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Standard Translation|Events")
+	FStandardTranslationEnd OnStandardTranslationEnd;
 
 
 // ======================================================

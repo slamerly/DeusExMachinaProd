@@ -20,6 +20,10 @@ enum class ERotationState : uint8
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FRotSupportRotate, ARotationSupport, OnRotationSupportRotated, float, InnerAngle);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FRotSupportClamp, ARotationSupport, OnRotationSupportClamped, int, ClampAngle);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FRotSupportSnap, ARotationSupport, OnRotationSupportSnapped, int, SnapAngle);
+
 
 UCLASS()
 class DEUSEXMACHINA_API ARotationSupport : public AMovingSupportBase
@@ -119,10 +123,11 @@ public:
 	* Simulate a rotation on this support, allowing to know if it would trigger clamp.
 	* @param	InputRotationAngle		The rotation angle you want to simulate on this support.
 	* @param	ClampedRotationAngle	[OUT] The rotation angle needed to reach clamp on this support.
+	* @param	ClampAngle				[OUT] The clamp angle used. Will be equal to the angle reached by the simulation if no clamp.
 	* @return							True if the simulation triggers clamp.
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
-	bool SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle);
+	bool SimulateRotationWithClamp(const float InputRotationAngle, float& ClampedRotationAngle, int& ClampAngle);
 
 
 
@@ -167,6 +172,24 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
 	void UpdateSnapVisual(); //  Callable from blueprint to be able to call this function on the "Construction Script"
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when this rotation support rotate. */
+	UPROPERTY(BlueprintAssignable, Category = "Rotation Support|Events")
+	FRotSupportRotate OnRotationSupportRotated;
+
+	/** Called when this rotation support reach a clamp. */
+	UPROPERTY(BlueprintAssignable, Category = "Rotation Support|Events")
+	FRotSupportClamp OnRotationSupportClamped;
+
+	/** Called when this rotation support is snapped (called when the snap is finished). */
+	UPROPERTY(BlueprintAssignable, Category = "Rotation Support|Events")
+	FRotSupportSnap OnRotationSupportSnapped;
 
 
 

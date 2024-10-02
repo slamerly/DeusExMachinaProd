@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "StandardTranslationDatas.generated.h"
 
 
@@ -116,13 +117,76 @@ struct FStandardTranslationDatas
 
 
 	//  Getter functions
-	bool IsDataValid();
+	bool IsDataValid() const;
 
-	EStandardTranslationMode GetStandardTranslationMode();
-	int GetTranslationSplinePoints();
-	float GetTranslationSplineDistance();
-	EStandardTranslationSpeedMode GetStandardTranslationSpeedMode();
-	float GetTranslationDuration();
-	float GetTranslationSpeed();
-	UCurveFloat* GetTranslationCurve();
+	EStandardTranslationMode GetStandardTranslationMode() const;
+	int GetTranslationSplinePoints() const;
+	float GetTranslationSplineDistance() const;
+	EStandardTranslationSpeedMode GetStandardTranslationSpeedMode() const;
+	float GetTranslationDuration() const;
+	float GetTranslationSpeed() const;
+	UCurveFloat* GetTranslationCurve() const;
+};
+
+
+UCLASS()
+class DEUSEXMACHINA_API UStandardTranslationDatasGet : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+	/**
+	* Get the 'StandardTranslationMode' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The standard translation mode to use for this Translation Support.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "StandardTranslationMode"))
+	static EStandardTranslationMode GetStandardTranslationMode(const FStandardTranslationDatas& Datas);
+
+	/**
+	* Get the 'TranslationSplinePoints' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The number of spline points to move this Translation Support (0 mean the support won't move).
+				A negative value will make the support going reverse.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationSplinePoints"))
+	static int GetTranslationSplinePoints(const FStandardTranslationDatas& Datas);
+
+	/**
+	* Get the 'TranslationSplineDistance' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The distance on the spline this Translation Support will do (0 mean the support won't move).
+				A negative value will make the support going reverse.
+				(In cm)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationSplineDistance"))
+	static float GetTranslationSplineDistance(const FStandardTranslationDatas& Datas);
+
+	/**
+	* Get the 'StandardTranslationSpeedMode' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The standard translation speed mode to use for this Translation Support.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "StandardTranslationSpeedMode"))
+	static EStandardTranslationSpeedMode GetStandardTranslationSpeedMode(const FStandardTranslationDatas& Datas);
+
+	/**
+	* Get the 'TranslationDuration' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The time that the complete Standard Translation will take.
+				(In seconds)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationDuration"))
+	static float GetTranslationDuration(const FStandardTranslationDatas& Datas);
+
+	/**
+	* Get the 'TranslationSpeed' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The speed of the Standard Translation.
+				(In cm/s)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationSpeed"))
+	static float GetTranslationSpeed(const FStandardTranslationDatas& Datas);
+
+	/**
+	* Get the 'TranslationCurve' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The speed of the Standard Translation.
+				(In cm/s)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationCurve"))
+	static UCurveFloat* GetTranslationCurve(const FStandardTranslationDatas& Datas);
 };

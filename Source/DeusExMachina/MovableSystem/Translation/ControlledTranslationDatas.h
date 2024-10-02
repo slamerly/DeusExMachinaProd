@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "ControlledTranslationDatas.generated.h"
 
 
@@ -88,7 +89,7 @@ struct FControlledTranslationDatas
 	bool bUseSnap{ false };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Translation Snap", meta = (ClampMin = 0.0f, ClampMax = 1.0f, EditCondition = "bOverrideSnap", EditConditionHides),
-		meta = (Tooltip = "Does the Translation Support prefer snapping to the spline point 0 or spline point 1"))
+		meta = (Tooltip = "Does the Translation Support prefer snapping to the spline point 0 or spline point 1."))
 	float SnapPreference{ 0.5f };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Controlled Translation Snap", meta = (EditCondition = "bOverrideSnap", EditConditionHides),
@@ -109,15 +110,91 @@ struct FControlledTranslationDatas
 
 
 	//  Getter functions
-	bool IsDataValid();
+	bool IsDataValid() const;
 
-	float GetTranslationSpeed();
-	float GetStartupDuration();
-	UCurveFloat* GetStartupCurve();
+	float GetTranslationSpeed() const;
+	float GetStartupDuration() const;
+	UCurveFloat* GetStartupCurve() const;
 
-	bool GetUseSnap();
-	float GetSnapPreference();
-	float GetSnapSpeed();
-	UCurveFloat* GetSnapCurveNeutralReverse();
-	UCurveFloat* GetSnapCurveContinue();
+	bool GetUseSnap() const;
+	float GetSnapPreference() const;
+	float GetSnapSpeed() const;
+	UCurveFloat* GetSnapCurveNeutralReverse() const;
+	UCurveFloat* GetSnapCurveContinue() const;
+};
+
+
+UCLASS()
+class DEUSEXMACHINA_API UControlledTranslationDatasGet : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+	/**
+	* Get the 'TranslationSpeed' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The speed of the Translation Support when performing a Controlled Translation.
+				(In cm/s)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas", meta = (ReturnDisplayName = "TranslationSpeed"))
+	static float GetTranslationSpeed(const FControlledTranslationDatas& Datas);
+
+	/**
+	* Get the 'StartupDuration' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The duration of the 'startup' phase of the Controlled Translation.
+				The startup phase occurs when the translation support starts moving.
+				(In seconds)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas", meta = (ReturnDisplayName = "StartupDuration"))
+	static float GetStartupDuration(const FControlledTranslationDatas& Datas);
+
+	/**
+	* Get the 'StartupCurve' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The interpolation curve of the 'startup' phase of the Controlled Translation.
+				(Must be a normalized curve)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas", meta = (ReturnDisplayName = "StartupCurve"))
+	static UCurveFloat* GetStartupCurve(const FControlledTranslationDatas& Datas);
+
+
+	/**
+	* Get the 'UseSnap' value, either the base one or the overriden one if needed out of this struct.
+	* @return	Does the Translation Support snap on a spline point when releasing the control?
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas|Snap", meta = (ReturnDisplayName = "UseSnap"))
+	static bool GetUseSnap(const FControlledTranslationDatas& Datas);
+
+	/**
+	* Get the 'SnapPreference' value, either the base one or the overriden one if needed out of this struct.
+	* @return	Does the Translation Support prefer snapping to the spline point 0 or spline point 1.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas|Snap", meta = (ReturnDisplayName = "SnapPreference"))
+	static float GetSnapPreference(const FControlledTranslationDatas& Datas);
+
+	/**
+	* Get the 'SnapSpeed' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The speed of the Translation Support when snapping.
+				Note that the curves can make it feel faster or slower in game.
+				(In cm/s)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas|Snap", meta = (ReturnDisplayName = "SnapSpeed"))
+	static float GetSnapSpeed(const FControlledTranslationDatas& Datas);
+
+	/**
+	* Get the 'SnapCurveNeutralReverse' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The interpolation curve of the snapping used when:
+				- The Translation Support is not moving (neutral)
+				- The snap goes in the opposite direction than the Translation Support movement (reverse)
+				(Must be a normalized curve)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas|Snap", meta = (ReturnDisplayName = "SnapCurveNeutralReverse"))
+	static UCurveFloat* GetSnapCurveNeutralReverse(const FControlledTranslationDatas& Datas);
+
+	/**
+	* Get the 'SnapCurveContinue' value, either the base one or the overriden one if needed out of this struct.
+	* @return	The interpolation curve of the snapping used when:
+				- The snap goes in the same direction than the Translation Support movement (continue)
+				(Must be a normalized curve)
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Translation Datas|Snap", meta = (ReturnDisplayName = "SnapCurveContinue"))
+	static UCurveFloat* GetSnapCurveContinue(const FControlledTranslationDatas& Datas);
 };

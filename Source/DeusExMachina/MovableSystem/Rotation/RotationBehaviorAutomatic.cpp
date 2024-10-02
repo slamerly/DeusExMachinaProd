@@ -1,6 +1,5 @@
 #include "RotationBehaviorAutomatic.h"
 #include "RotationSupport.h"
-#include "DeusExMachina/MovableSystem/Interactables/AutoRotInteractionDatas.h"
 #include "AnglesUtils.h"
 #include "Defines.h"
 
@@ -101,6 +100,9 @@ void URotationBehaviorAutomatic::TickComponent(float DeltaTime, ELevelTick TickT
 			AutomaticStopTimer = 0.0f;
 
 			OwnerRotSupport->ForceInnerRotation(AutomaticStopDestAngle, true); //  reposition support to stop angle (security)
+
+			//  broadcast OnAutoRotationAutoStop event
+			OnAutoRotationAutoStop.Broadcast(AutomaticStopDestAngle);
 			break;
 		}
 
@@ -176,6 +178,9 @@ void URotationBehaviorAutomatic::StartAutomaticRotationWithStop()
 	//  set state on support and start movement on childrens
 	OwnerRotSupport->CurrentRotationState = ERotationState::AutomaticRotation;
 	OwnerRotSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoRotationStart event
+	OnAutoRotationAutoResume.Broadcast(AutomaticStopDestAngle);
 }
 
 void URotationBehaviorAutomatic::StartAutomaticRotation(bool bForceNoStartPhase)
@@ -200,6 +205,9 @@ void URotationBehaviorAutomatic::StartAutomaticRotation(bool bForceNoStartPhase)
 	//  set state on support and start movement on childrens
 	OwnerRotSupport->CurrentRotationState = ERotationState::AutomaticRotation;
 	OwnerRotSupport->StartMovementOnChildrens();
+
+	//  broadcast OnAutoRotationStart event
+	OnAutoRotationStart.Broadcast();
 }
 
 void URotationBehaviorAutomatic::StopAutomaticRotation(bool bForceNoEndPhase)
@@ -240,6 +248,9 @@ void URotationBehaviorAutomatic::CancelAutomaticRotation()
 
 	OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
 	OwnerRotSupport->StopMovementOnChildrens();
+
+	//  broadcast OnAutoRotationStop event
+	OnAutoRotationStop.Broadcast();
 }
 
 
@@ -286,6 +297,9 @@ void URotationBehaviorAutomatic::TriggerAutoRotInteraction(FAutoRotInteractionDa
 			}
 		}
 	}
+
+	//  broadcast 'OnAutoRotationTriggered' event
+	OnAutoRotationTriggered.Broadcast(Datas);
 }
 
 
@@ -399,4 +413,32 @@ bool URotationBehaviorAutomatic::ComputeNextStopAngle()
 bool URotationBehaviorAutomatic::GetReverse()
 {
 	return bExteriorReverse ^ bAutomaticSpeedReverse; // XOR
+}
+
+
+
+// ======================================================
+//               Automatic Rotation Datas
+// ======================================================
+void URotationBehaviorAutomatic::ChangeAutomaticRotationValues(FAutomaticRotationDatas NewAutoRotValues)
+{
+	if (!NewAutoRotValues.IsDataValid())
+	{
+		kPRINT_ERROR("Tried changing values of an automatic rotation with an invalid struct!");
+		return;
+	}
+
+	CancelAutomaticRotation();
+
+	AutomaticRotationValues = NewAutoRotValues;
+
+	//  compute if the automatic speed is negative (will reverse every rotation)
+	bAutomaticSpeedReverse = AutomaticRotationValues.GetRotationSpeed() < 0.0f; 
+
+	if (!bOwnerRotSupportValid) return;
+
+	if (AutomaticRotationValues.GetStartAutomatic())
+	{
+		LaunchAutomaticRotationBeginPlay();
+	}
 }

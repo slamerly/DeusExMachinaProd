@@ -19,6 +19,10 @@ enum class EHandleMode : uint8
 };
 
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysHandleControlGain, AMovSysHandle, OnMovSysHandleControlGained);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysHandleControlLost, AMovSysHandle, OnMovSysHandleControlLost);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FMovSysHandleControlUpdate, AMovSysHandle, OnMovSysHandleControlUpdated, float, ControlValue);
+
 
 UCLASS()
 class DEUSEXMACHINA_API AMovSysHandle : public AMovSysInteractableBase, public IInteractable
@@ -55,6 +59,24 @@ public:
 //              Mov Sys Interactable Base
 // ======================================================
 	virtual void ForceReleaseInteractable() override;
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when this handle gained control by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Handle|Events")
+	FMovSysHandleControlGain OnMovSysHandleControlGained;
+
+	/** Called when this handle lost control by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Handle|Events")
+	FMovSysHandleControlLost OnMovSysHandleControlLost;
+
+	/** Called when this handle control is updated by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Handle|Events")
+	FMovSysHandleControlUpdate OnMovSysHandleControlUpdated;
 
 
 

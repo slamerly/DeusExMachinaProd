@@ -3,6 +3,7 @@
 #include "DeusExMachina/MovableSystem/Rotation/RotationBehaviorControlled.h"
 #include "DeusExMachina/MovableSystem/Translation/TranslationSupport.h"
 #include "DeusExMachina/MovableSystem/Translation/TranslationBehaviorControlled.h"
+#include "MovSysSelector.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "DeusExMachina/MovableSystem/Rotation/AnglesUtils.h"
@@ -99,6 +100,14 @@ void AMovSysWheel::Interaction_Implementation()
 	if (bInControl) return;
 	bInControl = true;
 
+	//  retrieve supports currently selected by a selector
+	LinkedRotSupportsSelector.Empty();
+	LinkedRotSupportsSelector.Empty();
+	if (IsValid(LinkedSelector))
+	{
+		LinkedSelector->GetLinkedSupportsCurrentlySelected(LinkedRotSupportsSelector, LinkedTransSupportsSelector);
+	}
+
 	//  start controlled behavior on linked supports
 	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
@@ -109,6 +118,20 @@ void AMovSysWheel::Interaction_Implementation()
 	{
 		LinkCtrlT.TranslationControlledComponent->StartControlledTranslation(LinkCtrlT.ControlDatas);
 	}
+
+	//  do the same for supports linked via a selector
+	for (auto& LinkCtrlSR : LinkedRotSupportsSelector)
+	{
+		LinkCtrlSR.RotationControlledComponent->StartControlledRotation(LinkCtrlSR.ControlDatas);
+	}
+
+	for (auto& LinkCtrlST : LinkedTransSupportsSelector)
+	{
+		LinkCtrlST.TranslationControlledComponent->StartControlledTranslation(LinkCtrlST.ControlDatas);
+	}
+
+	//  broadcast OnMovSysWheelControlGained event
+	OnMovSysWheelControlGained.Broadcast();
 
 	//  visual feedback in blueprint
 	WheelStartFeedback();
@@ -137,13 +160,27 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue,
 	bool ControlClamp = true;
 	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
-		ControlClamp = ControlClamp && LinkCtrlR.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
+		ControlClamp &= LinkCtrlR.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
 	}
 
 	for (auto& LinkCtrlT : LinkedTransSupportsControlledVerified)
 	{
-		ControlClamp = ControlClamp && LinkCtrlT.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
+		ControlClamp &= LinkCtrlT.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
 	}
+
+	//  do the same for supports linked via a selector
+	for (auto& LinkCtrlSR : LinkedRotSupportsSelector)
+	{
+		ControlClamp &= LinkCtrlSR.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
+	}
+
+	for (auto& LinkCtrlST : LinkedTransSupportsSelector)
+	{
+		ControlClamp &= LinkCtrlST.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
+	}
+
+	//  broadcast OnMovSysWheelControlUpdated event
+	OnMovSysWheelControlUpdated.Broadcast(ComputedControlValue, ControlClamp);
 
 
 	if (!ControlClamp) //  has the wheel been clamped in its control this frame
@@ -172,6 +209,20 @@ void AMovSysWheel::InteractionHeavyFinished_Implementation()
 	{
 		LinkCtrlT.TranslationControlledComponent->StopControlledTranslation();
 	}
+
+	//  do the same for supports linked via a selector
+	for (auto& LinkCtrlSR : LinkedRotSupportsSelector)
+	{
+		LinkCtrlSR.RotationControlledComponent->StopControlledRotation();
+	}
+
+	for (auto& LinkCtrlST : LinkedTransSupportsSelector)
+	{
+		LinkCtrlST.TranslationControlledComponent->StopControlledTranslation();
+	}
+
+	//  broadcast OnMovSysWheelControlLost event
+	OnMovSysWheelControlLost.Broadcast();
 
 	//  visual feedback in blueprint
 	WheelStopFeedback();

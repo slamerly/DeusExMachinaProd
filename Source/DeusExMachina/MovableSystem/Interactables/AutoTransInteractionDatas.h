@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "AutoTransInteractionDatas.generated.h"
 
 
@@ -48,8 +49,31 @@ struct FAutoTransInteractionDatas
 
 
 	//  Getter functions
-	bool IsDataValid();
+	bool IsDataValid() const;
 
-	bool GetStartStop();
-	bool GetReverse();
+	bool GetStartStop() const;
+	bool GetReverse() const;
+};
+
+
+UCLASS()
+class DEUSEXMACHINA_API UAutoTransInteractionDatasGet : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+	/**
+	* Get the 'StartStop' value, either the base one or the overriden one if needed out of this struct.
+	* @return	If true, the automatic translation will start or stop on the interaction.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Trans Interaction Datas", meta = (ReturnDisplayName = "StartStop"))
+	static bool GetStartStop(const FAutoTransInteractionDatas& Datas);
+
+	/**
+	* Get the 'Reverse' value, either the base one or the overriden one if needed out of this struct.
+	* @return	If true, the automatic translation will go reverse on the interaction.
+	*			Note: If combined with StartStop, will reverse only when the translation will restart.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Trans Interaction Datas", meta = (ReturnDisplayName = "Reverse"))
+	static bool GetReverse(const FAutoTransInteractionDatas& Datas);
 };

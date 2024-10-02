@@ -41,6 +41,7 @@ void URotationBehaviorControlled::TickComponent(float DeltaTime, ELevelTick Tick
 	{
 		//  snap timer finished, stop movement
 		OwnerRotSupport->ForceInnerRotation(SnapAngleDest, true); //  reposition support to snap angle (security)
+		OwnerRotSupport->OnRotationSupportSnapped.Broadcast(SnapAngleDest);
 
 		SetComponentTickEnabled(false);
 		CurrentState = EControlledRotationState::Inactive;
@@ -93,6 +94,9 @@ bool URotationBehaviorControlled::StartControlledRotation(FControlledRotationDat
 	OwnerRotSupport->CurrentRotationState = ERotationState::ControlledRotation;
 	OwnerRotSupport->StartMovementOnChildrens();
 
+	//  broadcast OnControlledRotationStart event
+	OnControlledRotationStart.Broadcast(Datas);
+
 	return true;
 }
 
@@ -106,29 +110,38 @@ void URotationBehaviorControlled::StopControlledRotation(bool DontTriggerSnap)
 
 	//  check snap
 	const FRotSupportValues OwnerValues = OwnerRotSupport->GetSupportValues();
-	const float SnapSearchAdvantage = LastInputedDirection * ((OwnerValues.GetSnapDirectionAdvantage() * 2.0f) - 1.0f); //  converts snap direction advantage to generic snap search advantage
-
-	if (OwnerRotSupport->SearchSnapAngle(OwnerRotSupport->GetInnerRotation(), SnapAngleDest, SnapSearchAdvantage, CurrentDatas.GetSnapIgnoreClamp(), CurrentDatas.GetSnapIgnoreRanges()))
+	if (OwnerValues.IsDataValid())
 	{
-		//  set snap values & state
-		SnapAngleStart = OwnerRotSupport->GetInnerRotation();
-		SnapTimer = 0.0f;
-		SnapDuration = FMath::Abs(SnapAngleDest - SnapAngleStart) / OwnerValues.GetSnapSpeed();
+		const float SnapSearchAdvantage = LastInputedDirection * ((OwnerValues.GetSnapDirectionAdvantage() * 2.0f) - 1.0f); //  converts snap direction advantage to generic snap search advantage
 
-		SnapCurve = FMath::RoundToInt(FMath::Sign<float>(SnapAngleDest - SnapAngleStart)) == LastInputedDirection ? OwnerValues.GetSnapCurveContinue() : OwnerValues.GetSnapCurveNeutralReverse();
+		if (OwnerRotSupport->SearchSnapAngle(OwnerRotSupport->GetInnerRotation(), SnapAngleDest, SnapSearchAdvantage, CurrentDatas.GetSnapIgnoreClamp(), CurrentDatas.GetSnapIgnoreRanges()))
+		{
+			//  set snap values & state
+			SnapAngleStart = OwnerRotSupport->GetInnerRotation();
+			SnapTimer = 0.0f;
+			SnapDuration = FMath::Abs(SnapAngleDest - SnapAngleStart) / OwnerValues.GetSnapSpeed();
 
-		CurrentState = EControlledRotationState::Snap;
+			SnapCurve = FMath::RoundToInt(FMath::Sign<float>(SnapAngleDest - SnapAngleStart)) == LastInputedDirection ? OwnerValues.GetSnapCurveContinue() : OwnerValues.GetSnapCurveNeutralReverse();
+
+			CurrentState = EControlledRotationState::Snap;
+
+			//  broadcast OnControlledRotationStop event
+			OnControlledRotationStop.Broadcast(true);
+
+			return;
+		}
 	}
-	else
-	{
-		//  set state and disable tick for this component
-		SetComponentTickEnabled(false);
-		CurrentState = EControlledRotationState::Inactive;
 
-		//  set state on support and stop movement on childrens
-		OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
-		OwnerRotSupport->StopMovementOnChildrens();
-	}
+	//  set state and disable tick for this component
+	SetComponentTickEnabled(false);
+	CurrentState = EControlledRotationState::Inactive;
+
+	//  set state on support and stop movement on childrens
+	OwnerRotSupport->CurrentRotationState = ERotationState::NotRotating;
+	OwnerRotSupport->StopMovementOnChildrens();
+
+	//  broadcast OnControlledRotationStop event
+	OnControlledRotationStop.Broadcast(false);
 }
 
 bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)

@@ -53,3 +53,57 @@ UCurveFloat* FRotSupportValues::GetSnapCurveContinue() const
 {
 	return SnapCurvesOverride.bOverrideSnapCurves ? SnapCurvesOverride.SnapCurveContinue : RotSupportValues->SnapCurveContinue;
 }
+
+
+
+
+
+// ======================================================
+//             Getter Functions (Blueprint)
+// ======================================================
+bool URotSupportValuesGet::GetUseClamp(const FRotSupportValues& Datas)
+{
+	return Datas.GetUseClamp();
+}
+
+int URotSupportValuesGet::GetClampLowValue(const FRotSupportValues& Datas)
+{
+	return Datas.GetClampLowValue();
+}
+
+int URotSupportValuesGet::GetClampHighValue(const FRotSupportValues& Datas)
+{
+	return Datas.GetClampHighValue();
+}
+
+
+bool URotSupportValuesGet::GetUseSnap(const FRotSupportValues& Datas)
+{
+	return Datas.GetUseSnap();
+}
+
+TArray<FSnapValue> URotSupportValuesGet::GetSnapValues(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapValues();
+}
+
+float URotSupportValuesGet::GetSnapDirectionAdvantage(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapDirectionAdvantage();
+}
+
+float URotSupportValuesGet::GetSnapSpeed(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapSpeed();
+}
+
+
+UCurveFloat* URotSupportValuesGet::GetSnapCurveNeutralReverse(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapCurveNeutralReverse();
+}
+
+UCurveFloat* URotSupportValuesGet::GetSnapCurveContinue(const FRotSupportValues& Datas)
+{
+	return Datas.GetSnapCurveContinue();
+}

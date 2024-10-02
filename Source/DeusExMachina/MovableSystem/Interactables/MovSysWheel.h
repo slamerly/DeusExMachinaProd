@@ -6,6 +6,13 @@
 #include "ControlledLinkStructs.h"
 #include "MovSysWheel.generated.h"
 
+class AMovSysSelector;
+
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlGain, AMovSysWheel, OnMovSysWheelControlGained);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlLost, AMovSysWheel, OnMovSysWheelControlLost);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FMovSysWheelControlUpdate, AMovSysWheel, OnMovSysWheelControlUpdated, float, ControlValue, bool, TriggeredClamp);
+
 
 UCLASS()
 class DEUSEXMACHINA_API AMovSysWheel : public AMovSysInteractableBase, public IInteractable
@@ -50,6 +57,24 @@ public:
 // ======================================================
 protected:
 	float GetAdvancedJoystickControl(const FVector2D JoystickValue);
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when this wheel gained control by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Wheel|Events")
+	FMovSysWheelControlGain OnMovSysWheelControlGained;
+
+	/** Called when this wheel lost control by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Wheel|Events")
+	FMovSysWheelControlLost OnMovSysWheelControlLost;
+
+	/** Called when this wheel control is updated by the player. */
+	UPROPERTY(BlueprintAssignable, Category = "Moving System Wheel|Events")
+	FMovSysWheelControlUpdate OnMovSysWheelControlUpdated;
 
 
 
@@ -99,7 +124,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Controlled you want to link to this wheel."))
 	TArray<FControlledTransInteractionLink> LinkedTransSupportsControlled;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link With Selector", meta = (tooltip = "Link a Selector to this Wheel.\nThis Wheel will control the supports currently selected by the Selector."))
+	AMovSysSelector* LinkedSelector;
+
 protected:
 	TArray<FControlledRotInteractionLink> LinkedRotSupportsControlledVerified;
 	TArray<FControlledTransInteractionLink> LinkedTransSupportsControlledVerified;
+
+	TArray<FControlledRotInteractionLink> LinkedRotSupportsSelector;
+	TArray<FControlledTransInteractionLink> LinkedTransSupportsSelector;
 };

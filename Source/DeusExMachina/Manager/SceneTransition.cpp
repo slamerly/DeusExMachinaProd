@@ -52,7 +52,7 @@ void ASceneTransition::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedCo
 	{
 		if (SceneManager)
 		{
-			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, false);
+			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, true);
 		}
 	}
 }

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "TranslationBehaviorBase.h"
 #include "AutomaticTranslationDatas.h"
+#include "DeusExMachina/MovableSystem/Interactables/AutoTransInteractionDatas.h"
 #include "TranslationBehaviorAutomatic.generated.h"
 
 
@@ -18,6 +19,13 @@ enum class EAutoTranslationState : uint8
 	AutomaticTranslationWithStop = 4,
 	StopOnSplinePoint = 5
 };
+
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticTranslationStart, UTranslationBehaviorAutomatic, OnAutoTranslationStart);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FAutomaticTranslationStop, UTranslationBehaviorAutomatic, OnAutoTranslationStop);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationTrigger, UTranslationBehaviorAutomatic, OnAutoTranslationTriggered, const FAutoTransInteractionDatas&, Datas);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationAutoStop, UTranslationBehaviorAutomatic, OnAutoTranslationAutoStop, int, StopSplineIndex);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FAutomaticTranslationAutoResume, UTranslationBehaviorAutomatic, OnAutoTranslationAutoResume, int, NextStopSplineIndex);
 
 
 UCLASS(ClassGroup = (MovableSystem), meta = (BlueprintSpawnableComponent, DisplayName = "Translation Behavior Automatic", Tooltip = "Component to add to a Translation Support if you want it to move automatically."))
@@ -106,11 +114,44 @@ protected:
 
 
 // ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the automatic translation start on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationStart OnAutoTranslationStart;
+
+	/** Called when the automatic translation stop on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationStop OnAutoTranslationStop;
+
+	/** Called when the automatic translation is triggered by a button on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationTrigger OnAutoTranslationTriggered;
+
+	/** Called when the automatic translation automatically stop on a spline point on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationAutoStop OnAutoTranslationAutoStop;
+
+	/** Called when the automatic translation automatically resume after stopping on a spline point on this component. */
+	UPROPERTY(BlueprintAssignable, Category = "Automatic Translation|Events")
+	FAutomaticTranslationAutoResume OnAutoTranslationAutoResume;
+
+
+// ======================================================
 //         Editable Automatic Translation Datas
 // ======================================================
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Automatic Translation", meta = (Tooltip = "Values of Automatic Translation for this Translation Support.\nEach data can be overriden."))
 	FAutomaticTranslationDatas AutomaticTranslationValues;
+
+	/**
+	* Set new Automatic Translation Values to this Automatic Translation Behavior.
+	* Note that this will stop the current translation and restart with the new values. (If 'Start Automatic' is off, it will not restart automatically).
+	* @param	NewAutoTransValues	The new values to set for this behavior.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Automatic Translation")
+	void ChangeAutomaticTranslationValues(FAutomaticTranslationDatas NewAutoTransValues);
 
 
 // ======================================================

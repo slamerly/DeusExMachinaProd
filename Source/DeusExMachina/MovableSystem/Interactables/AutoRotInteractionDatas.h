@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Kismet/BlueprintFunctionLibrary.h"
 #include "AutoRotInteractionDatas.generated.h"
 
 
@@ -48,8 +49,31 @@ struct FAutoRotInteractionDatas
 
 
 	//  Getter functions
-	bool IsDataValid();
+	bool IsDataValid() const;
 
-	bool GetStartStop();
-	bool GetReverse();
+	bool GetStartStop() const;
+	bool GetReverse() const;
+};
+
+
+UCLASS()
+class DEUSEXMACHINA_API UAutoRotInteractionDatasGet : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+
+	/** 
+	* Get the 'StartStop' value, either the base one or the overriden one if needed out of this struct.
+	* @return	If true, the automatic rotation will start or stop on the interaction.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Rot Interaction Datas", meta = (ReturnDisplayName = "StartStop"))
+	static bool GetStartStop(const FAutoRotInteractionDatas& Datas);
+
+	/** 
+	* Get the 'Reverse' value, either the base one or the overriden one if needed out of this struct. 
+	* @return	If true, the automatic rotation will go reverse on the interaction.
+	*			Note: If combined with StartStop, will reverse only when the rotation will restart.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Rot Interaction Datas", meta = (ReturnDisplayName = "Reverse"))
+	static bool GetReverse(const FAutoRotInteractionDatas& Datas);
 };

@@ -1,6 +1,5 @@
 #include "TranslationBehaviorStandard.h"
 #include "TranslationSupport.h"
-#include "StandardTranslationDatas.h"
 #include "Defines.h"
 
 UTranslationBehaviorStandard::UTranslationBehaviorStandard()
@@ -98,6 +97,12 @@ void UTranslationBehaviorStandard::StartStandardTranslation(FStandardTranslation
 	//  set state on support and start movement on childrens
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::StandardTranslation;
 	OwnerTransSupport->StartMovementOnChildrens();
+
+	//  broadcast the OnStandardTranslationStart event
+	int DestIndex = 0;
+	float DestProgress = 0.0f;
+	OwnerTransSupport->ComputeInnerIndexAndProgress(OwnerTransSupport->GetDistanceFromSplineOrigin() + TranslationDistance, DestIndex, DestProgress);
+	OnStandardTranslationStart.Broadcast(DestIndex, DestProgress, Datas);
 }
 
 void UTranslationBehaviorStandard::CancelStandardTranslation()
@@ -111,6 +116,12 @@ void UTranslationBehaviorStandard::CancelStandardTranslation()
 	//  set state on support and stop movement on childrens
 	OwnerTransSupport->CurrentTranslationState = ETranslationState::NotMoving;
 	OwnerTransSupport->StopMovementOnChildrens();
+
+	//  broadcast the OnStandardTranslationEnd event
+	int DestIndex = 0;
+	float DestProgress = 0.0f;
+	OwnerTransSupport->ComputeInnerIndexAndProgress(OwnerTransSupport->GetDistanceFromSplineOrigin(), DestIndex, DestProgress);
+	OnStandardTranslationEnd.Broadcast(DestIndex, DestProgress);
 }
 
 
