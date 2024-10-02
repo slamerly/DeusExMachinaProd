@@ -41,6 +41,8 @@ void APlayerControllerDeusEx::LateBeginPlay()
 // ======================================================
 void APlayerControllerDeusEx::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
+
 	if (PlayerInputMode != EPlayerInputMode::PlayerMovement) return;
 
 	bool bLastInteractableValid = IsValid(CurrentInteractable);
