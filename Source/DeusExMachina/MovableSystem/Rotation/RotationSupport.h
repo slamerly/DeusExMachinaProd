@@ -220,6 +220,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support|Advanced", meta = (Tooltip = "Allow the player to not be rotated by this support."))
 	bool bDisableSupportCollision{ false };
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Test?"))
+	bool bBehaviorAutomatic{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bBehaviorControlled{ false };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bBehaviorStandard{ false };
+
 
 
 // ======================================================
