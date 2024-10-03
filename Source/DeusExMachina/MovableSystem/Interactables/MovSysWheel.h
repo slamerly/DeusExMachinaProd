@@ -9,6 +9,15 @@
 class AMovSysSelector;
 
 
+UENUM(BlueprintType)
+enum class EWheelBlockDirection : uint8
+{
+	NoBlock = 0 UMETA(Tooltip = "The wheel can be manipulated without any constraints (it will still block if a support reach a clamp obviously)."),
+	BlockClockwise = 1 UMETA(Tooltip = "The wheel cannot be rotated in the clockwise direction, even if there is no clamp for supports in this direction."),
+	BlockCounterclockwise = 2 UMETA(Tooltip = "The wheel cannot be rotated in the counterclockwise direction, even if there is no clamp for supports in this direction.")
+};
+
+
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlGain, AMovSysWheel, OnMovSysWheelControlGained);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysWheelControlLost, AMovSysWheel, OnMovSysWheelControlLost);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_TwoParams(FMovSysWheelControlUpdate, AMovSysWheel, OnMovSysWheelControlUpdated, float, ControlValue, bool, TriggeredClamp);
@@ -18,7 +27,7 @@ UCLASS()
 class DEUSEXMACHINA_API AMovSysWheel : public AMovSysInteractableBase, public IInteractable
 {
 	GENERATED_BODY()
-	
+
 public:
 	AMovSysWheel();
 
@@ -30,7 +39,6 @@ public:
 	/** Called when a value is changed on this actor in the editor */
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif // WITH_EDITOR
-
 
 
 // ======================================================
@@ -57,6 +65,21 @@ public:
 // ======================================================
 protected:
 	float GetAdvancedJoystickControl(const FVector2D JoystickValue);
+
+	float CheckBlockWheelControl(const float ControlValue);
+
+
+// ======================================================
+//                 Mov Sys Wheel Getters
+// ======================================================
+public:
+	/** Has the wheel received an input by the player this frame? */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Moving System Wheel")
+	bool GetControlledThisFrame();
+
+	/** Return the input received by the player for this frame. Will be 0 if the player didn't sent an input to the wheel. */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Moving System Wheel")
+	float GetControlledInput();
 
 
 
@@ -99,6 +122,9 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "Options", meta = (Tooltip = "Wether or not activate the advanced joystick control on this wheel.\nTrue by default. Deactivate it only for testing purposes."))
 	bool bActivateAdvancedJoystickControl{ true };
 
+	UPROPERTY(EditInstanceOnly, Category = "Options", meta = (Tooltip = "Block a direction for this wheel."))
+	EWheelBlockDirection WheelBlockDirection{ EWheelBlockDirection::NoBlock };
+
 
 // ======================================================
 //               Wheel Internal Variables
@@ -106,9 +132,13 @@ public:
 protected:
 	bool bInControl{ false };
 
-	// ===========================
-	//  Advanced Joystick Control
-	// ===========================
+	bool bControlledThisFrame{ false };
+	float ComputedControlValue{ 0.0f };
+
+
+// ===========================
+//  Advanced Joystick Control
+// ===========================
 	float JoystickAngle{ 0.0f };
 	float JoystickForgotTime{ 0.0f };
 	float JoystickLastControl{ 0.0f };
