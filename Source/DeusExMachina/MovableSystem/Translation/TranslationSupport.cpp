@@ -4,6 +4,12 @@
 #include "DeusExMachina/Utils/SplineComponentPlus.h"
 #include "Components/ArrowComponent.h"
 #include "DeusExMachina/MovableSystem/MovableObjectComponent.h"
+
+#include "TranslationBehaviorAutomatic.h"
+#include "TranslationBehaviorControlled.h"
+#include "TranslationBehaviorStandard.h"
+#include "LevelEditor.h"
+
 #include "Kismet/KismetMathLibrary.h"
 #include "Defines.h"
 
@@ -421,6 +427,100 @@ void ATranslationSupport::UpdateSplinePointsVisual()
 		SplineArrowComp->SetWorldRotation(FRotator{ -90.0f, 0.0f, 0.0f });
 		SplineArrowComp->SetWorldLocation(TranslationSpline->GetLocationAtSplinePoint(i, ESplineCoordinateSpace::World) + (FVector::UpVector * 30.0f));
 	}
+}
+
+
+
+// ======================================================
+//            Translation Behaviors Components
+// ======================================================
+void ATranslationSupport::SetupTranslationBehaviors()
+{
+	//  process for each behavior type
+
+	//  automatic behavior
+	if (TranslationBehaviorFlags & (uint8)ETranslationBehaviorFlags::Automatic)
+	{
+		//  check if the component already exists (no need to create it)
+		TInlineComponentArray<UTranslationBehaviorAutomatic*> AutomaticComps(this);
+		GetComponents<UTranslationBehaviorAutomatic*>(AutomaticComps);
+
+		if (AutomaticComps.Num() == 0)
+		{
+			//  no automatic behavior component, create one
+			UActorComponent* AutomaticBehaviorComp = AddComponentByClass(UTranslationBehaviorAutomatic::StaticClass(), false, FTransform::Identity, false);
+			AddInstanceComponent(AutomaticBehaviorComp);
+		}
+	}
+	else
+	{
+		//  check if the component exists (need to remove it)
+		TInlineComponentArray<UTranslationBehaviorAutomatic*> AutomaticComps(this);
+		GetComponents<UTranslationBehaviorAutomatic*>(AutomaticComps);
+
+		for (auto AutomaticComponent : AutomaticComps)
+		{
+			AutomaticComponent->DestroyComponent();
+		}
+	}
+
+	//  controlled behavior
+	if (TranslationBehaviorFlags & (uint8)ETranslationBehaviorFlags::Controlled)
+	{
+		//  check if the component already exists (no need to create it)
+		TInlineComponentArray<UTranslationBehaviorControlled*> ControlledComps(this);
+		GetComponents<UTranslationBehaviorControlled*>(ControlledComps);
+
+		if (ControlledComps.Num() == 0)
+		{
+			//  no controlled behavior component, create one
+			UActorComponent* ControlledBehaviorComp = AddComponentByClass(UTranslationBehaviorControlled::StaticClass(), false, FTransform::Identity, false);
+			AddInstanceComponent(ControlledBehaviorComp);
+		}
+	}
+	else
+	{
+		//  check if the component exists (need to remove it)
+		TInlineComponentArray<UTranslationBehaviorControlled*> ControlledComps(this);
+		GetComponents<UTranslationBehaviorControlled*>(ControlledComps);
+
+		for (auto ControlledComponent : ControlledComps)
+		{
+			ControlledComponent->DestroyComponent();
+		}
+	}
+
+	//  standard behavior
+	if (TranslationBehaviorFlags & (uint8)ETranslationBehaviorFlags::Standard)
+	{
+		//  check if the component already exists (no need to create it)
+		TInlineComponentArray<UTranslationBehaviorStandard*> StandardComps(this);
+		GetComponents<UTranslationBehaviorStandard*>(StandardComps);
+
+		if (StandardComps.Num() == 0)
+		{
+			//  no standard behavior component, create one
+			UActorComponent* StandardBehaviorComp = AddComponentByClass(UTranslationBehaviorStandard::StaticClass(), false, FTransform::Identity, false);
+			AddInstanceComponent(StandardBehaviorComp);
+		}
+	}
+	else
+	{
+		//  check if the component exists (need to remove it)
+		TInlineComponentArray<UTranslationBehaviorStandard*> StandardComps(this);
+		GetComponents<UTranslationBehaviorStandard*>(StandardComps);
+
+		for (auto StandardComponent : StandardComps)
+		{
+			StandardComponent->DestroyComponent();
+		}
+	}
+
+
+	//  refresh detail panel to show created components
+	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+	LevelEditorModule.BroadcastComponentsEdited();
+	LevelEditorModule.BroadcastRedrawViewports(false);
 }
 
 
