@@ -133,6 +133,9 @@ void AMovSysWheel::Interaction_Implementation()
 	//  broadcast OnMovSysWheelControlGained event
 	OnMovSysWheelControlGained.Broadcast();
 
+	//  reset bControlledThisFrame
+	bControlledThisFrame = false;
+
 	//  visual feedback in blueprint
 	WheelStartFeedback();
 }
@@ -146,7 +149,6 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue,
 	if (!bInControl) return;
 
 	//  compute control value depending of the mode
-	float ComputedControlValue = 0.0f;
 	if (bActivateAdvancedJoystickControl && !KeyboardInput)
 	{
 		ComputedControlValue = GetAdvancedJoystickControl(ControlValue);
@@ -155,6 +157,12 @@ void AMovSysWheel::InteractionHeavyUpdate_Implementation(FVector2D ControlValue,
 	{
 		ComputedControlValue = ControlValue.X;
 	}
+
+	//  check for wheel specific block direction and apply the block to the control value
+	ComputedControlValue = CheckBlockWheelControl(ComputedControlValue);
+
+	//  set controlled this frame depending of the control value
+	bControlledThisFrame = ComputedControlValue != 0.0f;
 
 	//  update controlled behavior on linked supports and check if this control cause clamp
 	bool ControlClamp = true;
@@ -223,6 +231,9 @@ void AMovSysWheel::InteractionHeavyFinished_Implementation()
 
 	//  broadcast OnMovSysWheelControlLost event
 	OnMovSysWheelControlLost.Broadcast();
+
+	//  reset bControlledThisFrame
+	bControlledThisFrame = false;
 
 	//  visual feedback in blueprint
 	WheelStopFeedback();
@@ -301,4 +312,34 @@ float AMovSysWheel::GetAdvancedJoystickControl(const FVector2D JoystickValue)
 			return 0.0f;
 		}
 	}
+}
+
+float AMovSysWheel::CheckBlockWheelControl(const float ControlValue)
+{
+	switch (WheelBlockDirection)
+	{
+	case EWheelBlockDirection::BlockClockwise:
+		return FMath::Min<float>(ControlValue, 0.0f);
+
+	case EWheelBlockDirection::BlockCounterclockwise:
+		return FMath::Max<float>(ControlValue, 0.0f);
+
+	default:
+		return ControlValue;
+	}
+}
+
+
+
+// ======================================================
+//                Mov Sys Wheel Getters
+// ======================================================
+bool AMovSysWheel::GetControlledThisFrame()
+{
+	return bControlledThisFrame;
+}
+
+float AMovSysWheel::GetControlledInput()
+{
+	return ComputedControlValue;
 }
