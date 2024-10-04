@@ -14,6 +14,18 @@ class UInputMappingContext;
 class UInputAction;
 
 
+UENUM()
+enum class EInteractableValid : uint8
+{
+	Valid = 0,
+	Invalid = 1
+};
+
+
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FPlayerStartInteraction, APlayerControllerDeusEx, OnPlayerStartInteraction, AActor*, ActorInteracted);
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FPlayerFinishInteraction, APlayerControllerDeusEx, OnPlayerFinishInteraction, AActor*, ActorInteracted);
+
+
 UCLASS()
 class DEUSEXMACHINA_API APlayerControllerDeusEx : public APlayerController, public IPlayerControllerInterface
 {
@@ -95,6 +107,24 @@ protected:
 	//     Interaction
 	// ====================
 	AActor* InteractionRaycast();
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Player Controller", meta = (ExpandEnumAsExecs = "InteractableValid", Tooltip = "Get the current interactable, if it exists."))
+	AActor* GetCurrentInteractable(EInteractableValid& InteractableValid);
+
+
+
+// ======================================================
+//                   Delegate Events
+// ======================================================
+public:
+	/** Called when the player start interacting with an actor. */
+	UPROPERTY(BlueprintAssignable, Category = "Player Controller|Events")
+	FPlayerStartInteraction OnPlayerStartInteraction;
+
+	/** Called when the player finish interacting with an actor. */
+	UPROPERTY(BlueprintAssignable, Category = "Player Controller|Events")
+	FPlayerFinishInteraction OnPlayerFinishInteraction;
 
 
 

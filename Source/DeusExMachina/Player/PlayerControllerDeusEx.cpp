@@ -113,6 +113,20 @@ AActor* APlayerControllerDeusEx::InteractionRaycast()
 	return InteractableFound;
 }
 
+AActor* APlayerControllerDeusEx::GetCurrentInteractable(EInteractableValid& InteractableValid)
+{
+	if (IsValid(CurrentInteractable))
+	{
+		InteractableValid = EInteractableValid::Valid;
+		return CurrentInteractable;
+	}
+	else
+	{
+		InteractableValid = EInteractableValid::Invalid;
+		return nullptr;
+	}
+}
+
 
 // ======================================================
 //           Move & Look (look temporary)
@@ -163,6 +177,9 @@ void APlayerControllerDeusEx::Interact(const FInputActionValue& value)
 	{
 		SetPlayerInputMode(EPlayerInputMode::InteractionHeavy);
 	}
+
+	//  broadcast OnPlayerStartInteraction event
+	OnPlayerStartInteraction.Broadcast(CurrentInteractable);
 }
 
 void APlayerControllerDeusEx::InteractRelease(const FInputActionValue& value)
@@ -172,13 +189,20 @@ void APlayerControllerDeusEx::InteractRelease(const FInputActionValue& value)
 
 	if (PlayerInputMode != EPlayerInputMode::InteractionHeavy) return;
 
-	if (!IsValid(CurrentInteractable)) return;
+	if (!IsValid(CurrentInteractable))
+	{
+		SetPlayerInputMode(EPlayerInputMode::PlayerMovement); //  security
+		return;
+	}
 
 	if (!IInteractable::Execute_IsInteractionHeavy(CurrentInteractable)) return;
 
 	//  actual function
 	IInteractable::Execute_InteractionHeavyFinished(CurrentInteractable);
 	SetPlayerInputMode(EPlayerInputMode::PlayerMovement);
+
+	//  broadcast OnPlayerFinishInteraction event
+	OnPlayerFinishInteraction.Broadcast(CurrentInteractable);
 }
 
 
