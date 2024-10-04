@@ -10,6 +10,16 @@ class UStaticMeshComponentPlus;
 class UArrowComponent;
 
 
+UENUM(meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class ERotationBehaviorFlags : uint8
+{
+	Automatic = 1 << 0 UMETA(Tooltip = "Select the Automatic Rotation Behavior.\nNote that you need to set datas on the component once created."),
+	Controlled = 1 << 1 UMETA(Tooltip = "Select the Controlled Rotation Behavior."),
+	Standard = 1 << 2 UMETA(Tooltip = "Select the Standard Rotation Behavior.")
+};
+ENUM_CLASS_FLAGS(ERotationBehaviorFlags)
+
+
 UENUM()
 enum class ERotationState : uint8
 {
@@ -219,6 +229,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Rotation Support|Advanced", meta = (Tooltip = "Allow the player to not be rotated by this support."))
 	bool bDisableSupportCollision{ false };
+
+
+
+// ======================================================
+//             Rotation Behaviors Components
+// ======================================================
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Rotation Behaviors", meta = (Bitmask, BitmaskEnum = ERotationBehaviorFlags, Tooltip = "Select the Rotation Behavior components to add to this support.."))
+	int32 RotationBehaviorFlags;
+
+	UFUNCTION(CallInEditor, Category = "Rotation Behaviors", meta = (Tooltip = "Apply the rotation behavior selection."))
+	void SetupRotationBehaviors();
 
 
 

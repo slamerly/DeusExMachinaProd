@@ -11,6 +11,16 @@ class USplineComponentPlus;
 class UArrowComponent;
 
 
+UENUM(meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class ETranslationBehaviorFlags : uint8
+{
+	Automatic = 1 << 0 UMETA(Tooltip = "Select the Automatic Translation Behavior.\nNote that you need to set datas on the component once created."),
+	Controlled = 1 << 1 UMETA(Tooltip = "Select the Controlled Translation Behavior."),
+	Standard = 1 << 2 UMETA(Tooltip = "Select the Standard Translation Behavior.")
+};
+ENUM_CLASS_FLAGS(ETranslationBehaviorFlags)
+
+
 UENUM()
 enum class ETranslationState : uint8
 {
@@ -261,6 +271,17 @@ protected:
 	bool bShowSplinePointsVisual{ false };
 
 	TArray<UArrowComponent*> SplinePointsVisualArrows;
+
+
+
+// ======================================================
+//             Translation Behaviors Components
+// ======================================================
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Translation Behaviors", meta = (Bitmask, BitmaskEnum = ETranslationBehaviorFlags, Tooltip = "Select the Translation Behavior components to add to this support.."))
+	int32 TranslationBehaviorFlags;
+
+	UFUNCTION(CallInEditor, Category = "Translation Behaviors", meta = (Tooltip = "Apply the translation behavior selection."))
+	void SetupTranslationBehaviors();
 
 
 

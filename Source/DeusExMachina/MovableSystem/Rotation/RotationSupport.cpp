@@ -3,6 +3,12 @@
 #include "DeusExMachina/Utils/StaticMeshComponentPlus.h"
 #include "Components/ArrowComponent.h"
 #include "DeusExMachina/MovableSystem/MovableObjectComponent.h"
+
+#include "RotationBehaviorAutomatic.h"
+#include "RotationBehaviorControlled.h"
+#include "RotationBehaviorStandard.h"
+#include "LevelEditor.h"
+
 #include "AnglesUtils.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Defines.h"
@@ -475,6 +481,100 @@ void ARotationSupport::UpdateSnapVisual()
 		SnapArrowComp->SetRelativeRotation(FRotator{ 0.0f, UAnglesUtils::ModuloAngle(SnapValues[i].SnapAngle + 180.0f), 0.0f });
 		SnapArrowComp->SetRelativeLocation(FVector{ FMath::Cos(SnapAngleRad) * 150.0f, FMath::Sin(SnapAngleRad) * 150.0f, BaseScale.Z + 2.5f });
 	}
+}
+
+
+
+// ======================================================
+//              Rotation Behaviors Components
+// ======================================================
+void ARotationSupport::SetupRotationBehaviors()
+{
+	//  process for each behavior type
+
+	//  automatic behavior
+	if (RotationBehaviorFlags & (uint8)ERotationBehaviorFlags::Automatic)
+	{
+		//  check if the component already exists (no need to create it)
+		TInlineComponentArray<URotationBehaviorAutomatic*> AutomaticComps(this);
+		GetComponents<URotationBehaviorAutomatic*>(AutomaticComps);
+
+		if (AutomaticComps.Num() == 0)
+		{
+			//  no automatic behavior component, create one
+			UActorComponent* AutomaticBehaviorComp = AddComponentByClass(URotationBehaviorAutomatic::StaticClass(), false, FTransform::Identity, false);
+			AddInstanceComponent(AutomaticBehaviorComp);
+		}
+	}
+	else
+	{
+		//  check if the component exists (need to remove it)
+		TInlineComponentArray<URotationBehaviorAutomatic*> AutomaticComps(this);
+		GetComponents<URotationBehaviorAutomatic*>(AutomaticComps);
+
+		for (auto AutomaticComponent : AutomaticComps)
+		{
+			AutomaticComponent->DestroyComponent();
+		}
+	}
+
+	//  controlled behavior
+	if (RotationBehaviorFlags & (uint8)ERotationBehaviorFlags::Controlled)
+	{
+		//  check if the component already exists (no need to create it)
+		TInlineComponentArray<URotationBehaviorControlled*> ControlledComps(this);
+		GetComponents<URotationBehaviorControlled*>(ControlledComps);
+
+		if (ControlledComps.Num() == 0)
+		{
+			//  no controlled behavior component, create one
+			UActorComponent* ControlledBehaviorComp = AddComponentByClass(URotationBehaviorControlled::StaticClass(), false, FTransform::Identity, false);
+			AddInstanceComponent(ControlledBehaviorComp);
+		}
+	}
+	else
+	{
+		//  check if the component exists (need to remove it)
+		TInlineComponentArray<URotationBehaviorControlled*> ControlledComps(this);
+		GetComponents<URotationBehaviorControlled*>(ControlledComps);
+
+		for (auto ControlledComponent : ControlledComps)
+		{
+			ControlledComponent->DestroyComponent();
+		}
+	}
+
+	//  standard behavior
+	if (RotationBehaviorFlags & (uint8)ERotationBehaviorFlags::Standard)
+	{
+		//  check if the component already exists (no need to create it)
+		TInlineComponentArray<URotationBehaviorStandard*> StandardComps(this);
+		GetComponents<URotationBehaviorStandard*>(StandardComps);
+
+		if (StandardComps.Num() == 0)
+		{
+			//  no standard behavior component, create one
+			UActorComponent* StandardBehaviorComp = AddComponentByClass(URotationBehaviorStandard::StaticClass(), false, FTransform::Identity, false);
+			AddInstanceComponent(StandardBehaviorComp);
+		}
+	}
+	else
+	{
+		//  check if the component exists (need to remove it)
+		TInlineComponentArray<URotationBehaviorStandard*> StandardComps(this);
+		GetComponents<URotationBehaviorStandard*>(StandardComps);
+
+		for (auto StandardComponent : StandardComps)
+		{
+			StandardComponent->DestroyComponent();
+		}
+	}
+
+
+	//  refresh detail panel to show created components
+	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
+	LevelEditorModule.BroadcastComponentsEdited();
+	LevelEditorModule.BroadcastRedrawViewports(false);
 }
 
 
