@@ -7,7 +7,10 @@
 #include "RotationBehaviorAutomatic.h"
 #include "RotationBehaviorControlled.h"
 #include "RotationBehaviorStandard.h"
+
+#if WITH_EDITOR
 #include "LevelEditor.h"
+#endif // WITH_EDITOR
 
 #include "AnglesUtils.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -75,6 +78,7 @@ void ARotationSupport::BeginPlay()
 bool ARotationSupport::AddInnerRotation(float InnerRotAdd, bool TestClamp)
 {
 	bool TriggerClamp = false;
+	const float InnerBefore = InnerRotation;
 
 	if (TestClamp)
 	{
@@ -95,12 +99,19 @@ bool ARotationSupport::AddInnerRotation(float InnerRotAdd, bool TestClamp)
 		InnerRotation += InnerRotAdd;
 	}
 
+	//  apply the support movement
 	ComputeInnerTransform();
-	return TriggerClamp;
+
+	//  check the objectives for Event Dispatcher
+	CheckAngleObjective(InnerBefore, InnerRotation);
+
+	return !TriggerClamp;
 }
 
-void ARotationSupport::ForceInnerRotation(int InnerRot, bool AbsoluteRotation)
+void ARotationSupport::ForceInnerRotation(float InnerRot, bool AbsoluteRotation)
 {
+	const float InnerBefore = InnerRotation;
+
 	if (AbsoluteRotation)
 	{
 		//  simply set the inner rotation to the inputed one
@@ -110,10 +121,9 @@ void ARotationSupport::ForceInnerRotation(int InnerRot, bool AbsoluteRotation)
 	{
 		//  compute the nearest rotation angle of current InnerRotation that is a modulo of inputed InnerRot
 
-		const int InnerRotInt = FMath::RoundToInt(InnerRotation);
-		const int CurrentInnerMod = UAnglesUtils::ModuloAngleInt(InnerRotInt); //  retrieve the inner rotation in base 360
-		const int CurrentInnerDiff = InnerRotInt - CurrentInnerMod; //  compute the offset between base 360 inner rot and real inner rot
-		int InputRotMod = UAnglesUtils::ModuloAngleInt(InnerRot); //  retrieve the inputed inner rot in base 360
+		const float CurrentInnerMod = UAnglesUtils::ModuloAngle(InnerRot); //  retrieve the inner rotation in base 360
+		const float CurrentInnerDiff = InnerRot - CurrentInnerMod; //  compute the offset between base 360 inner rot and real inner rot
+		float InputRotMod = UAnglesUtils::ModuloAngle(InnerRot); //  retrieve the inputed inner rot in base 360
 
 		if (CurrentInnerMod - InputRotMod > 180)
 		{
@@ -129,7 +139,11 @@ void ARotationSupport::ForceInnerRotation(int InnerRot, bool AbsoluteRotation)
 		InnerRotation = InputRotMod + CurrentInnerDiff; //  return the computed inputed inner rot with the offset to go back to the range of the inner rot at the beginnning of this function
 	}
 
+	//  apply the support movement
 	ComputeInnerTransform();
+
+	//  check the objectives for Event Dispatcher
+	CheckAngleObjective(InnerBefore, InnerRotation);
 }
 
 
@@ -571,10 +585,71 @@ void ARotationSupport::SetupRotationBehaviors()
 	}
 
 
+#if WITH_EDITOR
 	//  refresh detail panel to show created components
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
 	LevelEditorModule.BroadcastComponentsEdited();
 	LevelEditorModule.BroadcastRedrawViewports(false);
+#endif // WITH_EDITOR
+}
+
+
+
+// ======================================================
+//              Objective Event Dispatcher
+// ======================================================
+void ARotationSupport::CheckAngleObjective(const float AngleBefore, const float AngleAfter)
+{
+	//  check angle after
+
+	//  check loop preparation
+	const int AngleAfterInt = FMath::RoundToInt(AngleAfter);
+	bool bObjectiveValid{ false };
+	FGameplayTag EventTag;
+
+	//  check loop
+	for (auto& AngleObjective : AngleObjectives)
+	{
+		if (AngleAfterInt == AngleObjective.ObjectiveAngle)
+		{
+			bObjectiveValid = true;
+			EventTag = AngleObjective.ObjectiveEventTag;
+		}
+	}
+
+	//  call event if found (then return cause objective is reached)
+	if (bObjectiveValid)
+	{
+		CallEventDispatcherHub(EventTag);
+		return;
+	}
+
+
+	//  a delta angle superior to 2 degrees in a single frame is considered to be a teleportation, eg. do not check sweep
+	if (FMath::Abs(AngleAfter - AngleBefore) > 2.0f) return;
+
+	//  check sweep
+
+	//  check loop preparation
+	const float AngleLow = (AngleBefore <= AngleAfter) ? AngleBefore : AngleAfter;
+	const float AngleHigh = (AngleAfter >= AngleBefore) ? AngleAfter : AngleBefore;
+	bObjectiveValid = false;
+
+	//  check loop
+	for (auto& AngleObjective : AngleObjectives)
+	{
+		if (AngleObjective.ObjectiveAngle > AngleLow && AngleObjective.ObjectiveAngle < AngleHigh)
+		{
+			bObjectiveValid = true;
+			EventTag = AngleObjective.ObjectiveEventTag;
+		}
+	}
+
+	//  call event if found
+	if (bObjectiveValid)
+	{
+		CallEventDispatcherHub(EventTag);
+	}
 }
 
 

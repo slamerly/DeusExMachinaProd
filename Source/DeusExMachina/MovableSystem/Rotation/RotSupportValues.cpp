@@ -107,3 +107,33 @@ UCurveFloat* URotSupportValuesGet::GetSnapCurveContinue(const FRotSupportValues&
 {
 	return Datas.GetSnapCurveContinue();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FRotSupportValues URotSupportValuesGet::MakeRotationSupportValues(bool bUseClamp, int ClampLowValue, int ClampHighValue, bool bUseSnap, TArray<FSnapValue> SnapValues, float SnapDirectionAdvantage, float SnapSpeed, UCurveFloat* SnapCurveNeutralReverse, UCurveFloat* SnapCurveContinue)
+{
+	FRotSupportValues Values;
+
+	Values.ClampValuesOverride.bOverrideClampValues = true;
+	Values.SnapValuesOverride.bOverrideSnapValues = true;
+	Values.SnapCurvesOverride.bOverrideSnapCurves = true;
+
+
+	Values.ClampValuesOverride.bUseClamp = bUseClamp;
+	Values.ClampValuesOverride.ClampLowValue = ClampLowValue;
+	Values.ClampValuesOverride.ClampHighValue = ClampHighValue;
+
+	Values.SnapValuesOverride.bUseSnap = bUseSnap;
+	Values.SnapValuesOverride.SnapValues = SnapValues;
+	Values.SnapValuesOverride.SnapDirectionAdvantage = SnapDirectionAdvantage;
+	Values.SnapValuesOverride.SnapSpeed = SnapSpeed;
+
+	Values.SnapCurvesOverride.SnapCurveNeutralReverse = SnapCurveNeutralReverse;
+	Values.SnapCurvesOverride.SnapCurveContinue = SnapCurveContinue;
+
+
+	return Values;
+}

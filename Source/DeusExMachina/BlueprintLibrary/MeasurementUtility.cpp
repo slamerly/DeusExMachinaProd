@@ -1,13 +1,21 @@
 #include "MeasurementUtility.h"
+#include "Misc/FileHelper.h"
 
-bool UMeasurementUtility::IsInEditor(const UObject* WorldContectObject)
+bool UMeasurementUtility::IsInEditor()
 {
-	if (!IsValid(WorldContectObject)) return true;
-
-	return WorldContectObject->GetWorld()->WorldType == EWorldType::PIE;
+#if WITH_EDITOR
+	return true;
+#else
+	return false;
+#endif // WITH_EDITOR
 }
 
-void UMeasurementUtility::SaveStringAsFile(const FString& StringToFile, const FString& FileSavePath)
+bool UMeasurementUtility::SaveStringAsFile(const FString& StringToFile, const FString& FileSavePath)
 {
+	return FFileHelper::SaveStringToFile(StringToFile, *FileSavePath);
+}
 
+bool UMeasurementUtility::LoadFileAsString(const FString& FileSavePath, FString& StringFromFile)
+{
+	return FFileHelper::LoadFileToString(StringFromFile, *FileSavePath);
 }

@@ -265,6 +265,14 @@ bool AMovSysSelector::IsInteractableBothSides_Implementation()
 	return true;
 }
 
+AActor* AMovSysSelector::GetInteractableFocusActor_Implementation()
+{
+	if (IsValid(ActorToFocus)) return ActorToFocus;
+
+	kPRINT_ERROR("Called 'Get Focus Actor' on selector " + UKismetSystemLibrary::GetDisplayName(this) + " but it has no valid Focus Actor!");
+	return nullptr;
+}
+
 
 
 // ======================================================

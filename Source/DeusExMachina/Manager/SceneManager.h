@@ -65,6 +65,8 @@ private:
 	UFUNCTION()
 	void OnStreamSceneLoaded();
 	UFUNCTION()
+	void OnFirstStreamSceneLoaded();
+	UFUNCTION()
 	void OnStreamSceneUnloaded();
 
 // ======================================================
@@ -76,7 +78,7 @@ protected:
 	const TObjectPtr<ATargetPoint> SceneCenter;
 
 	// =======================
-	//		Change Level
+	//		Level Transition
 	// =======================
 	/**
 	 *	Animation to do in the Begin Play.
@@ -84,13 +86,17 @@ protected:
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "LevelTransition|BeginPlay")
 	void BeginPlayAnimation();
+
 	// beginplay
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|BeginPlay")
 	bool bFadeBeginPlay = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|BeginPlay")
 	bool bCurtainsBeginPlay = true;
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|BeginPlay")
 	bool bLightsBeginPlay = true;
+	*/
+
 	// Transition
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
 	TSoftObjectPtr<UWorld> NextLevel;
@@ -98,8 +104,10 @@ protected:
 	float DelayAfterAnimation = 2.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
 	bool bCurtainsAnimationTL = true;
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
 	bool bLightsAnimationTL = true;
+	*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LevelTransition|Transition")
 	bool bFadeTransition = true;
 
@@ -108,18 +116,21 @@ protected:
 	// =======================
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Default")
 	TArray<const TSoftObjectPtr<UWorld>> Scenes;
+
 	// Array of names of scenes add in Scenes, use for loading functions
 	UPROPERTY(VisibleAnywhere, Category = "Default")
 	TArray<FName> ScenesNames;
+
 	// Update the ScenesNames
 	UFUNCTION(CallInEditor, Category = "Default")
 	void UpdateScenesNames();
+
 	/**
 	* Function to call animations for curtains and lights.
 	* @param	CurtainsOpen	Know if the curtains are curently open
-	* @param	LighsAreOn	Know if the lights are on
 	*/
-	void Animations(bool CurtainsOpen, bool LightsAreOn);
+	void Animations(bool CurtainsOpen);
+	//void Animations(bool CurtainsOpen, bool LightsAreOn);
 
 	// =======================
 	//		Curtains
@@ -129,6 +140,7 @@ protected:
 	TArray<const TObjectPtr<AActor>> Curtains;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene")
 	bool bCurtainsAnimation = true;
+	// Distance between the initial position of the curtain and the position where it is closed.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Curtains")
 	float CurtainsFinalDistancePos = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Curtains")
@@ -137,18 +149,17 @@ protected:
 	// Timeline
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UTimelineComponent* TimelineCurtains;
-	// La courbe flottante
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Curtains")
 	UCurveFloat* FloatCurveCurtains;
 	UFUNCTION()
 	void OnTimelineUpdateCurtains(float Value);
-	// Fonction appelée à la fin de la timeline
 	UFUNCTION()
 	void OnTimelineFinishedCurtains();
 
 	// =======================
 	//		Lights
 	// =======================
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene")
 	bool bLightsAnimation = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ChangeScene|Lights")
@@ -167,7 +178,7 @@ protected:
 	// Fonction appelée à la fin de la timeline
 	UFUNCTION()
 	void OnTimelineFinishedLights();
-
+	*/
 
 // ======================================================
 //             Load Progress

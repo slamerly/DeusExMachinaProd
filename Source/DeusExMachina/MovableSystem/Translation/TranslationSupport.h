@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "DeusExMachina/MovableSystem/MovingSupportBase.h"
 #include "GameFramework/Actor.h"
+#include "GameplayTagContainer.h"
 #include "TranslationSupport.generated.h"
 
 class USceneComponent;
@@ -19,6 +20,19 @@ enum class ETranslationBehaviorFlags : uint8
 	Standard = 1 << 2 UMETA(Tooltip = "Select the Standard Translation Behavior.")
 };
 ENUM_CLASS_FLAGS(ETranslationBehaviorFlags)
+
+
+USTRUCT(BlueprintType)
+struct FSplinePointObjective
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The spline point the Translation Support need to go trough to call the Objective event."))
+	int ObjectiveSplinePoint{ 0 };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The gameplay tag to call the Event Dispatcher Hub with."))
+	FGameplayTag ObjectiveEventTag;
+};
 
 
 UENUM()
@@ -277,11 +291,26 @@ protected:
 // ======================================================
 //             Translation Behaviors Components
 // ======================================================
+protected:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Translation Behaviors", meta = (Bitmask, BitmaskEnum = ETranslationBehaviorFlags, Tooltip = "Select the Translation Behavior components to add to this support.."))
 	int32 TranslationBehaviorFlags;
 
 	UFUNCTION(CallInEditor, Category = "Translation Behaviors", meta = (Tooltip = "Apply the translation behavior selection."))
 	void SetupTranslationBehaviors();
+
+
+
+// ======================================================
+//              Objective Event Dispatcher
+// ======================================================
+protected:
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Objective Event Dispatcher", meta = (Tooltip = "A list of spline point objectives at which an Event Dispatcher will be called."))
+	TArray<FSplinePointObjective> SplinePointObjectives;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Translation Support", meta = (ForceAsFunction))
+	void CallEventDispatcherHub(const FGameplayTag& TagToCall);
+
+	void CheckSplinePointObjective(const int IndexBefore, const float ProgressAfter, const int IndexAfter);
 
 
 

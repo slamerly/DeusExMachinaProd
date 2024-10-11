@@ -35,3 +35,20 @@ bool UAutoRotInteractionDatasGet::GetReverse(const FAutoRotInteractionDatas& Dat
 {
 	return Datas.GetReverse();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FAutoRotInteractionDatas UAutoRotInteractionDatasGet::MakeAutoRotationInteractionDatas(bool bStartStop, bool bReverse)
+{
+	FAutoRotInteractionDatas Datas;
+
+	Datas.bOverrideValues = true;
+
+	Datas.bStartStop = bStartStop;
+	Datas.bReverse = bReverse;
+
+	return Datas;
+}

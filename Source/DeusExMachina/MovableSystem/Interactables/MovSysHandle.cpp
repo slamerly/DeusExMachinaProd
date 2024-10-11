@@ -36,29 +36,26 @@ void AMovSysHandle::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//  check validity of support linked and their controlled behavior components
+	//  check validity of supports linked and their controlled behavior components
 
-	switch (HandleMode)
+	for (auto& LinkCtrlR : LinkedRotSupportsControlled)
 	{
-	case EHandleMode::ControlRotation:
-		if (!IsValid(LinkedRotSupportControlled.RotationSupport)) break; //  do not check if there is no rotation support linked
-		if (!LinkedRotSupportControlled.ControlDatas.IsDataValid()) break; //  do not check if there is no datas linked
+		if (!IsValid(LinkCtrlR.RotationSupport)) continue; //  do not check if there is no rotation support linked
+		if (!LinkCtrlR.ControlDatas.IsDataValid()) continue; //  do not check if there is no datas linked
 
-		if (!IsValid(LinkedRotSupportControlled.RotationSupport->GetComponentByClass<URotationBehaviorControlled>())) break;
+		if (!IsValid(LinkCtrlR.RotationSupport->GetComponentByClass<URotationBehaviorControlled>())) continue;
 
-		LinkedRotSupportControlled.RotationControlledComponent = LinkedRotSupportControlled.RotationSupport->GetComponentByClass<URotationBehaviorControlled>();
-		bLinkValid = true;
-		break;
+		LinkedRotSupportsControlledVerified.Add(FControlledRotInteractionLink{ LinkCtrlR.RotationSupport, LinkCtrlR.ControlDatas, LinkCtrlR.RotationSupport->GetComponentByClass<URotationBehaviorControlled>() });
+	}
 
-	case EHandleMode::ControlTranslation:
-		if (!IsValid(LinkedTransSupportControlled.TranslationSupport)) break; //  do not check if there is no translation support linked
-		if (!LinkedTransSupportControlled.ControlDatas.IsDataValid()) break; //  do not check if there is no datas linked
+	for (auto& LinkCtrlT : LinkedTransSupportsControlled)
+	{
+		if (!IsValid(LinkCtrlT.TranslationSupport)) continue; //  do not check if there is no translation support linked
+		if (!LinkCtrlT.ControlDatas.IsDataValid()) continue; //  do not check if there is no datas linked
 
-		if (!IsValid(LinkedTransSupportControlled.TranslationSupport->GetComponentByClass<UTranslationBehaviorControlled>())) break;
+		if (!IsValid(LinkCtrlT.TranslationSupport->GetComponentByClass<UTranslationBehaviorControlled>())) continue;
 
-		LinkedTransSupportControlled.TranslationControlledComponent = LinkedTransSupportControlled.TranslationSupport->GetComponentByClass<UTranslationBehaviorControlled>();
-		bLinkValid = true;
-		break;
+		LinkedTransSupportsControlledVerified.Add(FControlledTransInteractionLink{ LinkCtrlT.TranslationSupport, LinkCtrlT.ControlDatas, LinkCtrlT.TranslationSupport->GetComponentByClass<UTranslationBehaviorControlled>() });
 	}
 
 
@@ -81,29 +78,28 @@ void AMovSysHandle::PostEditChangeProperty(FPropertyChangedEvent& PropertyChange
 	if (!(PropertyChangedEvent.GetPropertyName() == FName("RotationSupport") || PropertyChangedEvent.GetPropertyName() == FName("TranslationSupport"))) return;
 
 
-	//  check if support linked have a controlled behavior component
+	//  check if supports linked have a controlled behavior component
 
-	switch (HandleMode)
+	for (auto& LinkCtrlR : LinkedRotSupportsControlled)
 	{
-	case EHandleMode::ControlRotation:
-		if (!IsValid(LinkedRotSupportControlled.RotationSupport)) break; //  do not check if there is no rotation support linked
+		if (!IsValid(LinkCtrlR.RotationSupport)) continue; //  do not check if there is no rotation support linked
 
-		if (IsValid(LinkedRotSupportControlled.RotationSupport->GetComponentByClass<URotationBehaviorControlled>())) break; //  component valid, check done
+		if (LinkCtrlR.RotationSupport->GetComponentByClass(URotationBehaviorControlled::StaticClass())) continue; //  rot support has the good component, end of the check
 
-		LinkedRotSupportControlled.RotationSupport = nullptr;
+		kPRINT_COLOR("Warning! Rotation Support " + UKismetSystemLibrary::GetDisplayName(LinkCtrlR.RotationSupport) + " doesn't have the Controlled Rotation Behavior component!", FColor::Orange);
 
-		kPRINT_COLOR("Warning! Rotation Support " + UKismetSystemLibrary::GetDisplayName(LinkedRotSupportControlled.RotationSupport) + " doesn't have the Controlled Rotation Behavior component!", FColor::Orange);
-		break;
+		LinkCtrlR.RotationSupport = nullptr;
+	}
 
-	case EHandleMode::ControlTranslation:
-		if (!IsValid(LinkedTransSupportControlled.TranslationSupport)) break; //  do not check if there is no translation support linked
+	for (auto& LinkCtrlT : LinkedTransSupportsControlled)
+	{
+		if (!IsValid(LinkCtrlT.TranslationSupport)) continue; //  do not check if there is no translation support linked
 
-		if (IsValid(LinkedTransSupportControlled.TranslationSupport->GetComponentByClass<UTranslationBehaviorControlled>())) break; //  component valid, check done
+		if (LinkCtrlT.TranslationSupport->GetComponentByClass(UTranslationBehaviorControlled::StaticClass())) continue; //  trans support has the good component, end of the check
 
-		LinkedTransSupportControlled.TranslationSupport = nullptr;
+		kPRINT_COLOR("Warning! Translation Support " + UKismetSystemLibrary::GetDisplayName(LinkCtrlT.TranslationSupport) + " doesn't have the Controlled Translation Behavior component!", FColor::Orange);
 
-		kPRINT_COLOR("Warning! Translation Support " + UKismetSystemLibrary::GetDisplayName(LinkedTransSupportControlled.TranslationSupport) + " doesn't have the Controlled Translation Behavior component!", FColor::Orange);
-		break;
+		LinkCtrlT.TranslationSupport = nullptr;
 	}
 }
 #endif // WITH_EDITOR
@@ -128,17 +124,15 @@ void AMovSysHandle::Interaction_Implementation()
 	//  retrieve the camera used (assume that the camera won't change during an interaction with a handle)
 	Camera = UGameplayStatics::GetPlayerCameraManager(this, 0);
 
-	//  start controlled behavior on linked support
-	if (!bLinkValid) return;
-	switch (HandleMode)
+	//  start controlled behavior on linked supports
+	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
-	case EHandleMode::ControlRotation:
-		LinkedRotSupportControlled.RotationControlledComponent->StartControlledRotation(LinkedRotSupportControlled.ControlDatas);
-		break;
+		LinkCtrlR.RotationControlledComponent->StartControlledRotation(LinkCtrlR.ControlDatas);
+	}
 
-	case EHandleMode::ControlTranslation:
-		LinkedTransSupportControlled.TranslationControlledComponent->StartControlledTranslation(LinkedTransSupportControlled.ControlDatas);
-		break;
+	for (auto& LinkCtrlT : LinkedTransSupportsControlledVerified)
+	{
+		LinkCtrlT.TranslationControlledComponent->StartControlledTranslation(LinkCtrlT.ControlDatas);
 	}
 
 	//  broadcast OnMovSysHandleControlGained event
@@ -166,17 +160,15 @@ void AMovSysHandle::InteractionHeavyUpdate_Implementation(FVector2D ControlValue
 	//  visual feedback in blueprint
 	HandleControlFeedback(ComputedControlValue);
 
-	//  update controlled behavior on linked support
-	if (!bLinkValid) return;
-	switch (HandleMode)
+	//  update controlled behavior on linked supports and check if this control cause clamp
+	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
-	case EHandleMode::ControlRotation:
-		LinkedRotSupportControlled.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
-		break;
+		LinkCtrlR.RotationControlledComponent->UpdateControlledRotation(ComputedControlValue);
+	}
 
-	case EHandleMode::ControlTranslation:
-		LinkedTransSupportControlled.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
-		break;
+	for (auto& LinkCtrlT : LinkedTransSupportsControlledVerified)
+	{
+		LinkCtrlT.TranslationControlledComponent->UpdateControlledTranslation(ComputedControlValue);
 	}
 
 	//  broadcast OnMovSysHandleControlUpdated event
@@ -195,17 +187,15 @@ void AMovSysHandle::InteractionHeavyFinished_Implementation()
 	//  visual feedback in blueprint
 	HandleStopFeedback();
 
-	//  finish controlled behavior on linked support
-	if (!bLinkValid) return;
-	switch (HandleMode)
+	//  finish controlled behavior on linked supports
+	for (auto& LinkCtrlR : LinkedRotSupportsControlledVerified)
 	{
-	case EHandleMode::ControlRotation:
-		LinkedRotSupportControlled.RotationControlledComponent->StopControlledRotation();
-		break;
+		LinkCtrlR.RotationControlledComponent->StopControlledRotation();
+	}
 
-	case EHandleMode::ControlTranslation:
-		LinkedTransSupportControlled.TranslationControlledComponent->StopControlledTranslation();
-		break;
+	for (auto& LinkCtrlT : LinkedTransSupportsControlledVerified)
+	{
+		LinkCtrlT.TranslationControlledComponent->StopControlledTranslation();
 	}
 
 	//  broadcast OnMovSysHandleControlLost event
@@ -230,6 +220,14 @@ bool AMovSysHandle::IsInteractionHeavy_Implementation()
 bool AMovSysHandle::IsInteractableBothSides_Implementation()
 {
 	return true;
+}
+
+AActor* AMovSysHandle::GetInteractableFocusActor_Implementation()
+{
+	if (IsValid(ActorToFocus)) return ActorToFocus;
+
+	kPRINT_ERROR("Called 'Get Focus Actor' on Handle " + UKismetSystemLibrary::GetDisplayName(this) + " but it has no valid Focus Actor!");
+	return nullptr;
 }
 
 

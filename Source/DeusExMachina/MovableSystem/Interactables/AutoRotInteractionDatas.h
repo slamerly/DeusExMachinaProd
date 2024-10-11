@@ -6,6 +6,12 @@
 #include "AutoRotInteractionDatas.generated.h"
 
 
+
+// ========================================================================================================================
+//           Primary Data Asset
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UAutoRotInteractionBaseDatas : public UPrimaryDataAsset
 {
@@ -21,6 +27,12 @@ public:
 		meta = (Tooltip = "If true, the automatic rotation will go reverse on the interaction.\nNote: If combined with StartStop, will reverse only when the rotation will restart."))
 	bool bReverse{ false };
 };
+
+
+
+// ========================================================================================================================
+//           Override Struct
+// ========================================================================================================================
 
 
 USTRUCT(BlueprintType)
@@ -56,6 +68,12 @@ struct FAutoRotInteractionDatas
 };
 
 
+
+// ========================================================================================================================
+//           Blueprint Function Library
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UAutoRotInteractionDatasGet : public UBlueprintFunctionLibrary
 {
@@ -76,4 +94,16 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Rot Interaction Datas", meta = (ReturnDisplayName = "Reverse"))
 	static bool GetReverse(const FAutoRotInteractionDatas& Datas);
+
+
+
+	/**
+	* Make an Automatic Rotation Interaction Datas struct with custom values.
+	* @param	bStartStop		If true, the automatic rotation will start or stop on the interaction.
+	* @param	bReverse		If true, the automatic rotation will go reverse on the interaction.
+	*							Note: If combined with StartStop, will reverse only when the rotation will restart.
+	* @return					The created Automatic Rotation Interaction Datas struct.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Rot Interaction Datas", meta = (ReturnDisplayName = "AutoRotationInteractionDatas"))
+	static FAutoRotInteractionDatas MakeAutoRotationInteractionDatas(bool bStartStop, bool bReverse);
 };

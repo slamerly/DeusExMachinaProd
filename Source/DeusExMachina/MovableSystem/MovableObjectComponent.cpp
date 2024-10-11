@@ -1,5 +1,6 @@
 #include "MovableObjectComponent.h"
 #include "MovingSupportBase.h"
+#include "Runtime/Engine/Classes/Engine/StaticMeshActor.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Defines.h"
@@ -27,7 +28,9 @@ void UMovableObjectComponent::BeginPlay()
 	}
 
 	bMovingSupportValid = true;
-	MovingSupport->AddMovableChild(this);
+	MovingSupport->AddMovableChild(this); 
+
+
 
 
 	//  compute offset from moving support parent
@@ -44,6 +47,7 @@ void UMovableObjectComponent::BeginPlay()
 
 }
 
+
 // ======================================================
 //                       Tick
 // ======================================================
@@ -54,6 +58,18 @@ void UMovableObjectComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	//  auto update transform if the object this component is on is moving
 	if (!CheckIsMovingFull()) return;
 	ApplyMovement();
+}
+
+
+// ======================================================
+//                  Component Created
+// ======================================================
+void UMovableObjectComponent::OnComponentCreated()
+{
+	Super::OnComponentCreated();
+
+	AStaticMeshActor* ActorAsStaticMesh = Cast<AStaticMeshActor>(GetOwner());
+	if (IsValid(ActorAsStaticMesh)) ActorAsStaticMesh->SetMobility(EComponentMobility::Movable);
 }
 
 

@@ -258,6 +258,14 @@ bool AMovSysWheel::IsInteractableBothSides_Implementation()
 	return false;
 }
 
+AActor* AMovSysWheel::GetInteractableFocusActor_Implementation()
+{
+	if (IsValid(ActorToFocus)) return ActorToFocus;
+
+	kPRINT_ERROR("Called 'Get Focus Actor' on Wheel " + UKismetSystemLibrary::GetDisplayName(this) + " but it has no valid Focus Actor!");
+	return nullptr;
+}
+
 
 
 // ======================================================

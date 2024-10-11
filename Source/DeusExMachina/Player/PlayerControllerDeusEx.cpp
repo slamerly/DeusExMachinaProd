@@ -80,6 +80,11 @@ AActor* APlayerControllerDeusEx::InteractionRaycast()
 		return InteractableFound; //  return if the raycast didn't found any object
 	}
 
+	if (!IsValid(OutInteraction.GetActor()))
+	{
+		return InteractableFound; //  return if the raycast found an object but this object is not valid. Can happen during scene change
+	}
+
 	if (!OutInteraction.GetActor()->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
 	{
 		return InteractableFound; //  return if the found object doesn't implement the Interactable interface
@@ -163,6 +168,12 @@ void APlayerControllerDeusEx::Look(const FInputActionValue& value)
 // ======================================================
 void APlayerControllerDeusEx::Interact(const FInputActionValue& value)
 {
+	if (PlayerInputMode == EPlayerInputMode::NarrationControl)
+	{
+		OnInteractInputNarration.Broadcast();
+		return;
+	}
+
 	//  checks
 	if (bPlayerBlocked) return;
 

@@ -17,5 +17,5 @@ enum class EBlockPlayerCause : uint8
 	SceneTransition = 1 UMETA(ToolTip = "Block player inputs cause changing scene."),
 	TeleportationInsideScene = 2 UMETA(ToolTip = "Block player inputs cause using a teleporting door."),
 	MovingPlatform = 3 UMETA(ToolTip = "Block player inputs cause he's on a moving platform."),
-	Narration = 4 UMETA(ToolTip = "Block player inputs cause of narration.")
+	Narration = 4 UMETA(ToolTip = "Block player inputs cause of narration or cinematic.")
 };

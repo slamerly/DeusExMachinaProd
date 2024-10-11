@@ -16,7 +16,7 @@ ASceneManager::ASceneManager()
 	PrimaryActorTick.bCanEverTick = true;
 
 	TimelineCurtains = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineCurtains"));
-	TimelineLights = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineLights"));
+	//TimelineLights = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineLights"));
 }
 
 // Called when the game starts or when spawned
@@ -24,14 +24,22 @@ void ASceneManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Setup the player controller
 	PlayerCtrl = Cast<APlayerControllerDeusEx>(GetWorld()->GetFirstPlayerController());
 
+	//Animation on the loading level
 	BeginPlayAnimation();
+	CurtainsVerifications();
 
+	// Loading the first scene of the Scense array
 	if (!Scenes.IsEmpty())
 	{
 		FLatentActionInfo LatentInfo;
 		UGameplayStatics::LoadStreamLevelBySoftObjectPtr(GetWorld(), Scenes[CurrentSceneIndex], true, true, LatentInfo);
+
+		//Bind event when the level is loaded
+		ULevelStreaming* LevelStreaming = UGameplayStatics::GetStreamingLevel(this, ScenesNames[CurrentSceneIndex]);
+		LevelStreaming->OnLevelLoaded.AddDynamic(this, &ASceneManager::OnFirstStreamSceneLoaded);
 	}
 	else
 	{
@@ -41,13 +49,10 @@ void ASceneManager::BeginPlay()
 	if (FloatCurveCurtains == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("There is no Float Curve for the curtains animation."));
-	}
-
-	CurtainsVerifications();
-	
+	}	
 
 	TimelineCurtains->SetPlayRate(CurtainsPlayRateAnimation);
-	TimelineLights->SetPlayRate(LightsPlayRateAnimation);
+	//TimelineLights->SetPlayRate(LightsPlayRateAnimation);
 
 	//Delay
 	FTimerDelegate TimerDelegate;
@@ -67,6 +72,11 @@ void ASceneManager::BeginPlay()
 				CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
 				DelayAnimations = CurtainsAnimationTime;
 			}
+			else
+			{
+				DelayAnimations = 0;
+			}
+			/*
 			if (bLightsBeginPlay)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Light animation"));
@@ -85,6 +95,7 @@ void ASceneManager::BeginPlay()
 			{
 				DelayAnimations = 0;
 			}
+			*/
 
 			//Delay
 			FTimerDelegate TimerDelegate2;
@@ -122,34 +133,41 @@ void ASceneManager::UpdateScenesNames()
 	}
 }
 
-void ASceneManager::Animations(bool CurtainsOpen, bool LightsAreOn)
+//void ASceneManager::Animations(bool CurtainsOpen, bool LightsAreOn)
+void ASceneManager::Animations(bool CurtainsOpen)
 {
 	float CurtainsAnimationTime = 0, LightsAnimationTime = 0;
-	if (bCurtainsAnimation)
+	if (bCurtainsBeginPlay)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Curtain animation"));
 		CurtainsAnimation(CurtainsOpen);
 		CurtainsAnimationTime = TimelineCurtains->GetTimelineLength() + (TimelineCurtains->GetTimelineLength() * (1 - TimelineCurtains->GetPlayRate()));
 		DelayAnimations = CurtainsAnimationTime;
 	}
-	if (bLightsAnimation)
+	else
+	{
+		DelayAnimations = 0;
+	}
+	/*
+	if (bLightsBeginPlay)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Light animation"));
-		LightsAnimation(LightsAreOn);
+		LightsAnimation(false);
 		LightsAnimationTime = TimelineLights->GetTimelineLength() + (TimelineLights->GetTimelineLength() * (1 - TimelineLights->GetPlayRate()));
 		DelayAnimations = LightsAnimationTime;
 	}
-	if (bCurtainsAnimation && bLightsAnimation)
+	if (bCurtainsBeginPlay && bLightsBeginPlay)
 	{
 		if (CurtainsAnimationTime > LightsAnimationTime)
 			DelayAnimations = CurtainsAnimationTime;
 		else
 			DelayAnimations = LightsAnimationTime;
 	}
-	else if (!bCurtainsAnimation && !bLightsAnimation)
+	else if (!bCurtainsBeginPlay && !bLightsBeginPlay)
 	{
 		DelayAnimations = 0;
 	}
+	*/
 }
 
 void ASceneManager::BeginPlayAnimation_Implementation()
@@ -271,48 +289,60 @@ void ASceneManager::GetSceneLights()
 
 void ASceneManager::LightsAnimation(bool IsOn)
 {
+	/*
 	GetSceneLights();
+
+	GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Green, FString::Printf(TEXT("Call")));
 
 	if (!Lights.IsEmpty())
 	{
-		// ==================
-		//		Setup Timeline
-		// ==================
-		// Create the function to update link to the timeline
-		FOnTimelineFloat TimelineProgress;
-		TimelineProgress.BindUFunction(this, FName("OnTimelineUpdateLights"));
-
-		//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("Num: %d"), Lights.Num()));
-
-		// Add the event to update
-		TimelineLights->AddInterpFloat(FloatCurveCurtains, TimelineProgress);
-
-		// Create the function of ending
-		FOnTimelineEvent TimelineFinished;
-		TimelineFinished.BindUFunction(this, FName("OnTimelineFinishedLights"));
-
-		// Add the event of ending
-		TimelineLights->SetTimelineFinishedFunc(TimelineFinished);
-
-		TimelineLights->SetLooping(false);
-
-		if (IsOn)
+		if(FloatCurveLights != nullptr)
 		{
-			TimelineLights->PlayFromStart();
+			// ==================
+			//		Setup Timeline
+			// ==================
+			// Create the function to update link to the timeline
+			FOnTimelineFloat TimelineProgress;
+			TimelineProgress.BindUFunction(this, FName("OnTimelineUpdateLights"));
+			//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("Number of lights %d"), Lights.Num()));
+
+			//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, FString::Printf(TEXT("Num: %d"), Lights.Num()));
+
+			// Add the event to update
+			TimelineLights->AddInterpFloat(FloatCurveCurtains, TimelineProgress);
+
+			// Create the function of ending
+			FOnTimelineEvent TimelineFinished;
+			TimelineFinished.BindUFunction(this, FName("OnTimelineFinishedLights"));
+
+			// Add the event of ending
+			TimelineLights->SetTimelineFinishedFunc(TimelineFinished);
+
+			TimelineLights->SetLooping(false);
+
+			if (IsOn)
+			{
+				TimelineLights->PlayFromStart();
+			}
+			else
+			{
+				//Delay
+				FTimerDelegate TimerDelegate;
+				TimerDelegate.BindLambda([&]
+					{
+						TimelineLights->ReverseFromEnd();
+					});
+
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayToPutOnLights, false);
+			}
 		}
 		else
 		{
-			//Delay
-			FTimerDelegate TimerDelegate;
-			TimerDelegate.BindLambda([&]
-				{
-					TimelineLights->ReverseFromEnd();
-				});
-
-			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayToPutOnLights, false);
+			GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red, TEXT("No float curve for lights animations."));
 		}
 	}
+	*/
 }
 
 // ======================================================
@@ -326,7 +356,8 @@ void ASceneManager::BeforeSceneChange(int pCurrentSceneIndex)
 	//Animations
 	if (ChangeWithAnimations)
 	{
-		Animations(true, true);
+		//Animations(true, true);
+		Animations(true);
 	}
 }
 
@@ -342,7 +373,8 @@ void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore)
 		//Animations
 		if(ChangeWithAnimations)
 		{
-			Animations(false, false);
+			//Animations(false, false);
+			Animations(false);
 			return;
 		}
 	}
@@ -351,7 +383,6 @@ void ASceneManager::AfterSceneChange(int IndexSaveSceneBefore)
 		//Error
 		GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red,
 			FString::Printf(TEXT("No SceneEntrance found in the next scene.")));
-		UE_LOG(LogTemp, Warning, TEXT("No SceneEntrance found in the next scene."));
 	}
 }
 
@@ -381,6 +412,30 @@ void ASceneManager::OnStreamSceneLoaded()
 				});
 			FTimerHandle TimerHandle;
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, DelayAnimations, false);
+		});
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.1f, false);
+}
+
+void ASceneManager::OnFirstStreamSceneLoaded()
+{
+	//Delay
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]
+		{
+			TObjectPtr<AActor> SceneEntrance = ULevelUtilitiesFunctions::GetActorOfClassInSublevel(this, Scenes[CurrentSceneIndex], ASceneEntrance::StaticClass());
+
+			if (SceneEntrance != nullptr)
+			{
+				UGameplayStatics::GetPlayerPawn(this, 0)->SetActorLocation(SceneEntrance->GetActorLocation());
+				UGameplayStatics::GetPlayerPawn(this, 0)->SetActorRotation(SceneEntrance->GetActorRotation());
+			}
+			else
+			{
+				//Error
+				GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Red,
+					FString::Printf(TEXT("No SceneEntrance found in the first scene.")));
+			}
 		});
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.1f, false);
@@ -425,7 +480,6 @@ void ASceneManager::ChangeScene(const TSoftObjectPtr<UWorld>& pNextScene, bool W
 				FLatentActionInfo LatentInfo;
 				UGameplayStatics::UnloadStreamLevel(this, Scenes[CurrentSceneIndex]->GetFName(), LatentInfo, true);
 
-				//UE_LOG(LogTemp, Warning, TEXT("First finish"));
 				ULevelStreaming* StreamingLevel = UGameplayStatics::GetStreamingLevel(this, Scenes[CurrentSceneIndex]->GetFName());
 				if (StreamingLevel)
 				{
@@ -476,12 +530,20 @@ void ASceneManager::OnTimelineFinishedCurtains()
 {
 }
 
+/*
 void ASceneManager::OnTimelineUpdateLights(float Value)
 {
+	// PB with array bound.
+
+	//GEngine->AddOnScreenDebugMessage(-1, 120, FColor::Yellow, FString::Printf(TEXT("Number of lights %d"), Lights.Num()));
+	//UE_LOG(LogTemp, Log, TEXT("Number of lights %d"), Lights.Num());
 	for (int i = 0; i < Lights.Num(); i++)
 	{
-		float NewIntensity = FMath::Lerp(LightsIntensity[i], .0f, Value);
-		Lights[i]->GetLightComponent()->SetIntensity(NewIntensity);
+		if(Lights[i] != nullptr)
+		{
+			float NewIntensity = FMath::Lerp(LightsIntensity[i], .0f, Value);
+			Lights[i]->GetLightComponent()->SetIntensity(NewIntensity);
+		}
 	}
 }
 
@@ -490,6 +552,7 @@ void ASceneManager::OnTimelineFinishedLights()
 	Lights.Empty();
 	LightsIntensity.Empty();
 }
+*/
 
 void ASceneManager::LevelTransition()
 {

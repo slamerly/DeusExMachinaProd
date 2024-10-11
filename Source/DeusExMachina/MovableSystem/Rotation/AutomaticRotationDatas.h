@@ -6,6 +6,12 @@
 #include "AutomaticRotationDatas.generated.h"
 
 
+
+// ========================================================================================================================
+//           Primary Data Asset
+// ========================================================================================================================
+
+
 UENUM(BlueprintType)
 enum class EAutomaticRotationType : uint8
 {
@@ -25,13 +31,13 @@ struct FStopDefinedAngle
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Angle on which this Rotation Support will stop.", ClampMin = 0, ClampMax = 360))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Angle on which this Rotation Support will stop.", ClampMin = 0, ClampMax = 360))
 	int StopAngle{ 0 };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Stop duration for this angle.\n(In seconds)", ClampMin = 0.0f))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Stop duration for this angle.\n(In seconds)", ClampMin = 0.0f))
 	float StopAngleDuration{ 0.0f };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Does it restart in reverse after stopping on this angle?"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Does it restart in reverse after stopping on this angle?"))
 	bool bStopAngleReverse{ false };
 };
 
@@ -98,6 +104,12 @@ public:
 		meta = (Tooltip = "List of angles values this Rotation Support will automatically stop on.\nAlso have a stop duration parameter for each angle.", ClampMin = 0))
 	TArray<FStopDefinedAngle> StopDefinedAngles;
 };
+
+
+
+// ========================================================================================================================
+//           Override Struct
+// ========================================================================================================================
 
 
 USTRUCT(BlueprintType)
@@ -212,6 +224,12 @@ struct FAutomaticRotationDatas
 };
 
 
+
+// ========================================================================================================================
+//           Blueprint Function Library
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UAutomaticRotationDatasGet : public UBlueprintFunctionLibrary
 {
@@ -221,8 +239,8 @@ public:
 	/**
 	* Get the 'RotationSpeed' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The speed of the Automatic Rotation.
-				A positive speed make a clockwise rotation, a negative speed make an anticlockwise rotation.
-				(In degrees per second)
+	*			A positive speed make a clockwise rotation, a negative speed make an anticlockwise rotation.
+	*			(In degrees per second)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas", meta = (ReturnDisplayName = "RotationSpeed"))
 	static float GetRotationSpeed(const FAutomaticRotationDatas& Datas);
@@ -237,7 +255,7 @@ public:
 	/**
 	* Get the 'RotationCurve' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the rotation when in Automatic Stop mode.
-				(Must be a normalized curve)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas", meta = (ReturnDisplayName = "RotationCurve"))
 	static UCurveFloat* GetRotationCurve(const FAutomaticRotationDatas& Datas);
@@ -253,7 +271,7 @@ public:
 	/**
 	* Get the 'StartDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The duration of the start phase of the Automatic Rotation.
-				(In seconds)
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas|Start Phase", meta = (ReturnDisplayName = "StartDuration"))
 	static float GetStartDuration(const FAutomaticRotationDatas& Datas);
@@ -261,7 +279,7 @@ public:
 	/**
 	* Get the 'StartCurve' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the start phase of the Automatic Rotation.
-				(Must be a normalized curve)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas|Start Phase", meta = (ReturnDisplayName = "StartCurve"))
 	static UCurveFloat* GetStartCurve(const FAutomaticRotationDatas& Datas);
@@ -270,7 +288,7 @@ public:
 	/**
 	* Get the 'EndDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The duration of the end phase of the Automatic Rotation.
-				(In seconds)
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas|End Phase", meta = (ReturnDisplayName = "EndDuration"))
 	static float GetEndDuration(const FAutomaticRotationDatas& Datas);
@@ -278,7 +296,7 @@ public:
 	/**
 	* Get the 'EndCurve' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the end phase of the Automatic Rotation.
-				(Must be a normalized curve)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas|End Phase", meta = (ReturnDisplayName = "EndCurve"))
 	static UCurveFloat* GetEndCurve(const FAutomaticRotationDatas& Datas);
@@ -301,7 +319,7 @@ public:
 	/**
 	* Get the 'GlobalStopDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The duration of the stop when stopping during the Automatic Rotation.
-				(In seconds)
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas|Automatic Stop", meta = (ReturnDisplayName = "GlobalStopDuration"))
 	static float GetGlobalStopDuration(const FAutomaticRotationDatas& Datas);
@@ -309,8 +327,48 @@ public:
 	/**
 	* Get the 'StopDefinedAngles' value, either the base one or the overriden one if needed out of this struct.
 	* @return	List of angles values this Rotation Support will automatically stop on.
-				Also have a stop duration parameter for each angle.
+	*			Also have a stop duration parameter for each angle.
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas|Automatic Stop", meta = (ReturnDisplayName = "StopDefinedAngles"))
 	static TArray<FStopDefinedAngle> GetStopDefinedAngles(const FAutomaticRotationDatas& Datas);
+
+
+
+	/**
+	* Make an Automatic Rotation Datass struct with custom values.
+	* @param	RotationSpeed			The speed of the Automatic Rotation.
+	*									A positive speed make a clockwise rotation, a negative speed make an anticlockwise rotation.
+	*									(In degrees per second)
+	* @param	AutomaticRotationType	The Automatic Rotation type for this Rotation Support.
+	* @param	RotationCurve			The interpolation curve of the rotation when in Automatic Stop mode.
+	*									(Must be a normalized curve)
+	* @param	bStartAutomatic			Does the Rotation Support rotate automatically at begin play?
+	* 
+	* @param	StartDuration			The duration of the start phase of the Automatic Rotation.
+	*									(In seconds)
+	* @param	StartCurve				The interpolation curve of the start phase of the Automatic Rotation.
+	*									(Must be a normalized curve)
+	* 
+	* @param	EndDuration				The duration of the end phase of the Automatic Rotation.
+	*									(In seconds)
+	* @param	EndCurve				The interpolation curve of the end phase of the Automatic Rotation.
+	*									(Must be a normalized curve)
+	* 
+	* @param	StopBehavior			The automatic stop behavior of the Rotation Support.
+	* @param	StopIntervalAngle		The angle interval the Rotation Support will do before automatically stop.
+	* @param	GlobalStopDuration		The duration of the stop when stopping during the Automatic Rotation.
+	*									(In seconds)
+	* @param	StopDefinedAngles		List of angles values this Rotation Support will automatically stop on.
+	*									Also have a stop duration parameter for each angle.
+	* @return							The created Automatic Rotation Datas struct.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic Rotation Datas|Automatic Stop", meta = (ReturnDisplayName = "AutomaticRotationDatas", AutoCreateRefTerm = "StopDefinedAngles"))
+	static FAutomaticRotationDatas MakeAutomaticRotationDatas(
+		float RotationSpeed, EAutomaticRotationType AutomaticRotationType, UCurveFloat* RotationCurve, bool bStartAutomatic,
+		float StartDuration, UCurveFloat* StartCurve, float EndDuration, UCurveFloat* EndCurve,
+		ERotStopBehavior StopBehavior, int StopIntervalAngle, float GlobalStopDuration, TArray<FStopDefinedAngle> StopDefinedAngles
+	);
+
+
+	//  the 'AutoCreateRefTerm' is here so that the node compile even if the 'StopDefinedAngles' array is empty
 };

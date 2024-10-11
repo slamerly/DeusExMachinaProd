@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "DeusExMachina/MovableSystem/MovingSupportBase.h"
 #include "RotSupportValues.h"
+#include "GameplayTagContainer.h"
 #include "RotationSupport.generated.h"
 
 class USceneComponent;
@@ -18,6 +19,19 @@ enum class ERotationBehaviorFlags : uint8
 	Standard = 1 << 2 UMETA(Tooltip = "Select the Standard Rotation Behavior.")
 };
 ENUM_CLASS_FLAGS(ERotationBehaviorFlags)
+
+
+USTRUCT(BlueprintType)
+struct FAngleObjective
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The angle value the Rotation Support need to go through to call the Objective event."))
+	int ObjectiveAngle{ 0 };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The gameplay tag to call the Event Dispatcher Hub with."))
+	FGameplayTag ObjectiveEventTag;
+};
 
 
 UENUM()
@@ -89,7 +103,7 @@ public:
 	* @param	AbsoluteRotation	True = will set inner rotation to this exact value. | False = will search for the nearest angle corresponding to the value (default).
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Rotation Support")
-	void ForceInnerRotation(int InnerRot, bool AbsoluteRotation = false);
+	void ForceInnerRotation(float InnerRot, bool AbsoluteRotation = false);
 
 
 
@@ -235,11 +249,26 @@ protected:
 // ======================================================
 //             Rotation Behaviors Components
 // ======================================================
+protected:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Rotation Behaviors", meta = (Bitmask, BitmaskEnum = ERotationBehaviorFlags, Tooltip = "Select the Rotation Behavior components to add to this support.."))
 	int32 RotationBehaviorFlags;
 
 	UFUNCTION(CallInEditor, Category = "Rotation Behaviors", meta = (Tooltip = "Apply the rotation behavior selection."))
 	void SetupRotationBehaviors();
+
+
+
+// ======================================================
+//              Objective Event Dispatcher
+// ======================================================
+protected:
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Objective Event Dispatcher", meta = (Tooltip = "A list of angle objectives at which an Event Dispatcher will be called."))
+	TArray<FAngleObjective> AngleObjectives;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Rotation Support", meta = (ForceAsFunction))
+	void CallEventDispatcherHub(const FGameplayTag& TagToCall);
+
+	void CheckAngleObjective(const float AngleBefore, const float AngleAfter);
 
 
 

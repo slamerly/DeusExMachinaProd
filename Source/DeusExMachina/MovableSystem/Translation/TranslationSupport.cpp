@@ -8,7 +8,10 @@
 #include "TranslationBehaviorAutomatic.h"
 #include "TranslationBehaviorControlled.h"
 #include "TranslationBehaviorStandard.h"
+
+#if WITH_EDITOR
 #include "LevelEditor.h"
+#endif // WITH_EDITOR
 
 #include "Kismet/KismetMathLibrary.h"
 #include "Defines.h"
@@ -65,6 +68,8 @@ void ATranslationSupport::BeginPlay()
 // ======================================================
 void ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd)
 {
+	const float IndexBefore = InnerSplineIndex;
+
 	//  compute the distance on the spline from the spline origin
 	DistanceFromSplineOrigin += TranslationAdd;
 	const float SplineLength = TranslationSpline->GetSplineLength();
@@ -83,10 +88,15 @@ void ATranslationSupport::AddTranslationAlongSpline(const float TranslationAdd)
 
 	//  apply the support movement
 	ComputeInnerTransform();
+
+	//  check the objectives for Event Dispatcher
+	CheckSplinePointObjective(IndexBefore, ProgressToNextIndex, InnerSplineIndex);
 }
 
 void ATranslationSupport::ForcePositionOnSpline(const float DistanceFromOrigin)
 {
+	const float IndexBefore = InnerSplineIndex;
+
 	//  apply distance from origin
 	DistanceFromSplineOrigin = DistanceFromOrigin;
 	const float SplineLength = TranslationSpline->GetSplineLength();
@@ -105,10 +115,15 @@ void ATranslationSupport::ForcePositionOnSpline(const float DistanceFromOrigin)
 
 	//  apply the support movement
 	ComputeInnerTransform();
+
+	//  check the objectives for Event Dispatcher
+	CheckSplinePointObjective(IndexBefore, ProgressToNextIndex, InnerSplineIndex);
 }
 
 void ATranslationSupport::ForcePositionOnSpline(const int SplineIndex, const float ProgressToNextPoint)
 {
+	const float IndexBefore = InnerSplineIndex;
+
 	//  apply spline index
 	InnerSplineIndex = SplineIndex;
 	const int NumberSplinePoints = TranslationSpline->GetNumberOfSplinePoints();
@@ -140,6 +155,9 @@ void ATranslationSupport::ForcePositionOnSpline(const int SplineIndex, const flo
 
 	//  apply the support movement
 	ComputeInnerTransform();
+
+	//  check the objectives for Event Dispatcher
+	CheckSplinePointObjective(IndexBefore, ProgressToNextIndex, InnerSplineIndex);
 }
 
 
@@ -517,10 +535,89 @@ void ATranslationSupport::SetupTranslationBehaviors()
 	}
 
 
+#if WITH_EDITOR
 	//  refresh detail panel to show created components
 	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>("LevelEditor");
 	LevelEditorModule.BroadcastComponentsEdited();
 	LevelEditorModule.BroadcastRedrawViewports(false);
+#endif // WITH_EDITOR
+}
+
+
+
+// ======================================================
+//              Objective Event Dispatcher
+// ======================================================
+void ATranslationSupport::CheckSplinePointObjective(const int IndexBefore, const float ProgressAfter, const int IndexAfter)
+{
+	//  check index after if progress after is zero
+
+	if (ProgressAfter == 0.0f)
+	{
+		//  check loop preparation
+		bool bObjectiveValid{ false };
+		FGameplayTag EventTag;
+
+		//  check loop
+		for (auto& SplinePointObjective : SplinePointObjectives)
+		{
+			if (IndexAfter == SplinePointObjective.ObjectiveSplinePoint)
+			{
+				bObjectiveValid = true;
+				EventTag = SplinePointObjective.ObjectiveEventTag;
+			}
+		}
+
+		//  call event if found (then return cause objective is reached)
+		if (bObjectiveValid)
+		{
+			CallEventDispatcherHub(EventTag);
+			return;
+		}
+	}
+
+
+	//  check if the movement has passed by a spline point
+	if (IndexBefore == IndexAfter) return;
+
+
+	//  check sweep
+
+	//  check loop preparation
+
+	int SplineIndexCheck{ 0 };
+	if (GetPrevSplineIndex(IndexAfter) == IndexBefore)
+	{
+		SplineIndexCheck = IndexAfter;
+	}
+	else if (GetNextSplineIndex(IndexAfter) == IndexBefore)
+	{
+		SplineIndexCheck = IndexBefore;
+	}
+	else
+	{
+		//  there is two spline points (or more) between the movement, consider that to be a teleportation, eg. do not check sweep
+		return;
+	}
+
+	bool bObjectiveValid{ false };
+	FGameplayTag EventTag;
+
+	//  check loop
+	for (auto& SplinePointObjective : SplinePointObjectives)
+	{
+		if (SplineIndexCheck == SplinePointObjective.ObjectiveSplinePoint)
+		{
+			bObjectiveValid = true;
+			EventTag = SplinePointObjective.ObjectiveEventTag;
+		}
+	}
+
+	//  call event if found
+	if (bObjectiveValid)
+	{
+		CallEventDispatcherHub(EventTag);
+	}
 }
 
 

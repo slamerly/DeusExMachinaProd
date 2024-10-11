@@ -6,22 +6,28 @@
 #include "RotSupportValues.generated.h"
 
 
+
+// ========================================================================================================================
+//           Primary Data Asset
+// ========================================================================================================================
+
+
 USTRUCT(BlueprintType)
 struct FSnapValue
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Angle to which the rotation support can snap.\n(Angle between 0 and 360 degrees)", ClampMin = 0, ClampMax = 360))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Angle to which the rotation support can snap.\n(Angle between 0 and 360 degrees)", ClampMin = 0, ClampMax = 360))
 	int SnapAngle{ 0 };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Limit the range of this snap value."))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Limit the range of this snap value."))
 	bool bLimitedRangeSnap{ false };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The lower range of the snap.\n(In degrees)\n0 means that it can't snap from a lower angle.", ClampMin = 0,
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "The lower range of the snap.\n(In degrees)\n0 means that it can't snap from a lower angle.", ClampMin = 0,
 		EditCondition = "bLimitedRangeSnap", EditConditionHides))
 	int SnapRangeLower{ 0 };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "The upper range of the snap.\n(In degrees)\n0 means that it can't snap from a upper angle.", ClampMin = 0,
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "The upper range of the snap.\n(In degrees)\n0 means that it can't snap from a upper angle.", ClampMin = 0,
 		EditCondition = "bLimitedRangeSnap", EditConditionHides))
 	int SnapRangeUpper{ 0 };
 };
@@ -70,6 +76,12 @@ public:
 		meta = (Tooltip = "The interpolation curve of the snapping used when:\n- The snap goes in the same direction than the rotation support movement (continue)\n(Must be a normalized curve)"))
 	UCurveFloat* SnapCurveContinue{ nullptr };
 };
+
+
+
+// ========================================================================================================================
+//           Override Struct
+// ========================================================================================================================
 
 
 USTRUCT(BlueprintType)
@@ -183,6 +195,12 @@ struct FRotSupportValues
 };
 
 
+
+// ========================================================================================================================
+//           Blueprint Function Library
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API URotSupportValuesGet : public UBlueprintFunctionLibrary
 {
@@ -199,8 +217,8 @@ public:
 	/**
 	* Get the 'ClampLowValue' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The lower clamp value, aka the one that should be used when rotating anticlockwise.
-				Can be out of the - 180 / 180 range to allow complex clamping.
-				(In degrees)
+	*			Can be out of the - 180 / 180 range to allow complex clamping.
+	*			(In degrees)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "ClampLowValue"))
 	static int GetClampLowValue(const FRotSupportValues& Datas);
@@ -208,8 +226,8 @@ public:
 	/**
 	* Get the 'ClampHighValue' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The higher clamp value, aka the one that should be used when rotating clockwise.
-				Can be out of the - 180 / 180 range to allow complex clamping.
-				(In degrees)
+	*			Can be out of the - 180 / 180 range to allow complex clamping.
+	*			(In degrees)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "ClampHighValue"))
 	static int GetClampHighValue(const FRotSupportValues& Datas);
@@ -225,7 +243,7 @@ public:
 	/**
 	* Get the 'SnapValues' value, either the base one or the overriden one if needed out of this struct.
 	* @return	Angles to which the rotation support can snap.
-				Snap angles are between 0 and 360 degrees and will take the modulated inner angle of the support to search for snap.
+	*			Snap angles are between 0 and 360 degrees and will take the modulated inner angle of the support to search for snap.
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "SnapValues"))
 	static TArray<FSnapValue> GetSnapValues(const FRotSupportValues& Datas);
@@ -233,7 +251,7 @@ public:
 	/**
 	* Get the 'SnapDirectionAdvantage' value, either the base one or the overriden one if needed out of this struct.
 	* @return	When searching for the nearest snap, the advantage it will give to the direction the support was rotating to.
-				For exemple, an advantage of 0.7 means that it will snap to the \"destination\" if less than 70 % of the way is missing.
+	*			For exemple, an advantage of 0.7 means that it will snap to the \"destination\" if less than 70 % of the way is missing.
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "SnapDirectionAdvantage"))
 	static float GetSnapDirectionAdvantage(const FRotSupportValues& Datas);
@@ -241,8 +259,8 @@ public:
 	/**
 	* Get the 'SnapSpeed' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The speed of the rotation support when snapping.
-				Note that the curves can make it feel faster or slower in game.
-				(In degrees per second)
+	*			Note that the curves can make it feel faster or slower in game.
+	*			(In degrees per second)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "SnapSpeed"))
 	static float GetSnapSpeed(const FRotSupportValues& Datas);
@@ -251,9 +269,9 @@ public:
 	/**
 	* Get the 'SnapCurveNeutralReverse' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the snapping used when:
-				- The rotation support is not moving (neutral)
-				- The snap goes in the opposite direction than the rotation support movement (reverse)
-				(Must be a normalized curve)
+	*			- The rotation support is not moving (neutral)
+	*			- The snap goes in the opposite direction than the rotation support movement (reverse)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "SnapCurveNeutralReverse"))
 	static UCurveFloat* GetSnapCurveNeutralReverse(const FRotSupportValues& Datas);
@@ -261,9 +279,55 @@ public:
 	/**
 	* Get the 'SnapCurveContinue' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the snapping used when:
-				- The snap goes in the same direction than the rotation support movement (continue)
-				(Must be a normalized curve)
+	*			- The snap goes in the same direction than the rotation support movement (continue)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "SnapCurveContinue"))
 	static UCurveFloat* GetSnapCurveContinue(const FRotSupportValues& Datas);
+
+
+
+	/**
+	* Make a Rotation Support Values struct with custom values.
+	* 
+	* @param	bUseClamp					Does the rotation support use clamping?
+	* 
+	* @param	ClampLowValue				The lower clamp value, aka the one that should be used when rotating anticlockwise.
+	*										Can be out of the - 180 / 180 range to allow complex clamping.
+	*										(In degrees)
+	* 
+	* @param	ClampHighValue				The higher clamp value, aka the one that should be used when rotating clockwise.
+	*										Can be out of the - 180 / 180 range to allow complex clamping.
+	*										(In degrees)
+	* 
+	* @param	bUseSnap					Does the rotation support use snaping?
+	* 
+	* @param	SnapValues					Angles to which the rotation support can snap.
+	*										Snap angles are between 0 and 360 degrees and will take the modulated inner angle of the support to search for snap.
+	* 
+	* @param	SnapDirectionAdvantage		When searching for the nearest snap, the advantage it will give to the direction the support was rotating to.
+	*										For exemple, an advantage of 0.7 means that it will snap to the \"destination\" if less than 70 % of the way is missing.
+	* 
+	* @param	SnapSpeed					The speed of the rotation support when snapping.
+	*										Note that the curves can make it feel faster or slower in game.
+	*										(In degrees per second)
+	* 
+	* @param	SnapCurveNeutralReverse		The interpolation curve of the snapping used when:
+	*										- The rotation support is not moving (neutral)
+	*										- The snap goes in the opposite direction than the rotation support movement (reverse)
+	*										(Must be a normalized curve)
+	* 
+	* @param	SnapCurveContinue			The interpolation curve of the snapping used when:
+	*										- The snap goes in the same direction than the rotation support movement (continue)
+	*										(Must be a normalized curve)
+	* 
+	* @return								The created Rotation Support Values struct.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Rot Support Values", meta = (ReturnDisplayName = "RotationSupportValues", AutoCreateRefTerm = "SnapValues"))
+	static FRotSupportValues MakeRotationSupportValues(bool bUseClamp, int ClampLowValue, int ClampHighValue,
+		bool bUseSnap, TArray<FSnapValue> SnapValues, float SnapDirectionAdvantage, float SnapSpeed,
+		UCurveFloat* SnapCurveNeutralReverse, UCurveFloat* SnapCurveContinue);
+
+
+	//  the 'AutoCreateRefTerm' is here so that the node compile even if the 'SnapValues' array is empty
 };

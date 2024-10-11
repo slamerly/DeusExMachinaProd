@@ -6,6 +6,12 @@
 #include "AutoTransInteractionDatas.generated.h"
 
 
+
+// ========================================================================================================================
+//           Primary Data Asset
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UAutoTransInteractionBaseDatas : public UPrimaryDataAsset
 {
@@ -21,6 +27,12 @@ public:
 		meta = (Tooltip = "If true, the automatic translation will go reverse on the interaction.\nNote: If combined with StartStop, will reverse only when the translation will restart."))
 	bool bReverse{ false };
 };
+
+
+
+// ========================================================================================================================
+//           Override Struct
+// ========================================================================================================================
 
 
 USTRUCT(BlueprintType)
@@ -56,6 +68,12 @@ struct FAutoTransInteractionDatas
 };
 
 
+
+// ========================================================================================================================
+//           Blueprint Function Library
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UAutoTransInteractionDatasGet : public UBlueprintFunctionLibrary
 {
@@ -76,4 +94,16 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Trans Interaction Datas", meta = (ReturnDisplayName = "Reverse"))
 	static bool GetReverse(const FAutoTransInteractionDatas& Datas);
+
+
+
+	/**
+	* Make an Automatic Translation Interaction Datas struct with custom values.
+	* @param	bStartStop		If true, the automatic translation will start or stop on the interaction.
+	* @param	bReverse		If true, the automatic translation will go reverse on the interaction.
+	*							Note: If combined with StartStop, will reverse only when the translation will restart.
+	* @return					The created Automatic Translation Interaction Datas struct.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Auto Trans Interaction Datas", meta = (ReturnDisplayName = "AutoTranslationInteractionDatas"))
+	static FAutoTransInteractionDatas MakeAutoTranslationInteractionDatas(bool bStartStop, bool bReverse);
 };

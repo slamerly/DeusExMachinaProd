@@ -6,6 +6,12 @@
 #include "AutomaticTranslationDatas.generated.h"
 
 
+
+// ========================================================================================================================
+//           Primary Data Asset
+// ========================================================================================================================
+
+
 UENUM(BlueprintType)
 enum class EAutomaticTranslationType : uint8
 {
@@ -25,13 +31,13 @@ struct FStopSplinePoint
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Spline point index this Translation Support will stop.", ClampMin = 0))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Spline point index this Translation Support will stop.", ClampMin = 0))
 	int StopSplineIndex{ 0 };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Stop duration for this index.\n(In seconds)", ClampMin = 0.0f))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Stop duration for this index.\n(In seconds)", ClampMin = 0.0f))
 	float StopIndexDuration{ 0.0f };
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Tooltip = "Does it restart in reverse after stopping on this index?"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (Tooltip = "Does it restart in reverse after stopping on this index?"))
 	bool bStopIndexReverse{ false };
 };
 
@@ -93,6 +99,12 @@ public:
 		meta = (Tooltip = "List of spline points index this Translation Support will automatically stop on.\nAlso have a stop duration parameter for each index.", ClampMin = 0))
 	TArray<FStopSplinePoint> StopSplinePoints;
 };
+
+
+
+// ========================================================================================================================
+//           Override Struct
+// ========================================================================================================================
 
 
 USTRUCT(BlueprintType)
@@ -201,6 +213,12 @@ struct FAutomaticTranslationDatas
 };
 
 
+
+// ========================================================================================================================
+//           Blueprint Function Library
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UAutomaticTranslationDatasGet : public UBlueprintFunctionLibrary
 {
@@ -210,8 +228,8 @@ public:
 	/**
 	* Get the 'TranslationSpeed' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The speed of the Automatic Translation.
-				A positive speed makes the support going forward, a negative speed makes the support going backward.
-				(In cm/s)
+	*			A positive speed makes the support going forward, a negative speed makes the support going backward.
+	*			(In cm/s)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas", meta = (ReturnDisplayName = "TranslationSpeed"))
 	static float GetTranslationSpeed(const FAutomaticTranslationDatas& Datas);
@@ -226,7 +244,7 @@ public:
 	/**
 	* Get the 'TranslationCurve' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the translation when in Automatic Stop mode.
-				(Must be a normalized curve)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas", meta = (ReturnDisplayName = "TranslationCurve"))
 	static UCurveFloat* GetTranslationCurve(const FAutomaticTranslationDatas& Datas);
@@ -236,13 +254,13 @@ public:
 	* @return	Does the Translation Support rotate automatically at begin play?
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas", meta = (ReturnDisplayName = "StartAutomatic"))
-	static float GetStartAutomatic(const FAutomaticTranslationDatas& Datas);
+	static bool GetStartAutomatic(const FAutomaticTranslationDatas& Datas);
 
 
 	/**
 	* Get the 'StartDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The duration of the start phase of the Automatic Translation (triggered at begin play or when using a MovSys Button).
-				(In seconds)
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas|Start Phase", meta = (ReturnDisplayName = "StartDuration"))
 	static float GetStartDuration(const FAutomaticTranslationDatas& Datas);
@@ -250,7 +268,7 @@ public:
 	/**
 	* Get the 'StartCurve' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the start phase of the Automatic Translation (triggered at begin play or when using a MovSys Button).
-				(Must be a normalized curve)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas|Start Phase", meta = (ReturnDisplayName = "StartCurve"))
 	static UCurveFloat* GetStartCurve(const FAutomaticTranslationDatas& Datas);
@@ -259,7 +277,7 @@ public:
 	/**
 	* Get the 'EndDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The duration of the end phase of the Automatic Translation (triggered when using a MovSys Button).
-				(In seconds)
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas|End Phase", meta = (ReturnDisplayName = "EndDuration"))
 	static float GetEndDuration(const FAutomaticTranslationDatas& Datas);
@@ -267,7 +285,7 @@ public:
 	/**
 	* Get the 'EndCurve' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the end phase of the Automatic Translation (triggered when using a MovSys Button).
-				(Must be a normalized curve)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas|End Phase", meta = (ReturnDisplayName = "EndCurve"))
 	static UCurveFloat* GetEndCurve(const FAutomaticTranslationDatas& Datas);
@@ -283,7 +301,7 @@ public:
 	/**
 	* Get the 'GlobalStopDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The duration of the stop when stopping on a spline point during the automatic movement.
-				(In seconds)
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas|Automatic Stop", meta = (ReturnDisplayName = "GlobalStopDuration"))
 	static float GetGlobalStopDuration(const FAutomaticTranslationDatas& Datas);
@@ -291,8 +309,47 @@ public:
 	/**
 	* Get the 'StopSplinePoints' value, either the base one or the overriden one if needed out of this struct.
 	* @return	List of spline points index this Translation Support will automatically stop on.
-				Also have a stop duration parameter for each index.
+	*			Also have a stop duration parameter for each index.
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas|Automatic Stop", meta = (ReturnDisplayName = "StopSplinePoints"))
 	static TArray<FStopSplinePoint> GetStopSplinePoints(const FAutomaticTranslationDatas& Datas);
+
+
+
+	/**
+	* Make an Automatic Translation Datas struct with custom values.
+	* @param	TranslationSpeed			The speed of the Automatic Translation.
+	*										A positive speed makes the support going forward, a negative speed makes the support going backward.
+	*										(In cm/s)	
+	* @param	AutomaticTranslationType	The Automatic Translation type for this Translation Support.
+	* @param	TranslationCurve			The interpolation curve of the translation when in Automatic Stop mode.
+	*										(Must be a normalized curve)
+	* @param	bStartAutomatic				Does the Translation Support rotate automatically at begin play?
+	* 
+	* @param	StartDuration				The duration of the start phase of the Automatic Translation (triggered at begin play or when using a MovSys Button).
+	*										(In seconds)
+	* @param	StartCurve					The interpolation curve of the start phase of the Automatic Translation (triggered at begin play or when using a MovSys Button).
+	*										(Must be a normalized curve)
+	* 
+	* @param	EndDuration					The duration of the end phase of the Automatic Translation (triggered when using a MovSys Button).
+	*										(In seconds)
+	* @param	EndCurve					The interpolation curve of the end phase of the Automatic Translation (triggered when using a MovSys Button).
+	*										(Must be a normalized curve)
+	* 
+	* @param	StopBehavior				The automatic stop behavior of the Translation Support.
+	* @param	GlobalStopDuration			The duration of the stop when stopping on a spline point during the automatic movement.
+	*										(In seconds)
+	* @param	StopSplinePoints			List of spline points index this Translation Support will automatically stop on.
+	*										Also have a stop duration parameter for each index.
+	* @return								The created Automatic Translation Datas struct.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Automatic TranslationDatas|Automatic Stop", meta = (ReturnDisplayName = "AutomaticTranslationDatas", AutoCreateRefTerm = "StopSplinePoints"))
+	static FAutomaticTranslationDatas MakeAutomaticTranslationDatas(
+		float TranslationSpeed, EAutomaticTranslationType AutomaticTranslationType, UCurveFloat* TranslationCurve, bool bStartAutomatic,
+		float StartDuration, UCurveFloat* StartCurve, float EndDuration, UCurveFloat* EndCurve,
+		EStopBehavior StopBehavior, float GlobalStopDuration, TArray<FStopSplinePoint> StopSplinePoints
+	);
+
+
+	//  the 'AutoCreateRefTerm' is here so that the node compile even if the 'StopSplinePoints' array is empty
 };

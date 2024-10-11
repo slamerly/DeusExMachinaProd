@@ -176,7 +176,7 @@ bool URotationBehaviorControlled::UpdateControlledRotation(float ControlValue)
 	}
 
 	//  apply controlled rotation with checking clamp
-	TriggeredClamp = OwnerRotSupport->AddInnerRotation(DesiredAngleAdd, true);
+	TriggeredClamp = !OwnerRotSupport->AddInnerRotation(DesiredAngleAdd, true);
 
 
 	//  manage startup and last inputed direction depending of wether or not the player used the joystick this frame

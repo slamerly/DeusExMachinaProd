@@ -25,6 +25,8 @@ enum class EInteractableValid : uint8
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FPlayerStartInteraction, APlayerControllerDeusEx, OnPlayerStartInteraction, AActor*, ActorInteracted);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FPlayerFinishInteraction, APlayerControllerDeusEx, OnPlayerFinishInteraction, AActor*, ActorInteracted);
 
+DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FNarrationInputInteract, APlayerControllerDeusEx, OnInteractInputNarration);
+
 
 UCLASS()
 class DEUSEXMACHINA_API APlayerControllerDeusEx : public APlayerController, public IPlayerControllerInterface
@@ -125,6 +127,10 @@ public:
 	/** Called when the player finish interacting with an actor. */
 	UPROPERTY(BlueprintAssignable, Category = "Player Controller|Events")
 	FPlayerFinishInteraction OnPlayerFinishInteraction;
+
+	/** Called when the interact input is pressed during narration control. */
+	UPROPERTY(BlueprintAssignable, Category = "Player Controller|Events")
+	FNarrationInputInteract OnInteractInputNarration;
 
 
 

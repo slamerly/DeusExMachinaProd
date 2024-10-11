@@ -11,14 +11,6 @@ class UArrowComponent;
 class UMovableObjectComponent;
 
 
-UENUM(BlueprintType)
-enum class EHandleMode : uint8
-{
-	ControlRotation = 0 UMETA(Tooltip = "Make this handle able to control a Rotation Support."),
-	ControlTranslation = 1 UMETA(Tooltip = "Make this handle able to control a Translation Support.")
-};
-
-
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysHandleControlGain, AMovSysHandle, OnMovSysHandleControlGained);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE(FMovSysHandleControlLost, AMovSysHandle, OnMovSysHandleControlLost);
 DECLARE_DYNAMIC_MULTICAST_SPARSE_DELEGATE_OneParam(FMovSysHandleControlUpdate, AMovSysHandle, OnMovSysHandleControlUpdated, float, ControlValue);
@@ -53,6 +45,8 @@ public:
 	bool CanInteract_Implementation() override;
 	bool IsInteractionHeavy_Implementation() override;
 	bool IsInteractableBothSides_Implementation() override;
+
+	AActor* GetInteractableFocusActor_Implementation() override;
 
 
 // ======================================================
@@ -117,19 +111,18 @@ protected:
 //                 Interaction Links
 // ======================================================
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Support", meta = (tooltip = "Choose the type of object this handle can control."))
-	EHandleMode HandleMode{ EHandleMode::ControlTranslation };
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Rotation Supports", meta = (tooltip = "Rotation Supports with the Rotation Behavior Controlled you want to link to this handle."))
+	TArray<FControlledRotInteractionLink> LinkedRotSupportsControlled;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Support", meta = (EditCondition = "HandleMode == EHandleMode::ControlRotation", EditConditionHides),
-		meta = (tooltip = "Rotation Support with the Rotation Behavior Controlled you want to control with this handle."))
-	FControlledRotInteractionLink LinkedRotSupportControlled;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Support", meta = (EditCondition = "HandleMode == EHandleMode::ControlTranslation", EditConditionHides),
-		meta = (tooltip = "Translation Support with the Translation Behavior Controlled you want to control with this handle."))
-	FControlledTransInteractionLink LinkedTransSupportControlled;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Link Translation Supports", meta = (tooltip = "Translation Supports with the Translation Behavior Controlled you want to link to this handle."))
+	TArray<FControlledTransInteractionLink> LinkedTransSupportsControlled;
 
 protected:
-	bool bLinkValid{ false };
+	TArray<FControlledRotInteractionLink> LinkedRotSupportsControlledVerified;
+	TArray<FControlledTransInteractionLink> LinkedTransSupportsControlledVerified;
+
+	TArray<FControlledRotInteractionLink> LinkedRotSupportsSelector;
+	TArray<FControlledTransInteractionLink> LinkedTransSupportsSelector;
 
 
 

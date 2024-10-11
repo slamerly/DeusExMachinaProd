@@ -17,7 +17,8 @@ void URotationBehaviorAutomatic::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->OnWorldBeginPlay.AddUObject(this, &URotationBehaviorAutomatic::LateBeginPlay);
+	//  bind 'LateBeginPlay' to next tick to be sure that all childs movable are correctly setup
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &URotationBehaviorAutomatic::LateBeginPlay);
 
 	SetComponentTickEnabled(false);
 

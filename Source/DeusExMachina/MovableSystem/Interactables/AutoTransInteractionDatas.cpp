@@ -35,3 +35,20 @@ bool UAutoTransInteractionDatasGet::GetReverse(const FAutoTransInteractionDatas&
 {
 	return Datas.GetReverse();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FAutoTransInteractionDatas UAutoTransInteractionDatasGet::MakeAutoTranslationInteractionDatas(bool bStartStop, bool bReverse)
+{
+	FAutoTransInteractionDatas Datas;
+
+	Datas.bOverrideValues = true;
+
+	Datas.bStartStop = bStartStop;
+	Datas.bReverse = bReverse;
+
+	return Datas;
+}

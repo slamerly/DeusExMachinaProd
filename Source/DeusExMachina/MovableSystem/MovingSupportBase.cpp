@@ -19,7 +19,7 @@ void AMovingSupportBase::BeginPlay()
 	//  check if this support is also a movable object
 	SelfMovable = this->GetComponentByClass<UMovableObjectComponent>();
 	if (IsValid(SelfMovable))
-	{
+	{ 
 		bIsSelfMovable = true;
 		SelfMovable->OnUpdateEveryChildrens.AddUniqueDynamic(this, &AMovingSupportBase::UpdateEveryChildrens);
 	}

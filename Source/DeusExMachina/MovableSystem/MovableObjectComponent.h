@@ -23,6 +23,9 @@ protected:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	/** Called when a component is created (not loaded). This can happen in the editor or during gameplay */
+	virtual void OnComponentCreated() override;
+
 
 // ======================================================
 //                    Functions

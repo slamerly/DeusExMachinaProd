@@ -7,6 +7,21 @@
 #include "GameFramework/SaveGame.h"
 #include "GameInstanceDeusEx.generated.h"
 
+USTRUCT(BlueprintType)
+struct FProgress
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString SceneName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int Act;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString MainLevel;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString SubLevel;
+};
+
 /**
  * 
  */

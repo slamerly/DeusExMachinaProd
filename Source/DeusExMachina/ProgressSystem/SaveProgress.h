@@ -7,7 +7,7 @@
 #include "SaveProgress.generated.h"
 
 USTRUCT(BlueprintType)
-struct FSceneProgress
+struct FPuzzleProgress
 {
 	GENERATED_BODY()
 
@@ -28,11 +28,11 @@ class DEUSEXMACHINA_API USaveProgress : public USaveGame
 protected:
 	//Array to save all scenes and there status.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FSceneProgress> ScenesProgress;
+	TArray<FPuzzleProgress> ScenesProgress;
 
 public:
 	// Get the informations in the save file
-	TArray<FSceneProgress> GetScenesProgress();
+	TArray<FPuzzleProgress> GetScenesProgress();
 
 	/**
 	* Created or modify a line in ScenesProgress.

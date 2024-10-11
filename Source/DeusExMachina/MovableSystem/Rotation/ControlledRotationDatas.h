@@ -6,6 +6,11 @@
 #include "ControlledRotationDatas.generated.h"
 
 
+// ========================================================================================================================
+//           Primary Data Asset
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UControlledRotationBaseDatas : public UPrimaryDataAsset
 {
@@ -34,6 +39,12 @@ public:
 		meta = (Tooltip = "When searching for snap, ignore ranges on snap values."))
 	bool bSnapIgnoreRanges{ false };
 };
+
+
+
+// ========================================================================================================================
+//           Override Struct
+// ========================================================================================================================
 
 
 USTRUCT(BlueprintType)
@@ -92,6 +103,12 @@ struct FControlledRotationDatas
 };
 
 
+
+// ========================================================================================================================
+//           Blueprint Function Library
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UControlledRotationDatasGet : public UBlueprintFunctionLibrary
 {
@@ -101,7 +118,7 @@ public:
 	/**
 	* Get the 'RotationSpeed' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The speed of the rotation support when performing a Controlled Rotation.
-				(In degrees per second)
+	*			(In degrees per second)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Rotation Datas", meta = (ReturnDisplayName = "RotationSpeed"))
 	static float GetRotationSpeed(const FControlledRotationDatas& Datas);
@@ -109,8 +126,8 @@ public:
 	/**
 	* Get the 'StartupDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The duration of the 'startup' phase of the Controlled Rotation.
-				The startup phase occurs when the rotation support starts rotating.
-				(In seconds)
+	*			The startup phase occurs when the rotation support starts rotating.
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Rotation Datas", meta = (ReturnDisplayName = "StartupDuration"))
 	static float GetStartupDuration(const FControlledRotationDatas& Datas);
@@ -118,7 +135,7 @@ public:
 	/**
 	* Get the 'StartupCurve' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The interpolation curve of the 'startup' phase of the Controlled Rotation.
-				(Must be a normalized curve)
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Rotation Datas", meta = (ReturnDisplayName = "StartupCurve"))
 	static UCurveFloat* GetStartupCurve(const FControlledRotationDatas& Datas);
@@ -136,4 +153,22 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Rotation Datas", meta = (ReturnDisplayName = "SnapIgnoreRanges"))
 	static bool GetSnapIgnoreRanges(const FControlledRotationDatas& Datas);
+
+
+
+	/**
+	* Make a Controlled Rotation Datas struct with custom values.
+	* @param	RotationSpeed		The speed of the rotation support when performing a Controlled Rotation.
+	*								(In degrees per second)
+	* @param	StartupDuration		The duration of the 'startup' phase of the Controlled Rotation.
+	*								The startup phase occurs when the rotation support starts rotating.
+	*								(In seconds)
+	* @param	StartupCurve		The interpolation curve of the 'startup' phase of the Controlled Rotation.
+	*								(Must be a normalized curve)
+	* @param	bSnapIgnoreClamp	When searching for snap, ignore clamp on the Rotation Support.
+	* @param	bSnapIgnoreRanges	When searching for snap, ignore ranges on snap values.
+	* @return						The created Controlled Rotation Datas struct.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Controlled Rotation Datas", meta = (ReturnDisplayName = "ControlledRotationDatas"))
+	static FControlledRotationDatas MakeControlledRotationDatas(float RotationSpeed, float StartupDuration, UCurveFloat* StartupCurve, bool bSnapIgnoreClamp, bool bSnapIgnoreRanges);
 };

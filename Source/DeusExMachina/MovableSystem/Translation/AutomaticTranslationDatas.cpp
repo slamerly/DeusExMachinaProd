@@ -91,7 +91,7 @@ UCurveFloat* UAutomaticTranslationDatasGet::GetTranslationCurve(const FAutomatic
 	return Datas.GetTranslationCurve();
 }
 
-float UAutomaticTranslationDatasGet::GetStartAutomatic(const FAutomaticTranslationDatas& Datas)
+bool UAutomaticTranslationDatasGet::GetStartAutomatic(const FAutomaticTranslationDatas& Datas)
 {
 	return Datas.GetStartAutomatic();
 }
@@ -132,4 +132,38 @@ float UAutomaticTranslationDatasGet::GetGlobalStopDuration(const FAutomaticTrans
 TArray<FStopSplinePoint> UAutomaticTranslationDatasGet::GetStopSplinePoints(const FAutomaticTranslationDatas& Datas)
 {
 	return Datas.GetStopSplinePoints();
+}
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FAutomaticTranslationDatas UAutomaticTranslationDatasGet::MakeAutomaticTranslationDatas(float TranslationSpeed, EAutomaticTranslationType AutomaticTranslationType, UCurveFloat* TranslationCurve, bool bStartAutomatic, float StartDuration, UCurveFloat* StartCurve, float EndDuration, UCurveFloat* EndCurve, EStopBehavior StopBehavior, float GlobalStopDuration, TArray<FStopSplinePoint> StopSplinePoints)
+{
+	FAutomaticTranslationDatas Datas;
+
+	Datas.bOverrideAutomaticTranslation = true;
+	Datas.bOverrideStartPhase = true;
+	Datas.bOverrideEndPhase = true;
+	Datas.bOverrideAutomaticStop = true;
+
+
+	Datas.TranslationSpeed = TranslationSpeed;
+	Datas.AutomaticTranslationType = AutomaticTranslationType;
+	Datas.TranslationCurve = TranslationCurve;
+	Datas.bStartAutomatic = bStartAutomatic;
+
+	Datas.StartDuration = StartDuration;
+	Datas.StartCurve = StartCurve;
+
+	Datas.EndDuration = EndDuration;
+	Datas.EndCurve = EndCurve;
+
+	Datas.StopBehavior = StopBehavior;
+	Datas.GlobalStopDuration = GlobalStopDuration;
+	Datas.StopSplinePoints = StopSplinePoints;
+
+
+	return Datas;
 }

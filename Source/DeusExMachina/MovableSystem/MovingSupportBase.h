@@ -31,14 +31,27 @@ public:
 	// ====================
 	//  Movable Childrens
 	// ====================
+	
 	/** 
 	* Add a new movable child to this support.
 	* @param	MovableChild	The movable child to add.
 	*/
 	UFUNCTION(BlueprintCallable)
 	void AddMovableChild(UMovableObjectComponent* MovableChild);
+
+	/**
+	* Activate all movable childs of this support to make them follow this support's movements.
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Moving Support")
 	void StartMovementOnChildrens();
+
+	/**
+	* Desactivate all movable childs of this support to make them inactive (for performance reasons).
+	* @param	Delay	Set it to true if you need the childs to be active two more frames after this function. (Useful for movement behaviors.)
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Moving Support")
 	void StopMovementOnChildrens(bool Delay = true);
+
 
 	UFUNCTION()
 	void UpdateEveryChildrens(); //  bindable

@@ -6,6 +6,12 @@
 #include "StandardTranslationDatas.generated.h"
 
 
+
+// ========================================================================================================================
+//           Primary Data Asset
+// ========================================================================================================================
+
+
 UENUM(BlueprintType)
 enum class EStandardTranslationMode : uint8
 {
@@ -60,6 +66,12 @@ public:
 		meta = (Tooltip = "The interpolation curve that will smooth the Standard Translation.\n(Must be a normalized curve)"))
 	UCurveFloat* TranslationCurve{ nullptr };
 };
+
+
+
+// ========================================================================================================================
+//           Override Struct
+// ========================================================================================================================
 
 
 USTRUCT(BlueprintType)
@@ -129,6 +141,12 @@ struct FStandardTranslationDatas
 };
 
 
+
+// ========================================================================================================================
+//           Blueprint Function Library
+// ========================================================================================================================
+
+
 UCLASS()
 class DEUSEXMACHINA_API UStandardTranslationDatasGet : public UBlueprintFunctionLibrary
 {
@@ -145,7 +163,7 @@ public:
 	/**
 	* Get the 'TranslationSplinePoints' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The number of spline points to move this Translation Support (0 mean the support won't move).
-				A negative value will make the support going reverse.
+	*			A negative value will make the support going reverse.
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationSplinePoints"))
 	static int GetTranslationSplinePoints(const FStandardTranslationDatas& Datas);
@@ -153,8 +171,8 @@ public:
 	/**
 	* Get the 'TranslationSplineDistance' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The distance on the spline this Translation Support will do (0 mean the support won't move).
-				A negative value will make the support going reverse.
-				(In cm)
+	*			A negative value will make the support going reverse.
+	*			(In cm)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationSplineDistance"))
 	static float GetTranslationSplineDistance(const FStandardTranslationDatas& Datas);
@@ -169,7 +187,7 @@ public:
 	/**
 	* Get the 'TranslationDuration' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The time that the complete Standard Translation will take.
-				(In seconds)
+	*			(In seconds)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationDuration"))
 	static float GetTranslationDuration(const FStandardTranslationDatas& Datas);
@@ -177,16 +195,39 @@ public:
 	/**
 	* Get the 'TranslationSpeed' value, either the base one or the overriden one if needed out of this struct.
 	* @return	The speed of the Standard Translation.
-				(In cm/s)
+	*			(In cm/s)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationSpeed"))
 	static float GetTranslationSpeed(const FStandardTranslationDatas& Datas);
 
 	/**
 	* Get the 'TranslationCurve' value, either the base one or the overriden one if needed out of this struct.
-	* @return	The speed of the Standard Translation.
-				(In cm/s)
+	* @return	The interpolation curve that will smooth the Standard Translation.
+	*			(Must be a normalized curve)
 	*/
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "TranslationCurve"))
 	static UCurveFloat* GetTranslationCurve(const FStandardTranslationDatas& Datas);
+
+
+
+	/**
+	* Make a Sandard Translation Datas struct with custom values.
+	* @param	StandardTranslationMode			The standard translation mode to use for this Translation Support.
+	* @param	TranslationSplinePoints			The number of spline points to move this Translation Support (0 mean the support won't move).
+	*											A negative value will make the support going reverse.
+	* @param	TranslationSplineDistance		The distance on the spline this Translation Support will do (0 mean the support won't move).
+	*											A negative value will make the support going reverse.
+	*											(In cm)
+	* @param	StandardTranslationSpeedMode	The standard translation speed mode to use for this Translation Support.
+	* @param	TranslationDuration				The time that the complete Standard Translation will take.
+	*											(In seconds)
+	* @param	TranslationSpeed				The speed of the Standard Translation.
+	*											(In cm/s)
+	* @param	TranslationCurve				The interpolation curve that will smooth the Standard Translation.
+	*											(Must be a normalized curve)
+	* @return									The created Standard Translation Datas struct.
+	*/
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Standard Translation Datas", meta = (ReturnDisplayName = "StandardTranslationDatas"))
+	static FStandardTranslationDatas MakeStandardTranslationDatas(EStandardTranslationMode StandardTranslationMode, int TranslationSplinePoints, float TranslationSplineDistance,
+		EStandardTranslationSpeedMode StandardTranslationSpeedMode, float TranslationDuration, float TranslationSpeed, UCurveFloat* TranslationCurve);
 };

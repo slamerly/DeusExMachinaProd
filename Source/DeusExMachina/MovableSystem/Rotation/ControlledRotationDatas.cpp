@@ -65,3 +65,25 @@ bool UControlledRotationDatasGet::GetSnapIgnoreRanges(const FControlledRotationD
 {
 	return Datas.GetSnapIgnoreRanges();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FControlledRotationDatas UControlledRotationDatasGet::MakeControlledRotationDatas(float RotationSpeed, float StartupDuration, UCurveFloat* StartupCurve, bool bSnapIgnoreClamp, bool bSnapIgnoreRanges)
+{
+	FControlledRotationDatas Datas;
+
+	Datas.bOverrideSpeed = true;
+	Datas.bOverrideStartup = true;
+	Datas.bOverrideSnap = true;
+
+	Datas.RotationSpeed = RotationSpeed;
+	Datas.StartupDuration = StartupDuration;
+	Datas.StartupCurve = StartupCurve;
+	Datas.bSnapIgnoreClamp = bSnapIgnoreClamp;
+	Datas.bSnapIgnoreRanges = bSnapIgnoreRanges;
+
+	return Datas;
+}

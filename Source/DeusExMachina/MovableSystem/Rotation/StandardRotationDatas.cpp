@@ -45,3 +45,22 @@ UCurveFloat* UStandardRotationDatasGet::GetRotationCurve(const FStandardRotation
 {
 	return Datas.GetRotationCurve();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FStandardRotationDatas UStandardRotationDatasGet::MakeStandardRotationDatas(float RotationAngle, float RotationDuration, UCurveFloat* RotationCurve)
+{
+	FStandardRotationDatas Datas;
+
+	Datas.bOverrideValues = true;
+	Datas.bOverrideCurveValue = true;
+
+	Datas.RotationAngle = RotationAngle;
+	Datas.RotationDuration = RotationDuration;
+	Datas.RotationCurve = RotationCurve;
+
+	return Datas;
+}

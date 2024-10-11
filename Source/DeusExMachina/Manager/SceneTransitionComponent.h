@@ -34,8 +34,14 @@ public:
 	UFUNCTION()
 	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
+	void PassToNextScene(TSoftObjectPtr<UWorld> NextScene);
+
+	UFUNCTION(BlueprintCallable)
 	TSoftObjectPtr<UWorld> GetTargetScene();
+
+	UFUNCTION(BlueprintCallable)
+	void SetTargetScene(TSoftObjectPtr<UWorld> NewTargetScene);
 
 private:
 	TObjectPtr<AActor> SceneManager;

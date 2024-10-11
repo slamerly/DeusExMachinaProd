@@ -48,6 +48,14 @@ public:
 
 
 // ======================================================
+//                     Focus Actor
+// ======================================================
+public:
+	UPROPERTY(EditInstanceOnly, Category = "Focus Actor", meta = (Tooltip = "The actor the camera will focus when using this interactable."))
+	AActor* ActorToFocus{ nullptr };
+
+
+// ======================================================
 //                      Variables
 // ======================================================
 protected:

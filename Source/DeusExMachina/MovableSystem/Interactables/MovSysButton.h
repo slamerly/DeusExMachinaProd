@@ -113,6 +113,8 @@ public:
 
 	bool IsInteractableBothSides_Implementation() override;
 
+	AActor* GetInteractableFocusActor_Implementation() override;
+
 
 
 // ======================================================

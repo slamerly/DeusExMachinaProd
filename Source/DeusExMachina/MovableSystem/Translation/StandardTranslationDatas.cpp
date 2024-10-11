@@ -85,3 +85,26 @@ UCurveFloat* UStandardTranslationDatasGet::GetTranslationCurve(const FStandardTr
 {
 	return Datas.GetTranslationCurve();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FStandardTranslationDatas UStandardTranslationDatasGet::MakeStandardTranslationDatas(EStandardTranslationMode StandardTranslationMode, int TranslationSplinePoints, float TranslationSplineDistance, EStandardTranslationSpeedMode StandardTranslationSpeedMode, float TranslationDuration, float TranslationSpeed, UCurveFloat* TranslationCurve)
+{
+	FStandardTranslationDatas Datas;
+
+	Datas.bOverrideValues = true;
+	Datas.bOverrideCurveValue = true;
+
+	Datas.StandardTranslationMode = StandardTranslationMode;
+	Datas.TranslationSplinePoints = TranslationSplinePoints;
+	Datas.TranslationSplineDistance = TranslationSplineDistance;
+	Datas.StandardTranslationSpeedMode = StandardTranslationSpeedMode;
+	Datas.TranslationDuration = TranslationDuration;
+	Datas.TranslationSpeed = TranslationSpeed;
+	Datas.TranslationCurve = TranslationCurve;
+
+	return Datas;
+}

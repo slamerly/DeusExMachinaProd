@@ -42,15 +42,25 @@ void USceneTransitionComponent::OnComponentBeginOverlap(UPrimitiveComponent* Ove
 {
 	if (UGameplayStatics::GetPlayerPawn(this, 0) == OtherActor)
 	{
-		if (SceneManager)
-		{
-			Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, true);
-		}
+		PassToNextScene(TargetScene);
+	}
+}
+
+void USceneTransitionComponent::PassToNextScene(TSoftObjectPtr<UWorld> NextScene)
+{
+	if (SceneManager)
+	{
+		Cast<ASceneManager>(SceneManager)->ChangeScene(TargetScene, true);
 	}
 }
 
 TSoftObjectPtr<UWorld> USceneTransitionComponent::GetTargetScene()
 {
 	return TargetScene;
+}
+
+void USceneTransitionComponent::SetTargetScene(TSoftObjectPtr<UWorld> NewTargetScene)
+{
+	TargetScene = NewTargetScene;
 }
 

@@ -3,7 +3,7 @@
 
 #include "SaveProgress.h"
 
-TArray<FSceneProgress> USaveProgress::GetScenesProgress()
+TArray<FPuzzleProgress> USaveProgress::GetScenesProgress()
 {
 	return ScenesProgress;
 }
@@ -32,11 +32,11 @@ void USaveProgress::SetProgress(FString pSceneName, bool bIsDone)
 
 		if (!created)
 		{
-			ScenesProgress.Add(FSceneProgress(pSceneName, bIsDone));
+			ScenesProgress.Add(FPuzzleProgress(pSceneName, bIsDone));
 		}
 	}
 	else
 	{
-		ScenesProgress.Add(FSceneProgress(pSceneName, bIsDone));
+		ScenesProgress.Add(FPuzzleProgress(pSceneName, bIsDone));
 	}
 }

@@ -69,6 +69,8 @@ public:
 	bool IsInteractionHeavy_Implementation() override;
 	bool IsInteractableBothSides_Implementation() override;
 
+	AActor* GetInteractableFocusActor_Implementation() override;
+
 
 // ======================================================
 //              Mov Sys Interactable Base

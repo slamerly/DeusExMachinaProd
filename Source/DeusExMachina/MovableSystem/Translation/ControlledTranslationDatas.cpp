@@ -98,3 +98,34 @@ UCurveFloat* UControlledTranslationDatasGet::GetSnapCurveContinue(const FControl
 {
 	return Datas.GetSnapCurveContinue();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FControlledTranslationDatas UControlledTranslationDatasGet::MakeControlledTranslationDatas(float TranslationSpeed, float StartupDuration, UCurveFloat* StartupCurve, bool bUseSnap, float SnapPreference, float SnapSpeed, UCurveFloat* SnapCurveNeutralReverse, UCurveFloat* SnapCurveContinue)
+{
+	FControlledTranslationDatas Datas;
+
+	Datas.bOverrideSpeed = true;
+	Datas.bOverrideStartup = true;
+	Datas.bOverrideSnap = true;
+	Datas.bOverrideSnapCurves = true;
+
+
+	Datas.TranslationSpeed = TranslationSpeed;
+
+	Datas.StartupDuration = StartupDuration;
+	Datas.StartupCurve = StartupCurve;
+
+	Datas.bUseSnap = bUseSnap;
+	Datas.SnapPreference = SnapPreference;
+	Datas.SnapPreference = SnapPreference;
+
+	Datas.SnapCurveNeutralReverse = SnapCurveNeutralReverse;
+	Datas.SnapCurveContinue = SnapCurveContinue;
+
+
+	return Datas;
+}

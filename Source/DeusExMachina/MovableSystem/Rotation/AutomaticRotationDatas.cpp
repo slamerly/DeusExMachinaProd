@@ -143,3 +143,38 @@ TArray<FStopDefinedAngle> UAutomaticRotationDatasGet::GetStopDefinedAngles(const
 {
 	return Datas.GetStopDefinedAngles();
 }
+
+
+
+// ======================================================
+//            Custom Make Function (Blueprint)
+// ======================================================
+FAutomaticRotationDatas UAutomaticRotationDatasGet::MakeAutomaticRotationDatas(float RotationSpeed, EAutomaticRotationType AutomaticRotationType, UCurveFloat* RotationCurve, bool bStartAutomatic, float StartDuration, UCurveFloat* StartCurve, float EndDuration, UCurveFloat* EndCurve, ERotStopBehavior StopBehavior, int StopIntervalAngle, float GlobalStopDuration, TArray<FStopDefinedAngle> StopDefinedAngles)
+{
+	FAutomaticRotationDatas Datas;
+
+	Datas.bOverrideAutomaticRotationPart = true;
+	Datas.bOverrideStartPhasePart = true;
+	Datas.bOverrideEndPhasePart = true;
+	Datas.bOverrideAutomaticStop = true;
+
+
+	Datas.RotationSpeed = RotationSpeed;
+	Datas.AutomaticRotationType = AutomaticRotationType;
+	Datas.RotationCurve = RotationCurve;
+	Datas.bStartAutomatic = bStartAutomatic;
+
+	Datas.StartDuration = StartDuration;
+	Datas.StartCurve = StartCurve;
+
+	Datas.EndDuration = EndDuration;
+	Datas.EndCurve = EndCurve;
+
+	Datas.StopBehavior = StopBehavior;
+	Datas.StopIntervalAngle = StopIntervalAngle;
+	Datas.GlobalStopDuration = GlobalStopDuration;
+	Datas.StopDefinedAngles = StopDefinedAngles;
+
+
+	return Datas;
+}
